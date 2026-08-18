@@ -1363,3 +1363,139 @@ button{cursor:pointer}
   line-height:1.55;
   pointer-events:none;
 }
+
+
+/* ===== V50 document templates & advanced layout ===== */
+.tabs{
+  grid-template-columns:repeat(4,1fr) !important;
+}
+
+.template-preview-row{
+  display:grid;
+  grid-template-columns:72px 1fr;
+  gap:10px;
+  align-items:center;
+  margin-top:8px;
+}
+.template-mini-preview{
+  width:54px;
+  height:76px;
+  margin:auto;
+  border:1px solid #d3cec6;
+  border-radius:4px;
+  background:#fff;
+  box-shadow:0 4px 12px rgba(40,35,30,.08);
+  position:relative;
+  transition:width .2s ease,height .2s ease;
+}
+.template-mini-title{
+  position:absolute;
+  left:9px;right:9px;top:10px;
+  height:4px;border-radius:3px;background:#bbb5ad;
+}
+.template-mini-lines{
+  position:absolute;
+  left:9px;right:9px;top:22px;bottom:9px;
+  background:repeating-linear-gradient(to bottom,#ddd8d1 0,#ddd8d1 1px,transparent 1px,transparent 7px);
+}
+
+.layout-subhead{
+  margin:14px 0 7px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:#77716a;
+}
+.layout-check{
+  margin-top:2px !important;
+}
+.custom-position-grid{
+  display:none;
+}
+.custom-position-grid.active{
+  display:block;
+}
+
+/* The title/subtitle are managed as free-position layers. */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  position:absolute;
+  z-index:4;
+  width:64%;
+  margin:0;
+  border:0;
+  background:transparent;
+  box-sizing:border-box;
+}
+.paper.layout-enabled .title-input{
+  padding:0;
+}
+.paper.layout-enabled .subtitle-input{
+  padding:0 0 5px;
+  border-bottom:1px solid rgba(120,110,100,.16);
+}
+
+/* body layout */
+.paper.layout-enabled .editor{
+  position:relative;
+  z-index:2;
+  padding-top:24px;
+  column-fill:auto;
+  column-rule:0;
+  transition:column-gap .15s ease;
+}
+.paper.layout-enabled.layout-heading-top .editor{
+  padding-top:96px;
+}
+.paper.layout-enabled.layout-no-heading .editor{
+  padding-top:18px;
+}
+
+/* Multi-column */
+.paper.layout-enabled .editor.layout-columns{
+  column-fill:auto;
+}
+
+/* Vertical writing */
+.paper.layout-enabled .editor.writing-vertical{
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  word-break:normal;
+  overflow-wrap:normal;
+}
+.paper.layout-enabled .editor.writing-horizontal{
+  writing-mode:horizontal-tb;
+}
+
+/* Smaller template padding */
+.paper[data-document-template="postcard"],
+.paper[data-document-template="card"],
+.paper[data-document-template="square"]{
+  padding:28px 34px 22px !important;
+}
+.paper[data-document-template="card"] .paper-footer,
+.paper[data-document-template="postcard"] .paper-footer{
+  min-height:22px;
+}
+
+/* Preview/export must obey dynamic dimensions rather than old A4 CSS. */
+#previewHost .paper.layout-enabled,
+.export-host .paper.layout-enabled{
+  max-width:none !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  aspect-ratio:auto !important;
+}
+#previewHost .paper.layout-enabled .editor,
+.export-host .paper.layout-enabled .editor{
+  min-height:0 !important;
+  height:auto !important;
+  overflow:hidden !important;
+}
+
+@media(max-width:1180px){
+  .tabs{gap:3px}
+  .tab{font-size:8px;padding-left:3px;padding-right:3px}
+}
