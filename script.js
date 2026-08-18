@@ -2,7 +2,7 @@ const $=id=>document.getElementById(id);
 const KEY="my-writing-editor-v2";
 const DB="my-writing-editor-assets-v10", DBV=1, FONT_STORE="fonts", BG_STORE="backgrounds";
 
-let savedRange=null, slotMenuTarget=null, activeBgUrl=null, editScope="all";
+let savedRange=null, slotMenuTarget=null, activeBgUrl=null, customFontUrls=new Map();
 let state=loadState();
 let currentSlotId=state.currentSlotId;
 
@@ -166,16 +166,6 @@ $("addSlotBtn").onclick=()=>{saveCurrent(false);const s=newSlot(state.slots.leng
 ["titleInput","subtitleInput","editor"].forEach(id=>$(id).addEventListener("input",scheduleSave));
 
 
-document.querySelectorAll(".scope-btn").forEach(btn=>{
-  btn.onclick=()=>{
-    editScope=btn.dataset.scope;
-    document.querySelectorAll(".scope-btn").forEach(b=>b.classList.toggle("active",b===btn));
-    $("scopeHint").textContent = editScope==="all"
-      ? "현재 페이지 본문 전체에 적용됩니다."
-      : "드래그해서 선택한 글자에만 적용됩니다.";
-  };
-});
-
 document.addEventListener("selectionchange",()=>{
   const sel=getSelection();
   if(!sel?.rangeCount)return;
@@ -190,106 +180,109 @@ document.querySelectorAll("[data-cmd]").forEach(b=>{
   b.addEventListener("mousedown",e=>e.preventDefault());
   b.onclick=()=>{
     const cmd=b.dataset.cmd;
-    if(editScope==="selection"){
-      if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 드래그해 선택해주세요.");
+
+    if(["indent","outdent"].includes(cmd)){
+      applyParagraphIndent(cmd==="indent"?1:-1);
+      return;
+    }
+
+    if(["justifyLeft","justifyCenter","justifyRight","justifyFull"].includes(cmd)){
+      applyParagraphAlignment(cmd);
+      return;
+    }
+
+    if(["insertUnorderedList","insertOrderedList","undo","redo"].includes(cmd)){
+      restoreSelection();
       exec(cmd);
       return;
     }
-    const p=currentPage().pageTypography;
-    if(cmd==="bold"){p.fontWeight=(effectiveTypography().fontWeight==="700"?"400":"700");applyTypography();persist();}
-    else if(cmd==="italic"){p.fontStyle=(effectiveTypography().fontStyle==="italic"?"normal":"italic");applyTypography();persist();}
-    else if(cmd==="underline"){
-      const d=effectiveTypography().textDecoration||"";
-      p.textDecoration=d.includes("underline")?d.replace("underline","").trim():(d+" underline").trim();applyTypography();persist();
-    }
-    else if(cmd==="strikeThrough"){
-      const d=effectiveTypography().textDecoration||"";
-      p.textDecoration=d.includes("line-through")?d.replace("line-through","").trim():(d+" line-through").trim();applyTypography();persist();
-    }
-    else if(["justifyLeft","justifyCenter","justifyRight","justifyFull"].includes(cmd)){
-      const map={justifyLeft:"left",justifyCenter:"center",justifyRight:"right",justifyFull:"justify"};
-      p.textAlign=map[cmd];applyTypography();persist();
-    }else{
-      // Structural commands still act on current caret/selection
-      exec(cmd);
-    }
-  }
+
+    if(!hasSelection()) return alert("수정할 글자를 먼저 드래그해주세요.");
+    exec(cmd);
+  };
 });
 
-$("fontFamily").onchange=e=>{
-  if(editScope==="selection"){
-    if(!hasSelection()) return;
-    applySelectionStyle("fontFamily",e.target.value);
+
+function selectedBlocks(){
+  restoreSelection();
+  const sel=getSelection();
+  if(!sel?.rangeCount) return [];
+  const range=sel.getRangeAt(0);
+  if(!$("editor").contains(range.commonAncestorContainer)) return [];
+
+  const blocks=[];
+  const candidates=$("editor").querySelectorAll("p,div,blockquote,li,h1,h2,h3");
+  candidates.forEach(el=>{
+    try{
+      if(range.intersectsNode(el) && !el.classList.contains("paragraph-divider")) blocks.push(el);
+    }catch{}
+  });
+
+  if(!blocks.length){
+    let node=range.startContainer.nodeType===3?range.startContainer.parentNode:range.startContainer;
+    while(node && node!==$("editor")){
+      if(/^(P|DIV|BLOCKQUOTE|LI|H1|H2|H3)$/.test(node.tagName)){blocks.push(node);break}
+      node=node.parentNode;
+    }
   }
+  return [...new Set(blocks)];
+}
+
+function applyParagraphIndent(direction){
+  const blocks=selectedBlocks();
+  if(!blocks.length) return alert("들여쓰기할 문단에 커서를 두거나 문단을 선택해주세요.");
+  blocks.forEach(el=>{
+    const currentPx=parseFloat(el.style.marginLeft)||0;
+    el.style.marginLeft=Math.max(0,currentPx + direction*24)+"px";
+  });
+  scheduleSave();
+}
+
+function applyParagraphAlignment(cmd){
+  const map={justifyLeft:"left",justifyCenter:"center",justifyRight:"right",justifyFull:"justify"};
+  const blocks=selectedBlocks();
+  if(!blocks.length) return alert("정렬할 문단에 커서를 두거나 문단을 선택해주세요.");
+  blocks.forEach(el=>el.style.textAlign=map[cmd]);
+  scheduleSave();
+}
+
+$("fontFamily").onchange=e=>{
+  if(!hasSelection()) return;
+  applySelectionStyle("fontFamily",e.target.value);
 };
 $("fontSize").onchange=e=>{
+  if(!hasSelection()) return;
   const pt=Math.max(6,Math.min(54,Number(e.target.value)||12));
-  if(editScope==="selection"){
-    if(!hasSelection()) return;
-    applySelectionStyle("fontSize",pt+"pt");
-  }
+  applySelectionStyle("fontSize",pt+"pt");
 };
 
 
 
-function collectTypographyControls(){
-  return {
-    fontFamily:$("fontFamily").value||"Pretendard",
-    fontSizePt:Math.max(6,Math.min(54,Number($("fontSize").value)||12)),
-    textColor:$("textColor").value||"#3f3d3b",
-    highlightColor:$("highlightColor").value||"#fff2a8",
-    letterSpacing:Number($("letterSpacing").value)||0,
-    lineHeight:(Number($("lineHeight").value)||125)/100,
-    paragraphSpacing:Number($("paragraphSpacing").value)||0,
-    breakSpacing:Number($("breakSpacing").value)||0,
-    widthScale:Number($("widthScale").value)||100
-  };
-}
-$("batchApplyBtn").onclick=()=>{
-  const values=collectTypographyControls();
-  if(editScope==="all"){
-    currentPage().pageTypography={...(currentPage().pageTypography||{}),...values};
-    applyTypography();persist();syncControls();
-  }else{
-    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 드래그해 선택해주세요.");
-    applySelectionStyle("fontFamily",values.fontFamily);
-    applySelectionStyle("fontSize",values.fontSizePt+"pt");
-    applySelectionStyle("color",values.textColor);
-    applySelectionStyle("letterSpacing",(values.letterSpacing/100)+"em");
-    applySelectionStyle("lineHeight",String(values.lineHeight));
-    applySelectionStyle("marginBottom",values.paragraphSpacing+"px");
-    if(values.widthScale!==100) applySelectionWidthScale(values.widthScale);
-  }
-};
 
+$("applyFontSectionBtn").onclick=()=>{
+  const p=currentPage();
+  p.pageTypography=p.pageTypography||{};
+  p.pageTypography.fontFamily=$("fontFamily").value||"Pretendard";
+  p.pageTypography.fontSizePt=Math.max(6,Math.min(54,Number($("fontSize").value)||12));
+  p.pageTypography.textColor=$("textColor").value||"#3f3d3b";
+  p.pageTypography.highlightColor=$("highlightColor").value||"#fff2a8";
+  applyTypography();
+  persist();
+  syncControls();
+};
 $("applyTextColorBtn").onclick=()=>{
-  const color=$("textColor").value;
-  if(editScope==="selection"){
-    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
-    exec("foreColor",color);
-  }else{
-    currentPage().pageTypography.textColor=color;
-    applyTypography();persist();syncControls();
-  }
+  if(!hasSelection()) return alert("글자색을 바꿀 부분을 먼저 드래그해주세요.");
+  applySelectionStyle("color",$("textColor").value);
 };
 
 $("applyHighlightBtn").onclick=()=>{
-  const color=$("highlightColor").value;
-  if(editScope==="selection"){
-    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
-    exec("hiliteColor",color);
-  }else{
-    applyStyleToAllText("backgroundColor",color);
-  }
+  if(!hasSelection()) return alert("형광펜을 적용할 부분을 먼저 드래그해주세요.");
+  applySelectionStyle("backgroundColor",$("highlightColor").value);
 };
 
 $("removeHighlightBtn").onclick=()=>{
-  if(editScope==="selection"){
-    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
-    exec("hiliteColor","transparent");
-  }else{
-    clearStyleFromAllText("backgroundColor");
-  }
+  if(!hasSelection()) return alert("형광펜을 지울 부분을 먼저 드래그해주세요.");
+  applySelectionStyle("backgroundColor","transparent");
 };
 
 function resetPageFormatting(){
@@ -378,7 +371,33 @@ function toggleWholeTextDecoration(kind){
 }
 
 function hasSelection(){restoreSelection();const s=getSelection();return !!(s&&s.rangeCount&&!s.isCollapsed&&$("editor").contains(s.getRangeAt(0).commonAncestorContainer))}
-function applySelectionStyle(prop,value){restoreSelection();const s=getSelection();if(!s?.rangeCount||s.isCollapsed)return false;const r=s.getRangeAt(0),span=document.createElement("span");span.style[prop]=value;try{r.surroundContents(span)}catch{const f=r.extractContents();span.appendChild(f);r.insertNode(span)}rememberSelection();scheduleSave();return true}
+function applySelectionStyle(prop,value){
+  restoreSelection();
+  const sel=getSelection();
+  if(!sel?.rangeCount || sel.isCollapsed) return false;
+  const range=sel.getRangeAt(0);
+  if(!$("editor").contains(range.commonAncestorContainer)) return false;
+
+  const span=document.createElement("span");
+  span.className="selection-style";
+  span.style[prop]=value;
+
+  try{
+    range.surroundContents(span);
+  }catch{
+    const frag=range.extractContents();
+    span.appendChild(frag);
+    range.insertNode(span);
+  }
+
+  const newRange=document.createRange();
+  newRange.selectNodeContents(span);
+  sel.removeAllRanges();
+  sel.addRange(newRange);
+  savedRange=newRange.cloneRange();
+  scheduleSave();
+  return true;
+}
 function applySelectionWidthScale(percent){
   restoreSelection();
   const s=getSelection(); if(!s?.rangeCount||s.isCollapsed)return false;
@@ -420,16 +439,19 @@ function applyTypography(){
 function bindRange(id,key,format){
   $(id).oninput=e=>{
     const value=format(Number(e.target.value));
-    if(editScope==="selection"){
-      if(!hasSelection()) return;
-      if(key==="letterSpacing") applySelectionStyle("letterSpacing",(value/100)+"em");
-      else if(key==="lineHeight") applySelectionStyle("lineHeight",String(value));
-      else if(key==="paragraphSpacing") applySelectionStyle("marginBottom",value+"px");
-      else if(key==="breakSpacing") applySelectionStyle("paddingBottom",value+"px");
-      else if(key==="widthScale") applySelectionWidthScale(value);
-    }
     updateSpacingOutputsOnly();
-  }
+    if(!hasSelection()) return;
+
+    if(key==="letterSpacing") applySelectionStyle("letterSpacing",(value/100)+"em");
+    else if(key==="lineHeight") applySelectionStyle("lineHeight",String(value));
+    else if(key==="paragraphSpacing"){
+      const blocks=selectedBlocks();
+      blocks.forEach(el=>el.style.marginBottom=value+"px");
+      scheduleSave();
+    }
+    else if(key==="breakSpacing") applySelectionStyle("paddingBottom",value+"px");
+    else if(key==="widthScale") applySelectionWidthScale(value);
+  };
 }
 function updateSpacingOutputsOnly(){
   $("letterSpacingOut").textContent=(Number($("letterSpacing").value)/100)+"em";
@@ -439,6 +461,19 @@ function updateSpacingOutputsOnly(){
   $("widthScaleOut").textContent=$("widthScale").value+"%";
 }
 
+
+$("applySpacingBtn").onclick=()=>{
+  const p=currentPage();
+  p.pageTypography=p.pageTypography||{};
+  p.pageTypography.letterSpacing=Number($("letterSpacing").value)||0;
+  p.pageTypography.lineHeight=(Number($("lineHeight").value)||125)/100;
+  p.pageTypography.paragraphSpacing=Number($("paragraphSpacing").value)||0;
+  p.pageTypography.breakSpacing=Number($("breakSpacing").value)||0;
+  p.pageTypography.widthScale=Number($("widthScale").value)||100;
+  applyTypography();
+  persist();
+  syncControls();
+};
 bindRange("letterSpacing","letterSpacing",v=>v);
 bindRange("lineHeight","lineHeight",v=>v/100);
 bindRange("paragraphSpacing","paragraphSpacing",v=>v);
@@ -515,7 +550,8 @@ function applyBackground(){
   p.style.borderColor=b.paperBorderColor||"#d8d2c8";
   p.style.borderWidth=(b.paperBorderStyle==="none"?0:(b.paperBorderWidth??1))+"px";
   p.style.boxShadow=`0 ${Math.max(4,(b.paperShadow??16)/2)}px ${Math.max(0,(b.paperShadow??16)*2.8)}px rgba(40,35,30,${Math.min(.28,(b.paperShadow??16)/120)})`;
-  p.style.setProperty("--paper-frame-inset",(b.paperInnerInset??0)+"px");
+  p.style.setProperty("--paper-user-frame-inset",((b.paperInnerInset??0)+18)+"px");
+  p.style.setProperty("--paper-frame-inset",((b.paperInnerInset??0)+18)+"px");
   p.style.setProperty("--paper-frame-color",b.paperFrameColor||"#bdb5a8");
   p.classList.remove("frame-simple","frame-double","frame-corner");
   if(b.paperFrameStyle&&b.paperFrameStyle!=="none")p.classList.add("frame-"+b.paperFrameStyle);
@@ -630,10 +666,7 @@ $("fontUpload").onchange=async e=>{
   await loadFonts();
   const family="user-"+id;
   $("fontFamily").value=family;
-  if(editScope==="all"){
-    currentPage().pageTypography.fontFamily=family;
-    applyTypography();persist();
-  }
+  if(hasSelection()) applySelectionStyle("fontFamily",family);
   e.target.value="";
 };
 async function loadFonts(){
@@ -719,13 +752,30 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
   }
   return clone;
 }
+function fitPreviewPage(){
+  const host=$("previewHost"),paper=host.querySelector(".paper");
+  if(!paper)return;
+  paper.style.transform="none";
+  const availableW=Math.max(200,host.clientWidth-8);
+  const availableH=Math.max(200,host.clientHeight-8);
+  const paperW=paper.scrollWidth||794;
+  const paperH=paper.scrollHeight||1123;
+  const scale=Math.min(availableW/paperW,availableH/paperH,1);
+  paper.style.transform=`scale(${scale})`;
+}
 function renderPreviewPage(){
   const s=current();
   previewPageIndex=Math.max(0,Math.min(s.pages.length-1,previewPageIndex));
-  const h=$("previewHost");h.innerHTML="";h.appendChild(clonePageForIndex(previewPageIndex));
+  const h=$("previewHost");
+  h.classList.add("preview-fit-host");
+  h.innerHTML="";
+  h.appendChild(clonePageForIndex(previewPageIndex));
+  $("previewModal").querySelector(".modal-dialog")?.classList.add("preview-fit-dialog");
+  $("previewModal").querySelector(".modal-stage")?.classList.add("preview-fit-stage");
   $("previewPageLabel").textContent=`${String(previewPageIndex+1).padStart(2,"0")} / ${String(s.pages.length).padStart(2,"0")}`;
   $("previewPrevBtn").disabled=previewPageIndex===0;
   $("previewNextBtn").disabled=previewPageIndex===s.pages.length-1;
+  requestAnimationFrame(()=>requestAnimationFrame(fitPreviewPage));
 }
 $("previewBtn").onclick=()=>{saveCurrent(false);previewPageIndex=current().currentPageIndex||0;renderPreviewPage();$("previewModal").hidden=false};
 $("previewPrevBtn").onclick=()=>{previewPageIndex--;renderPreviewPage()};
@@ -801,3 +851,5 @@ $("exportBackupBtn").onclick=()=>download(new Blob([JSON.stringify(state,null,2)
 $("importBackupInput").onchange=e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.slots?.length)throw 0;state=d;currentSlotId=d.currentSlotId||d.slots[0].id;persist();renderAll()}catch{alert("올바른 백업 파일이 아닙니다.")}};r.readAsText(f)};
 
 loadFonts();renderAll();syncBackgroundOptionPanels();
+
+window.addEventListener("resize",()=>{if(!$("previewModal").hidden)fitPreviewPage();});
