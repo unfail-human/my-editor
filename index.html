@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="50">
+  <meta name="my-editor-version" content="51">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -26,7 +26,7 @@
 
 
 
-  <link rel="stylesheet" href="style.css?v=50">
+  <link rel="stylesheet" href="style.css?v=51">
 </head>
 <body>
 
@@ -313,12 +313,18 @@
           <input id="coverTitleFirstPage" type="checkbox">
           <span>제목과 소제목을 첫 페이지에만 표시</span>
         </label>
-        <p class="hint">체크하면 1페이지를 표지처럼 사용할 수 있고, 2페이지부터는 본문 영역만 표시됩니다.</p>
 
-        <div class="layout-subhead">제목 위치</div>
+        <label class="check-field layout-check">
+          <input id="coverTitleLargeFirstPage" type="checkbox">
+          <span>첫 페이지에서 제목·소제목 크게 표시</span>
+        </label>
+
+        <p class="hint">첫 페이지 전용 옵션을 켜면 1페이지를 표지처럼 사용할 수 있습니다.</p>
+
+        <div class="layout-subhead">제목 + 소제목 위치</div>
         <label class="field">
           <span>배치</span>
-          <select id="titlePosition">
+          <select id="headingPosition">
             <option value="top-left">위 · 왼쪽</option>
             <option value="top-center">위 · 가운데</option>
             <option value="center">정중앙</option>
@@ -327,44 +333,21 @@
             <option value="custom">자유 배치</option>
           </select>
         </label>
-        <div id="titleCustomPosition" class="custom-position-grid">
+
+        <div id="headingCustomPosition" class="custom-position-grid">
           <label class="range-field">
             <span>가로 위치</span>
-            <input id="titlePosX" type="range" min="5" max="95" value="18">
-            <output id="titlePosXOut">18%</output>
+            <input id="headingPosX" type="range" min="5" max="95" value="18">
+            <output id="headingPosXOut">18%</output>
           </label>
           <label class="range-field">
             <span>세로 위치</span>
-            <input id="titlePosY" type="range" min="5" max="90" value="10">
-            <output id="titlePosYOut">10%</output>
+            <input id="headingPosY" type="range" min="5" max="90" value="10">
+            <output id="headingPosYOut">10%</output>
           </label>
         </div>
 
-        <div class="layout-subhead">소제목 위치</div>
-        <label class="field">
-          <span>배치</span>
-          <select id="subtitlePosition">
-            <option value="under-title">제목 바로 아래</option>
-            <option value="top-left">위 · 왼쪽</option>
-            <option value="top-center">위 · 가운데</option>
-            <option value="center">정중앙</option>
-            <option value="bottom-left">아래 · 왼쪽</option>
-            <option value="bottom-center">아래 · 가운데</option>
-            <option value="custom">자유 배치</option>
-          </select>
-        </label>
-        <div id="subtitleCustomPosition" class="custom-position-grid">
-          <label class="range-field">
-            <span>가로 위치</span>
-            <input id="subtitlePosX" type="range" min="5" max="95" value="18">
-            <output id="subtitlePosXOut">18%</output>
-          </label>
-          <label class="range-field">
-            <span>세로 위치</span>
-            <input id="subtitlePosY" type="range" min="5" max="90" value="18">
-            <output id="subtitlePosYOut">18%</output>
-          </label>
-        </div>
+        <p class="hint">제목과 소제목은 한 묶음으로 이동합니다. 배치를 바꾸면 본문 영역도 자동으로 비켜서 겹치지 않게 조정됩니다.</p>
       </section>
     </div>
 
@@ -811,7 +794,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=50"></script>
-<script src="script.js?v=50"></script>
+<script src="notice.js?v=51"></script>
+<script src="script.js?v=51"></script>
 </body>
 </html>

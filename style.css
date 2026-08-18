@@ -1499,3 +1499,53 @@ button{cursor:pointer}
   .tabs{gap:3px}
   .tab{font-size:8px;padding-left:3px;padding-right:3px}
 }
+
+
+/* ===== V51 heading group / body avoidance ===== */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  width:68%;
+}
+
+.paper.layout-enabled.heading-large-first .title-input{
+  font-size:clamp(26px,4.2vw,42px) !important;
+  line-height:1.12 !important;
+  font-weight:800 !important;
+}
+
+.paper.layout-enabled.heading-large-first .subtitle-input{
+  font-size:clamp(13px,1.8vw,18px) !important;
+  line-height:1.35 !important;
+  margin-top:10px !important;
+}
+
+.paper.layout-enabled.body-clear-top .editor{
+  padding-top:132px !important;
+}
+
+.paper.layout-enabled.body-clear-center .editor{
+  padding-top:38px !important;
+  padding-bottom:145px !important;
+}
+
+.paper.layout-enabled.body-clear-bottom .editor{
+  padding-top:28px !important;
+  padding-bottom:150px !important;
+}
+
+/* Landscape needs a little more breathing room because title lines are wider. */
+.paper.layout-enabled[data-document-orientation="landscape"].body-clear-top .editor{
+  padding-top:118px !important;
+}
+
+.paper.layout-enabled[data-document-orientation="landscape"].heading-large-first.body-clear-top .editor{
+  padding-top:150px !important;
+}
+
+.paper.layout-enabled[data-document-orientation="landscape"].heading-large-first.body-clear-center .editor{
+  padding-bottom:175px !important;
+}
+
+.paper.layout-enabled[data-document-orientation="landscape"].heading-large-first.body-clear-bottom .editor{
+  padding-bottom:180px !important;
+}

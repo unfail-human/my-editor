@@ -25,12 +25,10 @@ const DISTRIBUTION_LAYOUT={
   columns:1,
   columnGap:28,
   coverTitleFirstPage:false,
-  titlePosition:"top-left",
-  titleX:18,
-  titleY:10,
-  subtitlePosition:"under-title",
-  subtitleX:18,
-  subtitleY:18
+  coverTitleLargeFirstPage:false,
+  headingPosition:"top-left",
+  headingX:18,
+  headingY:10
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
 function defaultBackground(){return structuredClone(DISTRIBUTION_BACKGROUND)}
@@ -142,7 +140,22 @@ async function loadSlotThumbnail(slotId,card){
 function currentLayout(){
   const s=current();
   if(!s.layout)s.layout=defaultLayout();
-  s.layout={...defaultLayout(),...s.layout};
+
+  const old=s.layout||{};
+  const migrated={...defaultLayout(),...old};
+
+  // v50 → v51 migration: title/subtitle positions are now one heading group.
+  if(!old.headingPosition && old.titlePosition){
+    migrated.headingPosition=old.titlePosition;
+  }
+  if(old.headingX==null && old.titleX!=null){
+    migrated.headingX=old.titleX;
+  }
+  if(old.headingY==null && old.titleY!=null){
+    migrated.headingY=old.titleY;
+  }
+
+  s.layout=migrated;
   return s.layout;
 }
 
@@ -231,29 +244,38 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   paper.dataset.documentOrientation=layout.orientation;
 
   const showHeading=!layout.coverTitleFirstPage || pageIndex===0;
+  const largeHeading=showHeading && !!layout.coverTitleLargeFirstPage && pageIndex===0;
+
   paper.classList.toggle("layout-no-heading",!showHeading);
+  paper.classList.toggle("heading-large-first",largeHeading);
 
   if(title)title.style.display=showHeading?"":"none";
   if(subtitle)subtitle.style.display=showHeading?"":"none";
 
-  const titlePos=headingPreset(layout.titlePosition,layout.titleX,layout.titleY);
-  let subtitlePos;
-  if(layout.subtitlePosition==="under-title"){
-    subtitlePos={...titlePos,y:Math.min(90,titlePos.y+9)};
-  }else{
-    subtitlePos=headingPreset(layout.subtitlePosition,layout.subtitleX,layout.subtitleY);
-  }
+  const hp=headingPreset(layout.headingPosition,layout.headingX,layout.headingY);
+
+  // Title/subtitle always move as one group.
+  const subtitleOffset=largeHeading ? 12 : 8;
+  const titlePos={...hp};
+  const subtitlePos={...hp,y:Math.min(92,hp.y+subtitleOffset)};
 
   if(showHeading){
     setHeadingPosition(title,titlePos);
     setHeadingPosition(subtitle,subtitlePos);
   }
 
-  const topish=showHeading && (
-    titlePos.y<25 ||
-    subtitlePos.y<25
-  );
-  paper.classList.toggle("layout-heading-top",topish);
+  // Body automatically avoids the heading group.
+  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
+
+  if(showHeading){
+    if(hp.y < 30){
+      paper.classList.add("body-clear-top");
+    }else if(hp.y > 65){
+      paper.classList.add("body-clear-bottom");
+    }else{
+      paper.classList.add("body-clear-center");
+    }
+  }
 
   const vertical=layout.writingMode==="vertical";
   editor.classList.toggle("writing-vertical",vertical);
@@ -265,7 +287,6 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   editor.style.columnCount=vertical?1:Number(layout.columns||1);
   editor.style.columnGap=(layout.columnGap??28)+"px";
 }
-
 function applyDocumentLayout(){
   const s=current();
   const layout=currentLayout();
@@ -1306,18 +1327,13 @@ function syncControls(){
   $("columnGap").value=l.columnGap??28;
   $("columnGapOut").textContent=(l.columnGap??28)+"px";
   $("coverTitleFirstPage").checked=!!l.coverTitleFirstPage;
-  $("titlePosition").value=l.titlePosition;
-  $("titlePosX").value=l.titleX;
-  $("titlePosXOut").textContent=l.titleX+"%";
-  $("titlePosY").value=l.titleY;
-  $("titlePosYOut").textContent=l.titleY+"%";
-  $("subtitlePosition").value=l.subtitlePosition;
-  $("subtitlePosX").value=l.subtitleX;
-  $("subtitlePosXOut").textContent=l.subtitleX+"%";
-  $("subtitlePosY").value=l.subtitleY;
-  $("subtitlePosYOut").textContent=l.subtitleY+"%";
-  $("titleCustomPosition").classList.toggle("active",l.titlePosition==="custom");
-  $("subtitleCustomPosition").classList.toggle("active",l.subtitlePosition==="custom");
+  $("coverTitleLargeFirstPage").checked=!!l.coverTitleLargeFirstPage;
+  $("headingPosition").value=l.headingPosition;
+  $("headingPosX").value=l.headingX;
+  $("headingPosXOut").textContent=l.headingX+"%";
+  $("headingPosY").value=l.headingY;
+  $("headingPosYOut").textContent=l.headingY+"%";
+  $("headingCustomPosition").classList.toggle("active",l.headingPosition==="custom");
   updateTemplateMiniPreview();
 }
 
@@ -1361,11 +1377,16 @@ $("coverTitleFirstPage").onchange=e=>{
   renderAll();
 };
 
-$("titlePosition").onchange=e=>updateLayoutSetting("titlePosition",e.target.value);
-$("subtitlePosition").onchange=e=>updateLayoutSetting("subtitlePosition",e.target.value);
+$("coverTitleLargeFirstPage").onchange=e=>{
+  updateLayoutSetting("coverTitleLargeFirstPage",e.target.checked,{reflow:false});
+  renderAll();
+};
 
-[["titlePosX","titleX"],["titlePosY","titleY"],["subtitlePosX","subtitleX"],["subtitlePosY","subtitleY"]]
-.forEach(([id,key])=>{
+$("headingPosition").onchange=e=>{
+  updateLayoutSetting("headingPosition",e.target.value);
+};
+
+[["headingPosX","headingX"],["headingPosY","headingY"]].forEach(([id,key])=>{
   $(id).oninput=e=>{
     current().layout[key]=Number(e.target.value);
     persist();
