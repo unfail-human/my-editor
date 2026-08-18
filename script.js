@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -186,7 +186,7 @@ function templateDefaults(template){
     titleSize:34,
     headingGap:150,
     headingPosition:"top-left",
-    bodyShiftX:-2,titleWidth:86
+    bodyShiftX:-2,titleWidth:86,bodyMargin:2
   });
 }
 
@@ -346,13 +346,13 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   const shiftX=Math.max(-4,Math.min(5,Number(ts.bodyShiftX??-2)));
   // Safe body positioning:
   // adjust the body content box itself but clamp it inside paper margins.
-  const baseBodyLeft=ruleLeft+.35;
-  const baseBodyRight=ruleRight+.55;
+  const bodyMargin=Math.max(1,Math.min(10,Number(ts.bodyMargin??2)));
+  const baseBodyLeft=bodyMargin;
+  const baseBodyRight=Math.max(bodyMargin,bodyMargin+1);
 
-  // Negative shift means move left. We never allow the body to cross 2.2%.
-  const safeLeft=Math.max(2.2,baseBodyLeft+shiftX);
-  // Keep the right edge safely inside the paper too.
-  const safeRight=Math.max(3.2,baseBodyRight-shiftX);
+  // Position may shift the body, but never beyond the editable safe margin.
+  const safeLeft=Math.max(bodyMargin,baseBodyLeft+shiftX);
+  const safeRight=Math.max(bodyMargin,baseBodyRight-shiftX);
 
   paper.style.setProperty("--rule-left",ruleLeft+"%");
   paper.style.setProperty("--rule-right",ruleRight+"%");
@@ -1670,6 +1670,9 @@ function syncControls(){
   const bodyShiftX=ts.bodyShiftX??-2;
   $("templateBodyShiftX").value=bodyShiftX;
   $("templateBodyShiftXOut").textContent=bodyShiftX===0?"기본":(bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(bodyShiftX)+"%";
+  const bodyMargin=ts.bodyMargin??2;
+  $("templateBodyMargin").value=bodyMargin;
+  $("templateBodyMarginOut").textContent=bodyMargin+"%";
   const titleWidth=ts.titleWidth??86;
   $("templateTitleWidth").value=titleWidth;
   $("templateTitleWidthOut").textContent=titleWidth+"%";
@@ -1775,6 +1778,17 @@ $("templateTitleWidth").oninput=e=>{
   scheduleLayoutReflow();
 };
 $("templateTitleWidth").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+
+$("templateBodyMargin").oninput=e=>{
+  const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+  ts.bodyMargin=Number(e.target.value);
+  $("templateBodyMarginOut").textContent=e.target.value+"%";
+  persist();
+  applyDocumentLayout();
+  scheduleLayoutReflow();
+};
+$("templateBodyMargin").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 
 $("templateBodyShiftX").oninput=e=>{
   const layout=currentLayout();

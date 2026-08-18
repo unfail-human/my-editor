@@ -2053,3 +2053,9 @@ button{cursor:pointer}
   box-sizing:border-box !important;
   max-width:96% !important;
 }
+
+/* ===== V69 editable body margin ===== */
+.paper.layout-enabled{
+  --body-frame-left:2%;
+  --body-frame-right:3%;
+}
