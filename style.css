@@ -952,9 +952,10 @@ button{cursor:pointer}
 
 .paper-source-credit{
   position:absolute;
-  left:0;
+  right:0;
   bottom:0;
   max-width:72%;
+  text-align:right;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
