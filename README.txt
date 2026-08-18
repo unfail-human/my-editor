@@ -1,13 +1,18 @@
-MY EDITOR V32
+MY EDITOR V33
 
-추가
-- 사이트 화면 오른쪽 아래에 고정 출처 표기 추가
-- 표시 내용:
+긴급 클릭 안정화
+
+- 왼쪽 슬롯 하단의 '설정 내보내기 / 설정 불러오기' 완전 삭제
+- '전체 백업 / 백업 불러오기'만 유지
+- 관련 JavaScript 설정 팩 기능도 모두 제거
+- 사이트 하단 우측 출처 표시는 유지:
   MY EDITOR · unfail-human.github.io/my-editor/
-- 스크롤/탭/페이지 전환과 관계없이 항상 화면 하단 우측에 표시
-- 문서 편집 내용과 분리되어 사용자가 본문에서 삭제할 수 없음
-- 출처를 누르면 공식 MY EDITOR 주소가 새 탭으로 열림
-- 모바일에서는 공간 절약을 위해 MY EDITOR만 표시
+- 출처 표시는 pointer-events:none으로 설정해 어떤 버튼/탭 클릭도 가로채지 않음
+- 출처는 화면 하단 우측에서 계속 확인 가능
 
-GitHub에서는 index.html / style.css / script.js를 v32로 함께 교체하세요.
-루트 폰트 파일은 그대로 유지하면 됩니다.
+검증
+- Node JavaScript 문법 검사 통과
+- JavaScript가 참조하는 HTML ID 누락 없음
+- 삭제된 설정 내보내기/불러오기 JS 참조 없음
+
+GitHub에서는 index.html / style.css / script.js를 v33으로 모두 같이 교체하세요.
