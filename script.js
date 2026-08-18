@@ -28,7 +28,17 @@ const DISTRIBUTION_LAYOUT={
   coverTitleLargeFirstPage:false,
   headingPosition:"top-left",
   headingX:18,
-  headingY:10
+  headingY:10,
+  templateSettings:{
+    a4:{orientation:"portrait",titleSize:34,headingGap:150,headingPosition:"top-left"},
+    letter:{orientation:"portrait",titleSize:34,headingGap:148,headingPosition:"top-left"},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:104,headingPosition:"top-left"},
+    card:{orientation:"landscape",titleSize:27,headingGap:102,headingPosition:"top-left"},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:96,headingPosition:"top-left"},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:100,headingPosition:"top-left"},
+    square:{orientation:"portrait",titleSize:29,headingGap:118,headingPosition:"top-left"},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:88,headingPosition:"top-left"}
+  }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
 function defaultBackground(){return structuredClone(DISTRIBUTION_BACKGROUND)}
@@ -155,8 +165,41 @@ function currentLayout(){
     migrated.headingY=old.titleY;
   }
 
+  if(!migrated.template)migrated.template="a4";
+  if(!migrated.orientation)migrated.orientation="portrait";
+  if(!migrated.templateSettings)migrated.templateSettings={};
+  migrated.templateSettings={
+    ...defaultLayout().templateSettings,
+    ...migrated.templateSettings
+  };
   s.layout=migrated;
+  ensureTemplateSettings(s.layout);
   return s.layout;
+}
+
+
+function templateDefaults(template){
+  const defaults=defaultLayout().templateSettings||{};
+  return structuredClone(defaults[template]||{
+    orientation:"portrait",
+    titleSize:34,
+    headingGap:150,
+    headingPosition:"top-left"
+  });
+}
+
+function ensureTemplateSettings(layout=currentLayout()){
+  if(!layout.templateSettings)layout.templateSettings={};
+  const t=layout.template||"a4";
+  layout.templateSettings[t]={
+    ...templateDefaults(t),
+    ...(layout.templateSettings[t]||{})
+  };
+  return layout.templateSettings[t];
+}
+
+function currentTemplateSettings(){
+  return ensureTemplateSettings(currentLayout());
 }
 
 function layoutRatio(layout=currentLayout()){
@@ -208,30 +251,32 @@ function fitLivePaperToLayout(){
   if(!paper||!workspace)return;
 
   const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+  layout.orientation=ts.orientation||"portrait";
+
   const spec=layoutExportSpec(layout);
   const ratio=spec.widthPx/spec.heightPx;
   const rect=workspace.getBoundingClientRect();
 
-  // Each template has a distinct physical editing scale.
-  // A4 is the baseline; smaller/card formats visibly shrink and wide formats expand horizontally.
   const scaleMap={
     a4:1,
-    letter:1.02,
-    postcard:.68,
-    card:.72,
-    widecard:.82,
-    minicard:.72,
-    square:.76,
-    ticket:.76
+    letter:1,
+    postcard:.72,
+    card:.78,
+    widecard:.86,
+    minicard:.78,
+    square:.8,
+    ticket:.82
   };
-  const templateScale=scaleMap[layout.template]||1;
-  const baseA4Width=Math.min(690,Math.max(520,rect.width*.72));
-  let width=baseA4Width*templateScale;
+  const scale=scaleMap[layout.template]||1;
+
+  const maxW=Math.max(360,rect.width-54);
+  const maxH=Math.max(320,rect.height-42);
+  const baseline=Math.min(700,maxW*.78);
+
+  let width=baseline*scale;
   let height=width/ratio;
 
-  // Landscape should be visibly wide, but never leave the workspace.
-  const maxW=Math.max(320,rect.width-46);
-  const maxH=Math.max(280,rect.height-34);
   if(width>maxW){width=maxW;height=width/ratio}
   if(height>maxH){height=maxH;width=height*ratio}
 
@@ -268,6 +313,9 @@ function setHeadingPosition(el,pos){
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
 
+  const ts=ensureTemplateSettings(layout);
+  layout.orientation=ts.orientation||layout.orientation||"portrait";
+
   paper.classList.add("layout-enabled");
   paper.dataset.documentTemplate=layout.template;
   paper.dataset.documentOrientation=layout.orientation;
@@ -284,25 +332,18 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   if(title)title.style.display=showHeading?"":"none";
   if(subtitle)subtitle.style.display=showHeading?"":"none";
 
-  const hp=headingPreset(layout.headingPosition,layout.headingX,layout.headingY);
+  const effectivePosition=columns>1?"top-center":(ts.headingPosition||layout.headingPosition||"top-left");
+  const hp=headingPreset(effectivePosition,layout.headingX,layout.headingY);
 
-  // Heading group becomes a wider, cleaner visual block.
   let left=6,right=6,align=hp.align;
-
-  // Multi-column layouts benefit from a more centered heading block.
   if(columns>1){
-    left=8;
-    right=8;
-    align="center";
+    left=8; right=8; align="center";
   }else if(showHeading && hp.align==="left"){
-    left=Math.max(5,Math.min(26,hp.x));
-    right=5;
+    left=Math.max(5,Math.min(26,hp.x)); right=5;
   }else if(showHeading && hp.align==="right"){
-    left=5;
-    right=Math.max(5,Math.min(26,100-hp.x));
+    left=5; right=Math.max(5,Math.min(26,100-hp.x));
   }else if(showHeading){
-    left=layout.orientation==="landscape"?8:7;
-    right=left;
+    left=layout.orientation==="landscape"?8:7; right=left;
   }
 
   paper.style.setProperty("--content-left",left+"%");
@@ -319,40 +360,36 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     el.style.textAlign=align;
   });
 
+  const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
+  if(title){
+    title.style.setProperty("font-size",(largeHeading?Math.round(titleSize*1.28):titleSize)+"px","important");
+  }
+  if(subtitle){
+    subtitle.style.setProperty("font-size",Math.max(10,Math.round(titleSize*.38))+"px","important");
+  }
+
   if(showHeading){
     let titleTop;
-    if(columns>1){
-      titleTop=compact?8:7;
-    }else if(hp.y<30){
-      titleTop=compact?9:8;
-    }else if(hp.y>65){
-      titleTop=compact?66:72;
-    }else{
-      titleTop=Math.max(34,Math.min(52,hp.y));
-    }
+    if(columns>1) titleTop=compact?8:7;
+    else if(hp.y<30) titleTop=compact?9:8;
+    else if(hp.y>65) titleTop=compact?66:72;
+    else titleTop=Math.max(34,Math.min(52,hp.y));
 
     title.style.top=titleTop+"%";
-    subtitle.style.top=`calc(${titleTop}% + ${largeHeading?58:42}px)`;
+    subtitle.style.top=`calc(${titleTop}% + ${largeHeading?Math.round(titleSize*1.65):Math.round(titleSize*1.3)}px)`;
   }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom","heading-columns");
   if(showHeading){
-    if(columns>1){
-      paper.classList.add("body-clear-top","heading-columns");
-    }else if(hp.y<30){
-      paper.classList.add("body-clear-top");
-    }else if(hp.y>65){
-      paper.classList.add("body-clear-bottom");
-    }else{
-      paper.classList.add("body-clear-center");
-    }
+    if(columns>1)paper.classList.add("body-clear-top","heading-columns");
+    else if(hp.y<30)paper.classList.add("body-clear-top");
+    else if(hp.y>65)paper.classList.add("body-clear-bottom");
+    else paper.classList.add("body-clear-center");
   }
 
-  // Wider visual separation from body.
-  const topClear=largeHeading?(compact?142:184):(compact?112:150);
-  const bottomClear=largeHeading?(compact?150:194):(compact?124:166);
-  paper.style.setProperty("--heading-clear-top",topClear+"px");
-  paper.style.setProperty("--heading-clear-bottom",bottomClear+"px");
+  const headingGap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
+  paper.style.setProperty("--heading-clear-top",headingGap+"px");
+  paper.style.setProperty("--heading-clear-bottom",Math.max(headingGap,headingGap+10)+"px");
 
   const vertical=layout.writingMode==="vertical";
   editor.classList.toggle("writing-vertical",vertical);
@@ -1502,7 +1539,13 @@ function syncControls(){
 
   const l=currentLayout();
   $("documentTemplate").value=l.template;
+  const ts=ensureTemplateSettings(l);
   $("documentOrientation").value=l.orientation;
+  $("templateTitleSize").value=ts.titleSize;
+  $("templateTitleSizeOut").textContent=ts.titleSize+"px";
+  $("templateHeadingGap").value=ts.headingGap;
+  $("templateHeadingGapOut").textContent=ts.headingGap+"px";
+  $("templateHeadingPosition").value=ts.headingPosition;
   $("writingMode").value=l.writingMode;
   $("columnCount").value=String(l.columns);
   $("columnGap").value=l.columnGap??28;
@@ -1540,11 +1583,71 @@ function updateLayoutSetting(key,value,{reflow=true}={}){
   persist();
   applyDocumentLayout();
   syncControls();
-  if(reflow)requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  if(reflow){
+    requestAnimationFrame(()=>{
+      renderAll();
+      requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+    });
+  }
 }
 
-$("documentTemplate").onchange=e=>updateLayoutSetting("template",e.target.value);
-$("documentOrientation").onchange=e=>updateLayoutSetting("orientation",e.target.value);
+$("documentTemplate").onchange=e=>{
+  const s=current();
+  const layout=currentLayout();
+  layout.template=e.target.value;
+  const ts=ensureTemplateSettings(layout);
+
+  // Each template remembers its own orientation and title layout.
+  layout.orientation=ts.orientation||"portrait";
+  layout.headingPosition=ts.headingPosition||"top-left";
+
+  persist();
+  renderAll();
+  requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+};
+
+$("documentOrientation").onchange=e=>{
+  const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+  ts.orientation=e.target.value;
+  layout.orientation=e.target.value;
+  persist();
+  renderAll();
+  requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+};
+
+$("templateTitleSize").oninput=e=>{
+  const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+  ts.titleSize=Number(e.target.value);
+  $("templateTitleSizeOut").textContent=e.target.value+"px";
+  persist();
+  applyDocumentLayout();
+};
+
+$("templateTitleSize").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+
+$("templateHeadingGap").oninput=e=>{
+  const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+  ts.headingGap=Number(e.target.value);
+  $("templateHeadingGapOut").textContent=e.target.value+"px";
+  persist();
+  applyDocumentLayout();
+};
+
+$("templateHeadingGap").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+
+$("templateHeadingPosition").onchange=e=>{
+  const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+  ts.headingPosition=e.target.value;
+  layout.headingPosition=e.target.value;
+  persist();
+  renderAll();
+  requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+};
+
 $("writingMode").onchange=e=>updateLayoutSetting("writingMode",e.target.value);
 $("columnCount").onchange=e=>updateLayoutSetting("columns",Number(e.target.value));
 $("columnGap").oninput=e=>{

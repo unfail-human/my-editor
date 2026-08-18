@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="55">
+  <meta name="my-editor-version" content="56">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -26,7 +26,7 @@
 
 
 
-  <link rel="stylesheet" href="style.css?v=55">
+  <link rel="stylesheet" href="style.css?v=56">
 </head>
 <body>
 
@@ -272,6 +272,35 @@
             <option value="landscape">가로형</option>
           </select>
         </label>
+
+        <section class="template-layout-box">
+          <div class="layout-subhead">현재 템플릿 세부 설정</div>
+
+          <label class="range-field">
+            <span>제목 크기</span>
+            <input id="templateTitleSize" type="range" min="18" max="72" value="34">
+            <output id="templateTitleSizeOut">34px</output>
+          </label>
+
+          <label class="range-field">
+            <span>제목 · 본문 간격</span>
+            <input id="templateHeadingGap" type="range" min="70" max="240" value="150">
+            <output id="templateHeadingGapOut">150px</output>
+          </label>
+
+          <label class="field">
+            <span>제목 배치</span>
+            <select id="templateHeadingPosition">
+              <option value="top-left">위 · 왼쪽</option>
+              <option value="top-center">위 · 가운데</option>
+              <option value="center">정중앙</option>
+              <option value="bottom-left">아래 · 왼쪽</option>
+              <option value="bottom-center">아래 · 가운데</option>
+            </select>
+          </label>
+
+          <p class="hint">이 값은 현재 선택한 템플릿에만 저장됩니다. 다른 템플릿으로 바꾸면 해당 템플릿의 설정을 따로 불러옵니다.</p>
+        </section>
 
         <div class="template-preview-row">
           <div id="templateMiniPreview" class="template-mini-preview">
@@ -810,7 +839,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=55"></script>
-<script src="script.js?v=55"></script>
+<script src="notice.js?v=56"></script>
+<script src="script.js?v=56"></script>
 </body>
 </html>

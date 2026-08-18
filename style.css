@@ -1855,3 +1855,41 @@ button{cursor:pointer}
 .paper[data-document-template="ticket"] .subtitle-input{
   padding-bottom:7px !important;
 }
+
+
+/* ===== V56 template-specific controls / clean resize ===== */
+.template-layout-box{
+  margin:12px 0 4px;
+  padding:11px 10px 9px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:rgba(255,255,255,.46);
+}
+
+.paper.layout-enabled .editor{
+  box-sizing:border-box !important;
+}
+
+/* Keep content inside page, but pagination is responsible for overflow. */
+.paper.layout-enabled{
+  overflow:hidden !important;
+}
+
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  overflow:visible !important;
+  white-space:normal !important;
+}
+
+/* Give body a little safety space so the last line is not visually cut. */
+.paper.layout-enabled .editor.writing-horizontal{
+  padding-bottom:34px !important;
+}
+
+.paper.layout-enabled.layout-no-heading .editor.writing-horizontal{
+  padding-top:24px !important;
+}
+
+.paper.layout-enabled .editor.writing-vertical{
+  padding:7% 8% 9% !important;
+}
