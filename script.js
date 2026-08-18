@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyOffset:0},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyOffset:0},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyOffset:0},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyOffset:0},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyOffset:0},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyOffset:0},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyOffset:0},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyOffset:0}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:0},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:0},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:0},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:0},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:0},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:0},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:0},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:0}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -186,7 +186,7 @@ function templateDefaults(template){
     titleSize:34,
     headingGap:150,
     headingPosition:"top-left",
-    bodyOffset:0
+    bodyShiftX:0
   });
 }
 
@@ -339,8 +339,14 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   // Shared geometry. Body sits only slightly inside the subtitle rule.
   const ruleLeft=layout.orientation==="landscape"?4:4.5;
   const ruleRight=layout.orientation==="landscape"?6:6.5;
-  const bodyLeft=ruleLeft+.9;
-  const bodyRight=ruleRight+.7;
+
+  // Body position is independent of text alignment.
+  // Negative values move the whole body box left, positive values move it right.
+  const shiftX=Math.max(-8,Math.min(8,Number(ts.bodyShiftX||0)));
+  const baseBodyLeft=ruleLeft+.9;
+  const baseBodyRight=ruleRight+.7;
+  const bodyLeft=Math.max(1.5,baseBodyLeft+shiftX);
+  const bodyRight=Math.max(1.5,baseBodyRight-shiftX);
 
   paper.style.setProperty("--rule-left",ruleLeft+"%");
   paper.style.setProperty("--rule-right",ruleRight+"%");
@@ -383,37 +389,68 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
 
   const configuredGap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
-  const bodyOffset=Math.max(-60,Math.min(100,Number(ts.bodyOffset||0)));
 
   if(showHeading){
     if(hp.y<30){
       paper.classList.add("body-clear-top");
 
-      // Top layout is calculated from the actual title block:
-      // title top + title line + subtitle line/rule + a small visual gap.
-      // This removes the large empty band from previous versions.
-      const titleBlockPx=Math.round(titleSize*1.32)+Math.max(24,Math.round(titleSize*.62));
-      const naturalTop=compact?86:104;
-      const userGapInfluence=(configuredGap-150)*.22;
-      const topSafe=Math.max(
-        compact?72:88,
-        naturalTop + (titleSize-34)*1.15 + userGapInfluence + bodyOffset
-      );
+      // Compact automatic rhythm:
+      // title -> subtitle/rule -> small breathing space -> body
+      const templateBase={
+        a4:104,
+        letter:102,
+        postcard:80,
+        card:78,
+        widecard:74,
+        minicard:76,
+        square:88,
+        ticket:68
+      }[layout.template]||100;
+
+      const sizeAdjust=(titleSize-34)*1.05;
+      const gapAdjust=(configuredGap-150)*.18;
+      const topSafe=Math.max(62,templateBase+sizeAdjust+gapAdjust);
+
       paper.style.setProperty("--heading-safe-top",Math.round(topSafe)+"px");
     }else if(hp.y<65){
       paper.classList.add("body-clear-center");
 
-      // Center must stay below the title/subtitle block.
-      const centerSafe=compact
-        ? Math.max(190,configuredGap+78)
-        : Math.max(280,configuredGap+118);
-      paper.style.setProperty("--heading-safe-center",Math.round(centerSafe+bodyOffset)+"px");
+      // Center title owns a clean visual block; body begins safely below.
+      const centerBase={
+        a4:285,
+        letter:280,
+        postcard:185,
+        card:178,
+        widecard:166,
+        minicard:174,
+        square:220,
+        ticket:150
+      }[layout.template]||270;
+
+      const centerSafe=Math.max(
+        145,
+        centerBase+(titleSize-34)*1.15+(configuredGap-150)*.28
+      );
+      paper.style.setProperty("--heading-safe-center",Math.round(centerSafe)+"px");
     }else{
       paper.classList.add("body-clear-bottom");
-      paper.style.setProperty(
-        "--heading-safe-bottom",
-        Math.max(120,(compact?150:215)-bodyOffset)+"px"
+
+      const bottomBase={
+        a4:205,
+        letter:200,
+        postcard:132,
+        card:128,
+        widecard:120,
+        minicard:126,
+        square:160,
+        ticket:112
+      }[layout.template]||190;
+
+      const bottomSafe=Math.max(
+        105,
+        bottomBase+(titleSize-34)*.8+(configuredGap-150)*.16
       );
+      paper.style.setProperty("--heading-safe-bottom",Math.round(bottomSafe)+"px");
     }
   }
 
@@ -1598,8 +1635,8 @@ function syncControls(){
   $("templateTitleSizeOut").textContent=ts.titleSize+"px";
   $("templateHeadingGap").value=ts.headingGap;
   $("templateHeadingGapOut").textContent=ts.headingGap+"px";
-  $("templateBodyOffset").value=ts.bodyOffset||0;
-  $("templateBodyOffsetOut").textContent=(ts.bodyOffset||0)===0?"자동":((ts.bodyOffset||0)>0?"+":"")+(ts.bodyOffset||0)+"px";
+  $("templateBodyShiftX").value=ts.bodyShiftX||0;
+  $("templateBodyShiftXOut").textContent=(ts.bodyShiftX||0)===0?"기본":((ts.bodyShiftX||0)>0?"오른쪽 ":"왼쪽 ")+Math.abs(ts.bodyShiftX||0)+"%";
   $("templateHeadingPosition").value=ts.headingPosition;
   $("writingMode").value=l.writingMode;
   $("columnCount").value=String(l.columns);
@@ -1691,16 +1728,16 @@ $("templateHeadingGap").oninput=e=>{
 $("templateHeadingGap").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 
 
-$("templateBodyOffset").oninput=e=>{
+$("templateBodyShiftX").oninput=e=>{
   const layout=currentLayout();
   const ts=ensureTemplateSettings(layout);
-  ts.bodyOffset=Number(e.target.value);
-  $("templateBodyOffsetOut").textContent=ts.bodyOffset===0?"자동":(ts.bodyOffset>0?"+":"")+ts.bodyOffset+"px";
+  ts.bodyShiftX=Number(e.target.value);
+  $("templateBodyShiftXOut").textContent=ts.bodyShiftX===0?"기본":(ts.bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(ts.bodyShiftX)+"%";
   persist();
   applyDocumentLayout();
   scheduleLayoutReflow();
 };
-$("templateBodyOffset").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+$("templateBodyShiftX").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 
 $("templateHeadingPosition").onchange=e=>{
   const layout=currentLayout();

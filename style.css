@@ -1997,3 +1997,42 @@ button{cursor:pointer}
   margin-top:-4px !important;
   opacity:.72;
 }
+
+
+/* ===== V64 refined document composition ===== */
+.template-layout-box{
+  padding:13px 12px 11px !important;
+  border-radius:10px !important;
+}
+
+.template-layout-box .layout-subhead{
+  margin-top:0 !important;
+  padding-top:0 !important;
+  border-top:0 !important;
+  margin-bottom:10px !important;
+}
+
+/* Title/subtitle feel like one deliberate header block. */
+.paper.layout-enabled .title-input{
+  line-height:1.1 !important;
+  padding-bottom:4px !important;
+}
+
+.paper.layout-enabled .subtitle-input{
+  line-height:1.35 !important;
+  padding-top:1px !important;
+  padding-bottom:8px !important;
+}
+
+/* Top layouts should feel compact, not float far above the body. */
+.paper.layout-enabled.body-clear-top .editor.writing-horizontal,
+.paper.layout-enabled.body-clear-top .editor.layout-columns{
+  padding-top:var(--heading-safe-top) !important;
+}
+
+/* Body horizontal shift uses padding geometry, never text-align/transform. */
+.paper.layout-enabled .editor.writing-horizontal,
+.paper.layout-enabled .editor.layout-columns{
+  padding-left:var(--body-left) !important;
+  padding-right:var(--body-right) !important;
+}
