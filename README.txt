@@ -1,18 +1,29 @@
-MY EDITOR V38
+MY EDITOR V39
 
-공지 문구 간소화
+미리보기 / 저장 수정
 
-현재 공지:
-제목: 업데이트 안내
-본문:
-업데이트가 완료되었습니다.
-새로고침 후 다시 사용해주시길 바랍니다.
+미리보기
+- 미리보기 문서 하단에서 쪽번호를 숨김
+- 편집 문서와 동일한 사이트 출처만 표시
+  MY EDITOR · unfail-human.github.io/my-editor/
+- 출처는 오른쪽 하단
 
-버튼: 확인
+미리보기의 저장 버튼
+- 미리보기에서 보고 있던 페이지를 현재 편집 페이지로 맞춘 뒤
+  편집 화면과 동일한 저장 팝업을 표시
+- 저장 범위:
+  현재 페이지 저장 / 전체 페이지 저장
+- 파일 형식:
+  PNG / JPG / PDF / TXT
 
-- 같은 공지는 한 번 확인하면 다시 뜨지 않음
-- 다음 공지를 띄울 때는 notice.js의 current.id를 새 값으로 바꾸면 됨
-- 공지를 끄려면 enabled=false
+저장 파일
+- PNG / JPG / PDF에는 문서 하단 출처가 함께 캡처됨
+- 이미지/PDF에서는 쪽번호를 숨기고 출처만 표시
+- TXT에도 사이트 출처 문구 포함
 
-GitHub 업로드:
-index.html / style.css / script.js / notice.js
+GitHub 업로드
+- index.html
+- style.css
+- script.js
+- notice.js
+모두 v39 기준으로 교체하세요.

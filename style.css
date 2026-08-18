@@ -1118,3 +1118,17 @@ button{cursor:pointer}
   color:#99938b;
   font-size:10px;
 }
+
+
+/* ===== V39 preview/export footer ===== */
+#previewHost .paper-source-credit,
+.export-host .paper-source-credit{
+  display:block !important;
+  right:0 !important;
+  left:auto !important;
+  text-align:right !important;
+}
+#previewHost .paper-footer > span:not(.paper-source-credit),
+.export-host .paper-footer > span:not(.paper-source-credit){
+  display:none !important;
+}

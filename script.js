@@ -1597,11 +1597,27 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
 
   applyTypographyToClone(clone,page);
 
-  const footer=clone.querySelector(".paper-footer span");
-  if(footer)footer.textContent=[page.pagePrefix,page.pageNumber,page.pageSuffix].filter(Boolean).join(" ");
+  // Preview/export footer:
+  // keep the site source, hide the editable page number.
+  const footer=clone.querySelector(".paper-footer");
+  if(footer){
+    const source=footer.querySelector(".paper-source-credit");
+    footer.querySelectorAll("span").forEach(span=>{
+      if(span.classList.contains("paper-source-credit")){
+        span.style.display="";
+        span.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
+      }else{
+        span.style.display="none";
+      }
+    });
+    if(source){
+      source.style.display="";
+      source.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
+    }
+  }
+
   return clone;
 }
-
 function applyPreviewZoom(){
   const host=$("previewHost"),paper=host.querySelector(".paper");
   if(!paper)return;
@@ -1665,9 +1681,24 @@ $("previewZoomResetBtn").onclick=()=>{
 document.querySelectorAll("[data-close-preview]").forEach(x=>x.onclick=()=>{$("previewModal").hidden=true});
 $("previewCopyBtn").onclick=async()=>{
   const p=current().pages[previewPageIndex];
-  await navigator.clipboard.writeText([p.title,p.subtitle,strip(p.content)].filter(Boolean).join("\n\n"));
+  await navigator.clipboard.writeText([p.title,p.subtitle,strip(p.content),"MY EDITOR · unfail-human.github.io/my-editor/"].filter(Boolean).join("\n\n"));
 };
-$("previewSaveBtn").onclick=()=>{$("previewModal").hidden=true;$("saveMenu").classList.add("open")};
+$("previewSaveBtn").onclick=e=>{
+  e.stopPropagation();
+
+  const s=current();
+  s.currentPageIndex=previewPageIndex;
+  persist();
+
+  // Close preview and show that exact page in the editor.
+  $("previewModal").hidden=true;
+  renderAll();
+
+  // Open the same two-step save popup used by the normal editor.
+  saveScope="current";
+  showSaveStep("scope");
+  $("saveMenu").classList.add("open");
+};
 
 async function copyCurrent(){
   saveCurrent(false);
@@ -1709,7 +1740,19 @@ document.querySelectorAll("[data-export]").forEach(b=>b.onclick=()=>exportFile(b
 async function capture(pageIndex=current().currentPageIndex||0){
   saveCurrent(false);await document.fonts.ready;
   const host=document.createElement("div");host.className="export-host";
-  const clone=clonePageForIndex(pageIndex,{forExport:true});host.appendChild(clone);document.body.appendChild(host);
+  const clone=clonePageForIndex(pageIndex,{forExport:true});
+  const footer=clone.querySelector(".paper-footer");
+  if(footer){
+    footer.querySelectorAll("span").forEach(span=>{
+      if(span.classList.contains("paper-source-credit")){
+        span.style.display="";
+        span.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
+      }else{
+        span.style.display="none";
+      }
+    });
+  }
+  host.appendChild(clone);document.body.appendChild(host);
   try{
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     clone.style.setProperty("width","794px","important");
@@ -1765,7 +1808,7 @@ async function exportFile(type){
     const text=s.pages.map((p,i)=>{
       const body=[p.title,p.subtitle,strip(p.content)].filter(Boolean).join("\n\n");
       return `===== PAGE ${String(i+1).padStart(2,"0")} =====\n${body}`;
-    }).join("\n\n");
+    }).join("\n\n")+"\n\nMY EDITOR · unfail-human.github.io/my-editor/";
     download(new Blob(["\ufeff"+text],{type:"text/plain"}),baseName+".txt");
     return;
   }
