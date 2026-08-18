@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -186,7 +186,7 @@ function templateDefaults(template){
     titleSize:34,
     headingGap:150,
     headingPosition:"top-left",
-    bodyShiftX:-2,bodyMargin:4.5
+    bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}
   });
 }
 
@@ -204,6 +204,25 @@ function currentTemplateSettings(){
   return ensureTemplateSettings(currentLayout());
 }
 
+
+const DOCUMENT_MARGIN_PRESETS={
+  narrow:{top:12,bottom:12,left:10,right:10},
+  normal:{top:20,bottom:20,left:18,right:18},
+  wide:{top:30,bottom:30,left:28,right:28}
+};
+function ensureTemplateMargins(layout=currentLayout()){
+  const ts=ensureTemplateSettings(layout);
+  if(!ts.marginPreset)ts.marginPreset="normal";
+  if(!ts.margins)ts.margins={...DOCUMENT_MARGIN_PRESETS.normal};
+  ts.margins={...DOCUMENT_MARGIN_PRESETS.normal,...ts.margins};
+  return ts.margins;
+}
+function marginPresetLabel(p){return p==="narrow"?"좁게":p==="wide"?"넓게":p==="custom"?"사용자 지정":"보통"}
+function mmToPercent(mm,total){return Math.max(.5,Math.min(30,(mm/total)*100))}
+function currentMarginPercentages(layout=currentLayout()){
+  const spec=layoutExportSpec(layout),m=ensureTemplateMargins(layout);
+  return {top:mmToPercent(m.top,spec.heightMm),bottom:mmToPercent(m.bottom,spec.heightMm),left:mmToPercent(m.left,spec.widthMm),right:mmToPercent(m.right,spec.widthMm)};
+}
 function layoutRatio(layout=currentLayout()){
   const base={
     a4:210/297,
@@ -344,24 +363,17 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   // Body position is independent of text alignment.
   // Negative values move the whole body box left, positive values move it right.
   const shiftX=Math.max(-4,Math.min(5,Number(ts.bodyShiftX??-2)));
-  // Safe body positioning:
-  // adjust the body content box itself but clamp it inside paper margins.
-  const bodyMargin=Math.max(1,Math.min(15,Number(ts.bodyMargin??4.5)));
-  const baseBodyLeft=bodyMargin;
-  const baseBodyRight=bodyMargin;
-
-  // Body position remains a small independent adjustment inside the page.
-  const safeLeft=Math.max(1,baseBodyLeft+shiftX);
-  const safeRight=Math.max(1,baseBodyRight-shiftX);
-
-  // Document margin controls the overall content inset, including heading rule.
-  const headingInset=Math.max(1,bodyMargin);
-  paper.style.setProperty("--rule-left",headingInset+"%");
-  paper.style.setProperty("--rule-right",headingInset+"%");
+  const marginPct=currentMarginPercentages(layout);
+  const safeLeft=Math.max(.8,marginPct.left+shiftX);
+  const safeRight=Math.max(.8,marginPct.right-shiftX);
+  paper.style.setProperty("--rule-left",marginPct.left+"%");
+  paper.style.setProperty("--rule-right",marginPct.right+"%");
   paper.style.setProperty("--body-frame-left",safeLeft+"%");
   paper.style.setProperty("--body-frame-right",safeRight+"%");
-  const effectiveRuleLeft=headingInset;
-  const effectiveRuleRight=headingInset;
+  paper.style.setProperty("--page-margin-top",marginPct.top+"%");
+  paper.style.setProperty("--page-margin-bottom",marginPct.bottom+"%");
+  const effectiveRuleLeft=marginPct.left;
+  const effectiveRuleRight=marginPct.right;
 
   [title,subtitle].forEach(el=>{
     if(!el)return;
@@ -1645,11 +1657,11 @@ function syncControls(){
   $("dividerLineOpacity").value=b.dividerLineOpacity??35;
   $("dividerLineOpacityOut").textContent=(b.dividerLineOpacity??35)+"%";
   $("dividerLineOpacityWrap").style.display=b.dividerLineEnabled?"":"none";
-  $("dividerAlign").value=b.dividerAlign||"center";
   document.querySelectorAll(".bg-mode").forEach(x=>x.classList.toggle("active",x.dataset.mode===b.mode));
   document.querySelectorAll(".effect-btn").forEach(x=>x.classList.toggle("active",x.dataset.effect===b.effect));
 
   const l=currentLayout();
+  syncDocumentMarginSummary();
   $("documentTemplate").value=l.template;
   const ts=ensureTemplateSettings(l);
   $("documentOrientation").value=l.orientation;
@@ -1660,9 +1672,6 @@ function syncControls(){
   const bodyShiftX=ts.bodyShiftX??-2;
   $("templateBodyShiftX").value=bodyShiftX;
   $("templateBodyShiftXOut").textContent=bodyShiftX===0?"기본":(bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(bodyShiftX)+"%";
-  const bodyMargin=ts.bodyMargin??4.5;
-  $("templateBodyMargin").value=bodyMargin;
-  $("templateBodyMarginOut").textContent=bodyMargin+"%";
   $("templateHeadingPosition").value=ts.headingPosition;
   $("writingMode").value=l.writingMode;
   $("columnCount").value=String(l.columns);
@@ -1755,16 +1764,7 @@ $("templateHeadingGap").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFro
 
 
 
-$("templateBodyMargin").oninput=e=>{
-  const layout=currentLayout();
-  const ts=ensureTemplateSettings(layout);
-  ts.bodyMargin=Number(e.target.value);
-  $("templateBodyMarginOut").textContent=e.target.value+"%";
-  persist();
-  applyDocumentLayout();
-  scheduleLayoutReflow();
-};
-$("templateBodyMargin").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+
 
 $("templateBodyShiftX").oninput=e=>{
   const layout=currentLayout();
@@ -1807,6 +1807,29 @@ $("coverTitleFirstPage").onchange=e=>{
 
 
 
+
+let marginDraft=null;
+function syncDocumentMarginSummary(){
+  const ts=ensureTemplateSettings(currentLayout());
+  const m=ensureTemplateMargins(currentLayout());
+  const el=$("documentMarginSummary");
+  if(el)el.textContent=(ts.marginPreset||"normal")==="custom"?`사용자 지정 · ${m.top}/${m.bottom}/${m.left}/${m.right}mm`:marginPresetLabel(ts.marginPreset||"normal");
+}
+function fillMarginModal(){
+  const ts=ensureTemplateSettings(currentLayout()),m=ensureTemplateMargins(currentLayout());
+  marginDraft={preset:ts.marginPreset||"normal",margins:{...m}};
+  $("marginTopInput").value=m.top;$("marginBottomInput").value=m.bottom;$("marginLeftInput").value=m.left;$("marginRightInput").value=m.right;
+  document.querySelectorAll("[data-margin-preset]").forEach(b=>b.classList.toggle("active",b.dataset.marginPreset===marginDraft.preset));
+}
+function setMarginDraftPreset(p){marginDraft={preset:p,margins:{...DOCUMENT_MARGIN_PRESETS[p]}};$("marginTopInput").value=marginDraft.margins.top;$("marginBottomInput").value=marginDraft.margins.bottom;$("marginLeftInput").value=marginDraft.margins.left;$("marginRightInput").value=marginDraft.margins.right;document.querySelectorAll("[data-margin-preset]").forEach(b=>b.classList.toggle("active",b.dataset.marginPreset===p));}
+function updateMarginDraftFromInputs(){if(!marginDraft)return;marginDraft.preset="custom";marginDraft.margins={top:Math.max(5,Math.min(80,Number($("marginTopInput").value)||20)),bottom:Math.max(5,Math.min(80,Number($("marginBottomInput").value)||20)),left:Math.max(5,Math.min(80,Number($("marginLeftInput").value)||18)),right:Math.max(5,Math.min(80,Number($("marginRightInput").value)||18))};document.querySelectorAll("[data-margin-preset]").forEach(b=>b.classList.remove("active"));}
+$("openDocumentMarginBtn").onclick=()=>{fillMarginModal();$("documentMarginModal").hidden=false};
+document.querySelectorAll("[data-close-document-margin]").forEach(b=>b.onclick=()=>{$("documentMarginModal").hidden=true});
+$("cancelDocumentMarginBtn").onclick=()=>{$("documentMarginModal").hidden=true};
+document.querySelectorAll("[data-margin-preset]").forEach(b=>b.onclick=()=>setMarginDraftPreset(b.dataset.marginPreset));
+["marginTopInput","marginBottomInput","marginLeftInput","marginRightInput"].forEach(id=>$(id).oninput=updateMarginDraftFromInputs);
+$("resetDocumentMarginBtn").onclick=()=>setMarginDraftPreset("normal");
+$("applyDocumentMarginBtn").onclick=()=>{if(!marginDraft)return;const ts=ensureTemplateSettings(currentLayout());ts.marginPreset=marginDraft.preset;ts.margins={...marginDraft.margins};persist();$("documentMarginModal").hidden=true;renderAll();syncDocumentMarginSummary();requestAnimationFrame(()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot));};
 function syncBackgroundOptionPanels(){
   const mode=current().background.mode||"solid";
   document.querySelectorAll(".bg-options").forEach(p=>p.classList.toggle("active",p.dataset.bgOptions===mode));
@@ -1866,11 +1889,7 @@ $("paperBorderOpacity").oninput=e=>{current().background.paperBorderOpacity=Numb
 $("paperFrameOpacity").oninput=e=>{current().background.paperFrameOpacity=Number(e.target.value);$("paperFrameOpacityOut").textContent=e.target.value+"%";persist();applyBackground()};
 
 $("dividerSize").oninput=e=>{current().background.dividerSize=Number(e.target.value);persist();syncControls()};
-$("dividerAlign").onchange=e=>{
-  current().background.dividerAlign=e.target.value;
-  persist();
-  refreshDividerStyles();
-};
+
 
 $("dividerLineEnabled").onchange=e=>{
   current().background.dividerLineEnabled=e.target.checked;
@@ -2110,9 +2129,9 @@ function refreshDividerStyles(root=$("editor")){
       "--divider-line-opacity",
       String((b.dividerLineOpacity??35)/100)
     );
-    divider.dataset.align=b.dividerAlign||"center";
-    divider.style.justifyContent=(b.dividerAlign||"center")==="left"?"flex-start":(b.dividerAlign||"center")==="right"?"flex-end":"center";
-    divider.style.textAlign=b.dividerAlign||"center";
+    divider.dataset.align="center";
+    divider.style.justifyContent="center";
+    divider.style.textAlign="center";
   });
 }
 
@@ -2138,9 +2157,9 @@ function insertParagraphDivider(symbol){
   const b=current().background;
   divider.classList.toggle("with-line",!!b.dividerLineEnabled);
   divider.style.setProperty("--divider-line-opacity",String((b.dividerLineOpacity??35)/100));
-  divider.dataset.align=b.dividerAlign||"center";
-  divider.style.justifyContent=(b.dividerAlign||"center")==="left"?"flex-start":(b.dividerAlign||"center")==="right"?"flex-end":"center";
-  divider.style.textAlign=b.dividerAlign||"center";
+  divider.dataset.align="center";
+  divider.style.justifyContent="center";
+  divider.style.textAlign="center";
   divider.style.fontSize=(b.dividerSize??16)+"px";
   // Blank-line spacers now provide the vertical breathing room.
   divider.style.margin="0";
