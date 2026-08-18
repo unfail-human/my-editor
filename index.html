@@ -30,8 +30,15 @@
 
   <main class="main">
     <header class="topbar">
-      <div>
+      <div class="top-left-meta">
         <div id="slotLabel" class="slot-label">SLOT 01</div>
+        <div class="page-nav">
+          <button id="prevPageBtn" class="page-nav-btn" title="이전 페이지">‹</button>
+          <span id="pageNavLabel">PAGE 01 / 01</span>
+          <button id="nextPageBtn" class="page-nav-btn" title="다음 페이지">›</button>
+          <button id="addPageBtn" class="page-nav-btn add" title="다음 페이지 추가">＋</button>
+          <button id="deletePageBtn" class="page-nav-btn danger" title="현재 페이지 삭제">−</button>
+        </div>
         <div id="saveStatus" class="save-status">자동 저장됨</div>
       </div>
 
@@ -85,6 +92,15 @@
     </div>
 
     <div class="panel-body active" data-panel="text">
+      <section class="panel-section edit-scope-section">
+        <h3>적용 범위</h3>
+        <div class="edit-scope-toggle">
+          <button class="scope-btn active" data-scope="all">전체 수정</button>
+          <button class="scope-btn" data-scope="selection">일부 수정</button>
+        </div>
+        <p class="hint" id="scopeHint">현재 페이지 본문 전체에 적용됩니다.</p>
+      </section>
+
       <section class="panel-section">
         <h3>글꼴</h3>
         <label class="field">
@@ -156,6 +172,11 @@
           <span>문단 간격</span>
           <input id="paragraphSpacing" type="range" min="0" max="40" value="0">
           <output id="paragraphSpacingOut">0px</output>
+        </label>
+        <label class="range-field">
+          <span>장평</span>
+          <input id="widthScale" type="range" min="70" max="140" value="100">
+          <output id="widthScaleOut">100%</output>
         </label>
       </section>
 
@@ -234,7 +255,7 @@
       </section>
 
       <section class="panel-section">
-        <h3>장식 기호</h3>
+        <h3>문단 구분 장식</h3>
         <div class="symbol-grid">
           <button data-symbol="✦">✦</button>
           <button data-symbol="✧">✧</button>
@@ -249,7 +270,17 @@
           <button data-symbol="「 」">「 」</button>
           <button data-symbol="『 』">『 』</button>
         </div>
-        <p class="hint">기호를 누르면 현재 커서 위치에 삽입됩니다.</p>
+        <label class="range-field">
+          <span>장식 크기</span>
+          <input id="dividerSize" type="range" min="10" max="32" value="16">
+          <output id="dividerSizeOut">16px</output>
+        </label>
+        <label class="range-field">
+          <span>위아래 여백</span>
+          <input id="dividerMargin" type="range" min="4" max="48" value="18">
+          <output id="dividerMarginOut">18px</output>
+        </label>
+        <p class="hint">기호를 누르면 현재 문단 뒤에 가운데 정렬된 장식 구분줄이 삽입됩니다.</p>
       </section>
 
       <section class="panel-section">

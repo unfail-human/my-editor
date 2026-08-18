@@ -97,3 +97,218 @@ button{cursor:pointer}
 .paper-deco{position:absolute;color:rgba(55,50,45,.45);font-family:Georgia,serif}.deco-corner{inset:16px;font-size:25px}.deco-corner:before{content:"⌜";position:absolute;left:0;top:0}.deco-corner:after{content:"⌟";position:absolute;right:0;bottom:0}.deco-divider{left:50%;top:50%;transform:translate(-50%,-50%);font-size:14px;letter-spacing:.35em}.deco-divider:before{content:"— ✦ —"}.deco-topmark{left:50%;top:18px;transform:translateX(-50%);font-size:15px}.deco-topmark:before{content:"◇"}.deco-bottommark{left:50%;bottom:18px;transform:translateX(-50%);font-size:15px}.deco-bottommark:before{content:"◇"}
 .export-host{position:fixed;left:-20000px;top:0;width:900px;pointer-events:none}.export-host .paper{width:794px!important;height:auto!important;min-height:1123px!important;max-width:none!important;min-width:0!important;aspect-ratio:auto!important;overflow:visible!important;padding:70px 72px 45px!important}.export-host .editor{min-height:820px!important;height:auto!important;overflow:visible!important;font-size:16px!important}
 @media(max-width:1100px){.app{grid-template-columns:190px minmax(0,1fr) 330px}.paper{min-width:360px;width:min(calc((100vh - 122px)*.707),calc(100vw - 190px - 330px - 50px))}}
+
+
+/* ===== V11 larger settings / nicer slots / page navigation / width scale ===== */
+.right-panel {
+  font-size: 12px;
+  padding: 20px 20px 36px;
+}
+.panel-head h2 { font-size: 22px; }
+.tabs { padding: 12px 0; gap: 7px; }
+.tab {
+  padding: 11px 6px;
+  font-size: 11px;
+  border-radius: 9px;
+}
+.panel-section {
+  padding: 18px 3px;
+}
+.panel-section h3 {
+  font-size: 13px;
+  margin-bottom: 13px;
+}
+.field {
+  grid-template-columns: 86px 1fr;
+  gap: 10px;
+  margin: 10px 0;
+  font-size: 11px;
+}
+.field select,
+.field input[type=number] {
+  padding: 9px 10px;
+  font-size: 11px;
+}
+.button-grid {
+  gap: 7px;
+  margin: 10px 0;
+}
+.button-grid button,
+.wide-btn {
+  padding: 10px 6px;
+  font-size: 11px;
+}
+.color-grid label {
+  padding: 9px;
+  font-size: 10px;
+}
+.range-field {
+  grid-template-columns: 82px 1fr 50px;
+  gap: 8px;
+  margin: 11px 0;
+  font-size: 10px;
+}
+.upload {
+  padding: 11px;
+  font-size: 11px;
+}
+.segmented button,
+.effect-btn {
+  padding: 9px;
+  font-size: 10px;
+}
+.symbol-grid button {
+  height: 38px;
+  font-size: 17px;
+}
+
+/* prettier slot cards */
+.slot-card {
+  grid-template-columns: 1fr 30px;
+  padding: 8px;
+  border-radius: 12px;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.slot-card:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.7);
+}
+.slot-card.active {
+  background: linear-gradient(180deg,#ffffff,#faf8f4);
+  border-color: #d9d4cb;
+  box-shadow: 0 7px 18px rgba(40,35,30,.07);
+}
+.slot-main {
+  display: grid;
+  grid-template-columns: 32px minmax(0,1fr);
+  column-gap: 8px;
+  align-items: start;
+}
+.slot-badge {
+  grid-row: 1 / span 3;
+  width: 31px;
+  height: 31px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: #efede8;
+  color: #6e6962;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.slot-card.active .slot-badge {
+  background: #2d2b28;
+  color: white;
+}
+.slot-no {
+  font-size: 8px;
+  margin-top: 1px;
+}
+.slot-name {
+  font-size: 12px;
+  margin-top: 1px;
+}
+.slot-preview {
+  font-size: 9px;
+  margin-top: 3px;
+}
+.slot-more {
+  width: 29px;
+  height: 29px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* page navigation */
+.top-left-meta {
+  display: grid;
+  gap: 2px;
+}
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1px;
+}
+.page-nav span {
+  min-width: 74px;
+  text-align: center;
+  font-size: 8px;
+  color: #8c877f;
+  letter-spacing: .08em;
+}
+.page-nav-btn {
+  width: 22px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: white;
+  color: #6a655e;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+.page-nav-btn:hover { background: #efede8; }
+.page-nav-btn.add { color: #4f6c5a; }
+.page-nav-btn.danger { color: #a45f5f; }
+
+/* width scale is applied per text run through transform wrapper */
+.editor .width-scale {
+  display: inline-block;
+  transform-origin: left center;
+}
+
+@media(max-width:1150px){
+  .right-panel{padding:18px 16px 30px}
+}
+
+
+/* ===== V12 edit scope toggle ===== */
+.edit-scope-section {
+  padding-top: 10px;
+}
+.edit-scope-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.scope-btn {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: #6d6861;
+  padding: 10px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.scope-btn.active {
+  background: #2d2b28;
+  color: white;
+  border-color: #2d2b28;
+}
+.edit-scope-section .hint {
+  margin: 8px 0 0;
+}
+
+
+/* ===== V13 paragraph divider ornaments ===== */
+.paragraph-divider {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: inherit;
+  font-family: Georgia, "KoPubWorld Batang", serif;
+  user-select: text;
+  white-space: pre;
+}
+.paragraph-divider::before,
+.paragraph-divider::after {
+  content: "";
+}
+.paragraph-divider[data-ornament="—"] {
+  letter-spacing: .25em;
+}
+.paragraph-divider[data-ornament="···"] {
+  letter-spacing: .35em;
+}
