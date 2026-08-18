@@ -53,6 +53,11 @@ function current(){return state.slots.find(s=>s.id===currentSlotId)||state.slots
 function currentPage(){const s=current();return s.pages[s.currentPageIndex]||s.pages[0]}
 
 function strip(html){const d=document.createElement("div");d.innerHTML=html||"";return d.textContent||""}
+
+function bindIf(id,event,handler){
+  const el=$(id);
+  if(el)el[event]=handler;
+}
 function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
 function safe(v){return String(v||"document").replace(/[\\/:*?"<>|]/g,"_")}
 

@@ -22,11 +22,6 @@
     <div id="slotList" class="slot-list"></div>
 
     <div class="sidebar-bottom">
-      <div class="sidebar-tool-label">내 설정</div>
-      <button id="exportSettingsBtn" class="subtle-btn">설정 내보내기</button>
-      <label class="subtle-btn file-label" for="importSettingsInput">설정 불러오기</label>
-      <input id="importSettingsInput" type="file" accept=".json,application/json" hidden>
-      <div class="sidebar-tool-divider"></div>
       <button id="exportBackupBtn" class="subtle-btn">전체 백업</button>
       <label class="subtle-btn file-label" for="importBackupInput">백업 불러오기</label>
       <input id="importBackupInput" type="file" accept=".json,application/json" hidden>
@@ -87,7 +82,8 @@
         <article id="editor" class="editor" contenteditable="true" data-placeholder="이곳에 글을 작성하세요."></article>
 
         <footer class="paper-footer">
-          <span id="pageNumberPreview">— 01 —</span>
+          <span class="paper-source-credit">MY EDITOR · unfail-human.github.io/my-editor/</span>
+        <span id="pageNumberPreview">— 01 —</span>
         </footer>
       </div>
     </section>
@@ -549,18 +545,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <script src="script.js"></script>
-
-  <a
-    class="site-source-credit"
-    href="https://unfail-human.github.io/my-editor/"
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label="MY EDITOR 사이트 출처"
-  >
-    <span class="site-source-label">MY EDITOR</span>
-    <span class="site-source-dot">·</span>
-    <span class="site-source-url">unfail-human.github.io/my-editor/</span>
-  </a>
-
 </body>
 </html>
