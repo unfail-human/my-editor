@@ -162,21 +162,39 @@ function currentLayout(){
 function layoutRatio(layout=currentLayout()){
   const base={
     a4:210/297,
+    a5:148/210,
+    b5:176/250,
+    letter:216/279,
     postcard:100/148,
     card:3/2,
-    square:1
+    widecard:16/9,
+    minicard:4/3,
+    square:1,
+    ticket:2/1
   }[layout.template] || 210/297;
   return layout.orientation==="landscape" ? 1/base : base;
 }
 
 function layoutExportSpec(layout=currentLayout()){
   let mm,px;
-  if(layout.template==="postcard"){
+  if(layout.template==="a5"){
+    mm=[148,210]; px=[700,993];
+  }else if(layout.template==="b5"){
+    mm=[176,250]; px=[744,1057];
+  }else if(layout.template==="letter"){
+    mm=[216,279]; px=[816,1054];
+  }else if(layout.template==="postcard"){
     mm=[100,148]; px=[675,999];
   }else if(layout.template==="card"){
     mm=[120,80]; px=[900,600];
+  }else if(layout.template==="widecard"){
+    mm=[160,90]; px=[960,540];
+  }else if(layout.template==="minicard"){
+    mm=[120,90]; px=[800,600];
   }else if(layout.template==="square"){
     mm=[120,120]; px=[900,900];
+  }else if(layout.template==="ticket"){
+    mm=[160,80]; px=[1000,500];
   }else{
     mm=[210,297]; px=[794,1123];
   }
@@ -253,8 +271,6 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   if(subtitle)subtitle.style.display=showHeading?"":"none";
 
   const hp=headingPreset(layout.headingPosition,layout.headingX,layout.headingY);
-
-  // Title/subtitle always move as one group.
   const subtitleOffset=largeHeading ? 12 : 8;
   const titlePos={...hp};
   const subtitlePos={...hp,y:Math.min(92,hp.y+subtitleOffset)};
@@ -264,17 +280,39 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     setHeadingPosition(subtitle,subtitlePos);
   }
 
-  // Body automatically avoids the heading group.
-  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
-
+  // Match the horizontal starting edge of body and heading.
+  // Left/custom-left positions use exactly the same X percentage.
+  // Centered headings use a symmetrical readable body column.
+  let bodyLeft=7,bodyRight=7;
   if(showHeading){
-    if(hp.y < 30){
-      paper.classList.add("body-clear-top");
-    }else if(hp.y > 65){
-      paper.classList.add("body-clear-bottom");
+    if(hp.align==="left"){
+      bodyLeft=Math.max(5,Math.min(42,hp.x));
+      bodyRight=7;
+    }else if(hp.align==="right"){
+      bodyLeft=7;
+      bodyRight=Math.max(5,Math.min(42,100-hp.x));
     }else{
-      paper.classList.add("body-clear-center");
+      const centeredInset=layout.orientation==="landscape"?12:10;
+      bodyLeft=centeredInset;
+      bodyRight=centeredInset;
     }
+  }
+
+  paper.style.setProperty("--heading-body-left",bodyLeft+"%");
+  paper.style.setProperty("--heading-body-right",bodyRight+"%");
+
+  // More distance between heading group and body; scales for large cover titles.
+  const compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
+  const topClear=largeHeading?(compact?116:154):(compact?92:126);
+  const bottomClear=largeHeading?(compact?126:172):(compact?104:148);
+  paper.style.setProperty("--heading-clear-top",topClear+"px");
+  paper.style.setProperty("--heading-clear-bottom",bottomClear+"px");
+
+  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
+  if(showHeading){
+    if(hp.y<30)paper.classList.add("body-clear-top");
+    else if(hp.y>65)paper.classList.add("body-clear-bottom");
+    else paper.classList.add("body-clear-center");
   }
 
   const vertical=layout.writingMode==="vertical";
@@ -286,6 +324,12 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   editor.style.textOrientation=vertical?"mixed":"initial";
   editor.style.columnCount=vertical?1:Number(layout.columns||1);
   editor.style.columnGap=(layout.columnGap??28)+"px";
+
+  // Existing divider ornaments should immediately follow the current column layout.
+  editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{
+    el.style.columnSpan="none";
+    el.style.maxWidth="100%";
+  });
 }
 function applyDocumentLayout(){
   const s=current();
@@ -501,7 +545,7 @@ function editorOverflows(){
   if(layout.writingMode==="vertical"){
     return ed.scrollWidth > ed.clientWidth + 2;
   }
-  return ed.scrollHeight > ed.clientHeight + 2;
+  return ed.scrollHeight > ed.clientHeight + 2 || ed.scrollWidth > ed.clientWidth + 2;
 }
 function normalizeEditorTopLevel(){
   const ed=$("editor");
@@ -530,16 +574,110 @@ function placeCaretAtEndOfNode(index){
   savedRange=range.cloneRange();
   ed.focus();
 }
+
+function textPointAt(root,target){
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  let total=0,node,last=null;
+  while((node=walker.nextNode())){
+    last=node;
+    const len=node.nodeValue.length;
+    if(target<=total+len)return{node,offset:Math.max(0,target-total)};
+    total+=len;
+  }
+  return last?{node:last,offset:last.nodeValue.length}:{node:root,offset:0};
+}
+
+function cloneTextSegment(root,start,end){
+  const len=root.textContent.length;
+  start=Math.max(0,Math.min(len,start));
+  end=Math.max(start,Math.min(len,end));
+  const a=textPointAt(root,start),b=textPointAt(root,end);
+  const range=document.createRange();
+  range.setStart(a.node,a.offset);
+  range.setEnd(b.node,b.offset);
+  return range.cloneContents();
+}
+
+function makeSegmentClone(node,start,end){
+  if(node.nodeType===Node.TEXT_NODE){
+    return document.createTextNode(node.nodeValue.slice(start,end));
+  }
+  const copy=node.cloneNode(false);
+  copy.appendChild(cloneTextSegment(node,start,end));
+  return copy;
+}
+
+function splitLastBlockToFit(){
+  const ed=$("editor");
+  const node=ed.lastChild;
+  if(!node)return null;
+
+  const total=(node.textContent||"").length;
+  if(total<2)return null;
+
+  const original=node.cloneNode(true);
+  let low=1,high=total-1,best=0;
+
+  // Binary-search the longest prefix that fits on this page.
+  while(low<=high){
+    const mid=Math.floor((low+high)/2);
+    const trial=makeSegmentClone(original,0,mid);
+    node.replaceWith(trial);
+
+    if(editorOverflows()){
+      trial.replaceWith(node);
+      high=mid-1;
+    }else{
+      trial.replaceWith(node);
+      best=mid;
+      low=mid+1;
+    }
+  }
+
+  if(best<=0 || best>=total)return null;
+
+  const prefix=makeSegmentClone(original,0,best);
+  const suffix=makeSegmentClone(original,best,total);
+
+  node.replaceWith(prefix);
+
+  // Avoid starting the next page with meaningless empty text.
+  if(!suffix.textContent && !suffix.querySelector?.("br"))return null;
+
+  return nodeHTML(suffix);
+}
+
+function extractOverflowChunks(){
+  const ed=$("editor");
+  normalizeEditorTopLevel();
+  const moved=[];
+
+  let safety=0;
+  while(editorOverflows() && safety++<250){
+    // Prefer moving whole trailing blocks while there is content before them.
+    if(ed.childNodes.length>1){
+      const node=ed.lastChild;
+      moved.unshift(nodeHTML(node));
+      node.remove();
+      continue;
+    }
+
+    // A single long paragraph/list block can itself exceed a compact page.
+    const suffix=splitLastBlockToFit();
+    if(suffix){
+      moved.unshift(suffix);
+      continue;
+    }
+
+    // Nothing else can be split safely.
+    break;
+  }
+  return moved;
+}
+
 function pushOverflowToNextPage(){
   const s=current(),page=currentPage(),ed=$("editor");
-  normalizeEditorTopLevel();
-
-  const moved=[];
-  while(editorOverflows() && ed.childNodes.length>1){
-    const node=ed.lastChild;
-    moved.unshift(nodeHTML(node));
-    node.remove();
-  }
+  const moved=extractOverflowChunks();
   if(!moved.length)return false;
 
   page.content=ed.innerHTML;
@@ -552,11 +690,10 @@ function pushOverflowToNextPage(){
   next.content=moved.join("")+(next.content||"");
   renumberPages();
 
-  const movedCount=moved.length;
   s.currentPageIndex++;
   persist();
   renderAll();
-  requestAnimationFrame(()=>placeCaretAtEndOfNode(movedCount-1));
+  requestAnimationFrame(()=>placeCaretAtEndOfNode(Math.max(0,moved.length-1)));
   return true;
 }
 function pullContentBackIntoCurrentPage(){
@@ -630,14 +767,10 @@ function reflowAllAutoPagesFromCurrentSlot(){
       $("subtitleInput").value=p.subtitle||"";
       $("editor").innerHTML=p.content||"";
       applyTypography();
+      applyDocumentLayout();
       normalizeEditorTopLevel();
 
-      const moved=[];
-      while(editorOverflows() && $("editor").childNodes.length>1){
-        const node=$("editor").lastChild;
-        moved.unshift(nodeHTML(node));
-        node.remove();
-      }
+      const moved=extractOverflowChunks();
       p.content=$("editor").innerHTML;
 
       if(moved.length){
@@ -660,6 +793,7 @@ function reflowAllAutoPagesFromCurrentSlot(){
       $("subtitleInput").value=p.subtitle||"";
       $("editor").innerHTML=p.content||"";
       applyTypography();
+      applyDocumentLayout();
 
       while(next && next.autoGenerated && !next.title && !next.subtitle && next.content){
         const box=document.createElement("div");
@@ -1717,6 +1851,7 @@ function insertParagraphDivider(symbol){
   const divider=document.createElement("div");
   divider.className="paragraph-divider";
   divider.dataset.ornament=symbol;
+  divider.dataset.columnAware="true";
   divider.textContent=symbol;
   divider.contentEditable="false";
 

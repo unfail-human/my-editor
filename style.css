@@ -1582,3 +1582,90 @@ button{cursor:pointer}
 .paragraph-divider.with-line[data-ornament=""]{
   gap:0;
 }
+
+
+/* ===== V53 column-aware divider + heading/body alignment ===== */
+
+/* Divider remains inside the column in multi-column horizontal text. */
+.paper.layout-enabled .editor.writing-horizontal .paragraph-divider{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box;
+  text-align:center;
+  break-inside:avoid;
+  -webkit-column-break-inside:avoid;
+  column-span:none;
+}
+.paper.layout-enabled .editor.writing-horizontal .paragraph-divider.with-line{
+  display:flex !important;
+  justify-content:center;
+  align-items:center;
+}
+
+/* The blank line around a divider must also stay in that same column. */
+.paper.layout-enabled .editor.writing-horizontal .paragraph-divider-spacer{
+  width:100%;
+  break-inside:avoid;
+  -webkit-column-break-inside:avoid;
+}
+
+/* Heading/body share the same horizontal content start. */
+.paper.layout-enabled{
+  --heading-body-left:18%;
+  --heading-body-right:8%;
+  --heading-clear-top:128px;
+  --heading-clear-bottom:150px;
+}
+
+.paper.layout-enabled .editor.writing-horizontal{
+  padding-left:var(--heading-body-left) !important;
+  padding-right:var(--heading-body-right) !important;
+  box-sizing:border-box;
+}
+
+.paper.layout-enabled.layout-no-heading .editor.writing-horizontal{
+  padding-left:7% !important;
+  padding-right:7% !important;
+}
+
+.paper.layout-enabled.body-clear-top .editor{
+  padding-top:var(--heading-clear-top) !important;
+  padding-bottom:28px !important;
+}
+.paper.layout-enabled.body-clear-center .editor{
+  padding-top:34px !important;
+  padding-bottom:var(--heading-clear-bottom) !important;
+}
+.paper.layout-enabled.body-clear-bottom .editor{
+  padding-top:28px !important;
+  padding-bottom:var(--heading-clear-bottom) !important;
+}
+
+/* Compact templates need proportionally tighter spacing while keeping separation. */
+.paper[data-document-template="postcard"],
+.paper[data-document-template="card"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="ticket"]{
+  --heading-clear-top:92px;
+  --heading-clear-bottom:104px;
+}
+
+.paper[data-document-template="postcard"].heading-large-first,
+.paper[data-document-template="card"].heading-large-first,
+.paper[data-document-template="widecard"].heading-large-first,
+.paper[data-document-template="minicard"].heading-large-first,
+.paper[data-document-template="ticket"].heading-large-first{
+  --heading-clear-top:116px;
+  --heading-clear-bottom:126px;
+}
+
+/* More templates */
+.paper[data-document-template="a5"],
+.paper[data-document-template="b5"],
+.paper[data-document-template="letter"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="ticket"]{
+  padding:30px 36px 23px !important;
+}
