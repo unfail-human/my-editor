@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:0},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:0},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:0},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:0},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:0},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:0},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:0},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:0}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -186,7 +186,7 @@ function templateDefaults(template){
     titleSize:34,
     headingGap:150,
     headingPosition:"top-left",
-    bodyShiftX:0
+    bodyShiftX:-2
   });
 }
 
@@ -342,8 +342,8 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   // Body position is independent of text alignment.
   // Negative values move the whole body box left, positive values move it right.
-  const shiftX=Math.max(-8,Math.min(8,Number(ts.bodyShiftX||0)));
-  const baseBodyLeft=ruleLeft+.9;
+  const shiftX=Math.max(-12,Math.min(8,Number(ts.bodyShiftX??-2)));
+  const baseBodyLeft=ruleLeft+.6;
   const baseBodyRight=ruleRight+.7;
   const bodyLeft=Math.max(1.5,baseBodyLeft+shiftX);
   const bodyRight=Math.max(1.5,baseBodyRight-shiftX);
@@ -1635,8 +1635,9 @@ function syncControls(){
   $("templateTitleSizeOut").textContent=ts.titleSize+"px";
   $("templateHeadingGap").value=ts.headingGap;
   $("templateHeadingGapOut").textContent=ts.headingGap+"px";
-  $("templateBodyShiftX").value=ts.bodyShiftX||0;
-  $("templateBodyShiftXOut").textContent=(ts.bodyShiftX||0)===0?"기본":((ts.bodyShiftX||0)>0?"오른쪽 ":"왼쪽 ")+Math.abs(ts.bodyShiftX||0)+"%";
+  const bodyShiftX=ts.bodyShiftX??-2;
+  $("templateBodyShiftX").value=bodyShiftX;
+  $("templateBodyShiftXOut").textContent=bodyShiftX===0?"기본":(bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(bodyShiftX)+"%";
   $("templateHeadingPosition").value=ts.headingPosition;
   $("writingMode").value=l.writingMode;
   $("columnCount").value=String(l.columns);

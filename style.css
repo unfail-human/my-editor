@@ -2036,3 +2036,10 @@ button{cursor:pointer}
   padding-left:var(--body-left) !important;
   padding-right:var(--body-right) !important;
 }
+
+
+/* ===== V65 body position defaults ===== */
+.paper.layout-enabled{
+  --body-left:5.1%;
+  --body-right:7.2%;
+}
