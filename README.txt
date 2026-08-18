@@ -1,9 +1,7 @@
-MY EDITOR V72
-- DearLog와 동일한 favicon.png 방식으로 파비콘 구성
-- favicon.png: 1254x1254 RGBA
-- 링크 공유 이미지는 별도 og-image.png: 1200x630
-- favicon / shortcut icon / apple-touch-icon 모두 favicon.png 사용
-- OG / Twitter 공유 이미지는 og-image.png 사용
-- 캐시 갱신용 ?v=72 적용
-- 기존 my-editor-icon-v71.png 제거
-- v71 문서 여백 코드의 중복 shiftX 선언 오류도 함께 정리
+MY EDITOR V73
+- DearLog ZIP 안의 favicon.png를 가공 없이 byte-for-byte 그대로 사용
+- My Editor용 파일명만 favicon-v73.png로 변경하여 브라우저 favicon 캐시 강제 갱신
+- 기존 favicon/icon link 태그를 모두 제거하고 새 파일만 참조
+- favicon / shortcut icon / apple-touch-icon 모두 같은 favicon-v73.png 사용
+- 링크 공유 이미지는 DearLog ZIP의 og-image.png를 그대로 og-image-v73.png로 사용
+- OG/Twitter 이미지 URL도 v73 새 파일명으로 강제 갱신
