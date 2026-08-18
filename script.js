@@ -12,7 +12,7 @@ const DISTRIBUTION_BACKGROUND={
   mode:"solid",solid:"#ffffff",grad1:"#ffffff",grad2:"#e8e2da",angle:135,
   imageId:null,imageAverageColor:null,size:"cover",brightness:100,
   effect:"none",effectOpacity:18,effectColor:"#8f887f",effectAutoColor:true,
-  decorations:[],dividerSize:16,dividerMargin:18,
+  decorations:[],dividerSize:16,dividerMargin:18,dividerLineEnabled:false,dividerLineOpacity:35,
   paperBorderStyle:"none",paperBorderColor:"#d8d2c8",paperBorderWidth:1,
   paperInnerInset:0,paperBorderOpacity:100,paperBorderAutoColor:true,
   paperFrameStyle:"none",paperFrameColor:"#bdb5a8",paperFrameOpacity:100,
@@ -332,8 +332,11 @@ function renderAll(){
   applyDocumentLayout();
   syncControls();
   applyBackground();
+  refreshDividerStyles();
   renderSlots();
   updateCount();
+
+  if(typeof ensureHistoryPage==="function")requestAnimationFrame(()=>ensureHistoryPage());
 }
 function saveCurrent(mark=true){
   const s=current();if(!s)return;
@@ -1316,6 +1319,10 @@ function syncControls(){
   $("paperShadow").value=b.paperShadow??16;$("paperShadowOut").textContent=String(b.paperShadow??16);
   $("dividerSize").value=b.dividerSize??16;$("dividerSizeOut").textContent=(b.dividerSize??16)+"px";
   $("dividerMargin").value=b.dividerMargin??18;$("dividerMarginOut").textContent=(b.dividerMargin??18)+"px";
+  $("dividerLineEnabled").checked=!!b.dividerLineEnabled;
+  $("dividerLineOpacity").value=b.dividerLineOpacity??35;
+  $("dividerLineOpacityOut").textContent=(b.dividerLineOpacity??35)+"%";
+  $("dividerLineOpacityWrap").style.display=b.dividerLineEnabled?"":"none";
   document.querySelectorAll(".bg-mode").forEach(x=>x.classList.toggle("active",x.dataset.mode===b.mode));
   document.querySelectorAll(".effect-btn").forEach(x=>x.classList.toggle("active",x.dataset.effect===b.effect));
 
@@ -1454,6 +1461,20 @@ $("paperBorderOpacity").oninput=e=>{current().background.paperBorderOpacity=Numb
 $("paperFrameOpacity").oninput=e=>{current().background.paperFrameOpacity=Number(e.target.value);$("paperFrameOpacityOut").textContent=e.target.value+"%";persist();applyBackground()};
 
 $("dividerSize").oninput=e=>{current().background.dividerSize=Number(e.target.value);persist();syncControls()};
+$("dividerLineEnabled").onchange=e=>{
+  current().background.dividerLineEnabled=e.target.checked;
+  persist();
+  syncControls();
+  refreshDividerStyles();
+};
+
+$("dividerLineOpacity").oninput=e=>{
+  current().background.dividerLineOpacity=Number(e.target.value);
+  $("dividerLineOpacityOut").textContent=e.target.value+"%";
+  persist();
+  refreshDividerStyles();
+};
+
 $("dividerMargin").oninput=e=>{current().background.dividerMargin=Number(e.target.value);persist();syncControls()};
 
 
@@ -1669,6 +1690,18 @@ function findCurrentBlockFromSelection(){
   return null;
 }
 
+function refreshDividerStyles(root=$("editor")){
+  if(!root)return;
+  const b=current().background;
+  root.querySelectorAll(".paragraph-divider").forEach(divider=>{
+    divider.classList.toggle("with-line",!!b.dividerLineEnabled);
+    divider.style.setProperty(
+      "--divider-line-opacity",
+      String((b.dividerLineOpacity??35)/100)
+    );
+  });
+}
+
 function makeDividerSpacer(){
   const spacer=document.createElement("div");
   spacer.className="paragraph-divider-spacer";
@@ -1688,6 +1721,8 @@ function insertParagraphDivider(symbol){
   divider.contentEditable="false";
 
   const b=current().background;
+  divider.classList.toggle("with-line",!!b.dividerLineEnabled);
+  divider.style.setProperty("--divider-line-opacity",String((b.dividerLineOpacity??35)/100));
   divider.style.fontSize=(b.dividerSize??16)+"px";
   // Blank-line spacers now provide the vertical breathing room.
   divider.style.margin="0";
@@ -1864,6 +1899,7 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
     pageIndex,
     currentLayout()
   );
+  refreshDividerStyles(ed);
 
   // Preview/export footer:
   // show both editable page number and permanent site source.
@@ -2292,7 +2328,180 @@ function download(blob,name){const u=URL.createObjectURL(blob),a=document.create
 $("exportBackupBtn").onclick=()=>download(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),"my-editor-backup.json");
 $("importBackupInput").onchange=e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.slots?.length)throw 0;state=d;currentSlotId=d.currentSlotId||d.slots[0].id;persist();renderAll()}catch{alert("올바른 백업 파일이 아닙니다.")}};r.readAsText(f)};
 
-loadFonts();renderAll();syncBackgroundOptionPanels();
+loadFonts();
+/* ===== V52 batched undo history ===== */
+const HISTORY_WINDOW_MS=2500;
+let historyUndoStack=[];
+let historyRedoStack=[];
+let historyLastSnapshotAt=0;
+let historyTimer=null;
+let historyRestoring=false;
+let historyBoundSlotId=null;
+let historyBoundPageIndex=-1;
+
+function historyPageKey(){
+  const s=current();
+  return `${s.id}:${s.currentPageIndex||0}`;
+}
+
+function captureHistorySnapshot(){
+  const s=current();
+  const p=currentPage();
+  return {
+    key:historyPageKey(),
+    title:$("titleInput").value,
+    subtitle:$("subtitleInput").value,
+    content:$("editor").innerHTML,
+    pageTypography:structuredClone(p.pageTypography||{}),
+    timestamp:Date.now()
+  };
+}
+
+function sameHistorySnapshot(a,b){
+  if(!a||!b)return false;
+  return a.key===b.key &&
+    a.title===b.title &&
+    a.subtitle===b.subtitle &&
+    a.content===b.content &&
+    JSON.stringify(a.pageTypography||{})===JSON.stringify(b.pageTypography||{});
+}
+
+function resetHistoryForCurrentPage(){
+  clearTimeout(historyTimer);
+  historyTimer=null;
+  historyUndoStack=[captureHistorySnapshot()];
+  historyRedoStack=[];
+  historyLastSnapshotAt=Date.now();
+  const s=current();
+  historyBoundSlotId=s.id;
+  historyBoundPageIndex=s.currentPageIndex||0;
+}
+
+function ensureHistoryPage(){
+  const s=current();
+  const idx=s.currentPageIndex||0;
+  if(historyBoundSlotId!==s.id || historyBoundPageIndex!==idx){
+    resetHistoryForCurrentPage();
+  }
+}
+
+function pushHistorySnapshot(force=false){
+  if(historyRestoring)return;
+  ensureHistoryPage();
+
+  const now=Date.now();
+  const snap=captureHistorySnapshot();
+  const last=historyUndoStack[historyUndoStack.length-1];
+
+  if(sameHistorySnapshot(last,snap))return;
+
+  if(force || now-historyLastSnapshotAt>=HISTORY_WINDOW_MS){
+    historyUndoStack.push(snap);
+    if(historyUndoStack.length>80)historyUndoStack.shift();
+    historyRedoStack=[];
+    historyLastSnapshotAt=now;
+  }else{
+    clearTimeout(historyTimer);
+    historyTimer=setTimeout(()=>{
+      historyTimer=null;
+      pushHistorySnapshot(true);
+    },Math.max(120,HISTORY_WINDOW_MS-(Date.now()-historyLastSnapshotAt)));
+  }
+}
+
+function commitHistoryBeforeUndo(){
+  clearTimeout(historyTimer);
+  historyTimer=null;
+  ensureHistoryPage();
+
+  const snap=captureHistorySnapshot();
+  const last=historyUndoStack[historyUndoStack.length-1];
+
+  if(!sameHistorySnapshot(last,snap)){
+    historyUndoStack.push(snap);
+    if(historyUndoStack.length>80)historyUndoStack.shift();
+  }
+}
+
+function restoreHistorySnapshot(snap){
+  if(!snap)return;
+  historyRestoring=true;
+  try{
+    const p=currentPage();
+    $("titleInput").value=snap.title||"";
+    $("subtitleInput").value=snap.subtitle||"";
+    $("editor").innerHTML=snap.content||"";
+    p.title=snap.title||"";
+    p.subtitle=snap.subtitle||"";
+    p.content=snap.content||"";
+    p.pageTypography=structuredClone(snap.pageTypography||{});
+
+    persist();
+    applyTypography();
+    applyDocumentLayout();
+    applyBackground();
+    refreshDividerStyles();
+    scheduleSave();
+
+    requestAnimationFrame(()=>{
+      reflowAllAutoPagesFromCurrentSlot();
+    });
+  }finally{
+    historyRestoring=false;
+  }
+}
+
+function historyUndo(){
+  commitHistoryBeforeUndo();
+  if(historyUndoStack.length<=1)return;
+
+  const currentSnap=historyUndoStack.pop();
+  historyRedoStack.push(currentSnap);
+
+  const target=historyUndoStack[historyUndoStack.length-1];
+  restoreHistorySnapshot(target);
+  historyLastSnapshotAt=Date.now();
+}
+
+function historyRedo(){
+  if(!historyRedoStack.length)return;
+  ensureHistoryPage();
+
+  const target=historyRedoStack.pop();
+  historyUndoStack.push(target);
+  restoreHistorySnapshot(target);
+  historyLastSnapshotAt=Date.now();
+}
+
+function scheduleHistorySnapshot(){
+  if(historyRestoring)return;
+  ensureHistoryPage();
+  pushHistorySnapshot(false);
+}
+
+document.addEventListener("keydown",e=>{
+  const isMod=e.ctrlKey||e.metaKey;
+  if(!isMod)return;
+
+  const key=e.key.toLowerCase();
+
+  if(key==="z" && !e.shiftKey){
+    e.preventDefault();
+    historyUndo();
+    return;
+  }
+
+  if((key==="y") || (key==="z" && e.shiftKey)){
+    e.preventDefault();
+    historyRedo();
+  }
+},true);
+
+["editor","titleInput","subtitleInput"].forEach(id=>{
+  $(id).addEventListener("input",scheduleHistorySnapshot);
+});
+
+renderAll();syncBackgroundOptionPanels();
 
 window.addEventListener("resize",()=>{fitLivePaperToLayout();if(!$("previewModal").hidden)fitPreviewPage();});
 
@@ -2573,3 +2782,5 @@ if(document.readyState==="loading"){
 }else{
   bootNoticeSystem();
 }
+
+requestAnimationFrame(()=>resetHistoryForCurrentPage());

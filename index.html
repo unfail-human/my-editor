@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="51">
+  <meta name="my-editor-version" content="52">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -26,7 +26,7 @@
 
 
 
-  <link rel="stylesheet" href="style.css?v=51">
+  <link rel="stylesheet" href="style.css?v=52">
 </head>
 <body>
 
@@ -520,7 +520,19 @@
           <input id="dividerMargin" type="range" min="4" max="48" value="18">
           <output id="dividerMarginOut">18px</output>
         </label>
-        <p class="hint">별·꽃 기호는 SNS Keyboard의 ‘별과 꽃’ 범주를 참고해 구분에 어울리는 문자들을 골라 구성했습니다.</p>
+        
+        <label class="check-field">
+          <input id="dividerLineEnabled" type="checkbox">
+          <span>구분선 함께 사용</span>
+        </label>
+
+        <label id="dividerLineOpacityWrap" class="range-field">
+          <span>구분선 투명도</span>
+          <input id="dividerLineOpacity" type="range" min="10" max="100" value="35">
+          <output id="dividerLineOpacityOut">35%</output>
+        </label>
+
+<p class="hint">별·꽃 기호는 SNS Keyboard의 ‘별과 꽃’ 범주를 참고해 구분에 어울리는 문자들을 골라 구성했습니다.</p>
       </section>
 
       <section class="panel-section">
@@ -794,7 +806,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=51"></script>
-<script src="script.js?v=51"></script>
+<script src="notice.js?v=52"></script>
+<script src="script.js?v=52"></script>
 </body>
 </html>

@@ -1549,3 +1549,36 @@ button{cursor:pointer}
 .paper.layout-enabled[data-document-orientation="landscape"].heading-large-first.body-clear-bottom .editor{
   padding-bottom:180px !important;
 }
+
+
+/* ===== V52 paragraph divider line ===== */
+.paragraph-divider{
+  position:relative;
+}
+
+.paragraph-divider.with-line{
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+}
+
+.paragraph-divider.with-line::before,
+.paragraph-divider.with-line::after{
+  content:"";
+  display:block;
+  flex:1 1 auto;
+  height:1px;
+  background:currentColor;
+  opacity:var(--divider-line-opacity,.35);
+  min-width:18px;
+}
+
+.paragraph-divider.with-line:empty::after{
+  display:block;
+}
+
+.paragraph-divider.with-line[data-ornament=""]{
+  gap:0;
+}
