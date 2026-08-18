@@ -12,7 +12,7 @@ const DISTRIBUTION_BACKGROUND={
   mode:"solid",solid:"#ffffff",grad1:"#ffffff",grad2:"#e8e2da",angle:135,
   imageId:null,imageAverageColor:null,size:"cover",brightness:100,
   effect:"none",effectOpacity:18,effectColor:"#8f887f",effectAutoColor:true,
-  decorations:[],dividerSize:16,dividerMargin:18,dividerLineEnabled:false,dividerLineOpacity:35,
+  decorations:[],dividerSize:16,dividerMargin:18,dividerLineEnabled:false,dividerLineOpacity:35,dividerAlign:"center",
   paperBorderStyle:"none",paperBorderColor:"#d8d2c8",paperBorderWidth:1,
   paperInnerInset:0,paperBorderOpacity:100,paperBorderAutoColor:true,
   paperFrameStyle:"none",paperFrameColor:"#bdb5a8",paperFrameOpacity:100,
@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-4},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-4},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-4},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-4},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-4},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-4},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-4},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-4}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -186,7 +186,7 @@ function templateDefaults(template){
     titleSize:34,
     headingGap:150,
     headingPosition:"top-left",
-    bodyShiftX:-2
+    bodyShiftX:-4
   });
 }
 
@@ -309,6 +309,38 @@ function setHeadingPosition(el,pos){
   el.style.transform=`translate(${tx},-50%)`;
 }
 
+
+function applyBodyTextShift(editor,layout=currentLayout()){
+  if(!editor)return;
+  const ts=ensureTemplateSettings(layout);
+  const shift=Math.max(-20,Math.min(8,Number(ts.bodyShiftX??-4)));
+
+  const movableSelector=[
+    ":scope > p",
+    ":scope > blockquote",
+    ":scope > ul",
+    ":scope > ol",
+    ":scope > h1",
+    ":scope > h2",
+    ":scope > h3",
+    ":scope > h4",
+    ":scope > h5",
+    ":scope > h6",
+    ":scope > div:not(.paragraph-divider):not(.paragraph-divider-spacer)"
+  ].join(",");
+
+  editor.querySelectorAll(movableSelector).forEach(el=>{
+    el.style.setProperty("--body-block-shift",shift+"%");
+    el.classList.add("body-shiftable-block");
+  });
+
+  // Divider ornaments and their blank spacers explicitly ignore body shifting.
+  editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{
+    el.classList.remove("body-shiftable-block");
+    el.style.removeProperty("--body-block-shift");
+  });
+}
+
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
 
@@ -342,16 +374,16 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   // Body position is independent of text alignment.
   // Negative values move the whole body box left, positive values move it right.
-  const shiftX=Math.max(-12,Math.min(8,Number(ts.bodyShiftX??-2)));
+  const shiftX=Math.max(-20,Math.min(8,Number(ts.bodyShiftX??-4)));
+  // The editor frame stays fixed so divider ornaments do not move.
+  // Only ordinary body blocks are shifted horizontally.
   const baseBodyLeft=ruleLeft+.6;
   const baseBodyRight=ruleRight+.7;
-  const bodyLeft=Math.max(1.5,baseBodyLeft+shiftX);
-  const bodyRight=Math.max(1.5,baseBodyRight-shiftX);
-
   paper.style.setProperty("--rule-left",ruleLeft+"%");
   paper.style.setProperty("--rule-right",ruleRight+"%");
-  paper.style.setProperty("--body-left",bodyLeft+"%");
-  paper.style.setProperty("--body-right",bodyRight+"%");
+  paper.style.setProperty("--body-frame-left",baseBodyLeft+"%");
+  paper.style.setProperty("--body-frame-right",baseBodyRight+"%");
+  paper.style.setProperty("--body-text-shift",shiftX+"%");
 
   [title,subtitle].forEach(el=>{
     if(!el)return;
@@ -472,6 +504,8 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     el.style.maxWidth="100%";
     el.style.boxSizing="border-box";
   });
+
+  applyBodyTextShift(editor,layout);
 }
 function applyDocumentLayout(){
   const s=current();
@@ -1624,6 +1658,7 @@ function syncControls(){
   $("dividerLineOpacity").value=b.dividerLineOpacity??35;
   $("dividerLineOpacityOut").textContent=(b.dividerLineOpacity??35)+"%";
   $("dividerLineOpacityWrap").style.display=b.dividerLineEnabled?"":"none";
+  $("dividerAlign").value=b.dividerAlign||"center";
   document.querySelectorAll(".bg-mode").forEach(x=>x.classList.toggle("active",x.dataset.mode===b.mode));
   document.querySelectorAll(".effect-btn").forEach(x=>x.classList.toggle("active",x.dataset.effect===b.effect));
 
@@ -1635,7 +1670,7 @@ function syncControls(){
   $("templateTitleSizeOut").textContent=ts.titleSize+"px";
   $("templateHeadingGap").value=ts.headingGap;
   $("templateHeadingGapOut").textContent=ts.headingGap+"px";
-  const bodyShiftX=ts.bodyShiftX??-2;
+  const bodyShiftX=ts.bodyShiftX??-4;
   $("templateBodyShiftX").value=bodyShiftX;
   $("templateBodyShiftXOut").textContent=bodyShiftX===0?"기본":(bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(bodyShiftX)+"%";
   $("templateHeadingPosition").value=ts.headingPosition;
@@ -1829,6 +1864,12 @@ $("paperBorderOpacity").oninput=e=>{current().background.paperBorderOpacity=Numb
 $("paperFrameOpacity").oninput=e=>{current().background.paperFrameOpacity=Number(e.target.value);$("paperFrameOpacityOut").textContent=e.target.value+"%";persist();applyBackground()};
 
 $("dividerSize").oninput=e=>{current().background.dividerSize=Number(e.target.value);persist();syncControls()};
+$("dividerAlign").onchange=e=>{
+  current().background.dividerAlign=e.target.value;
+  persist();
+  refreshDividerStyles();
+};
+
 $("dividerLineEnabled").onchange=e=>{
   current().background.dividerLineEnabled=e.target.checked;
   persist();
@@ -2067,6 +2108,9 @@ function refreshDividerStyles(root=$("editor")){
       "--divider-line-opacity",
       String((b.dividerLineOpacity??35)/100)
     );
+    divider.dataset.align=b.dividerAlign||"center";
+    divider.style.justifyContent=(b.dividerAlign||"center")==="left"?"flex-start":(b.dividerAlign||"center")==="right"?"flex-end":"center";
+    divider.style.textAlign=b.dividerAlign||"center";
   });
 }
 
@@ -2092,6 +2136,9 @@ function insertParagraphDivider(symbol){
   const b=current().background;
   divider.classList.toggle("with-line",!!b.dividerLineEnabled);
   divider.style.setProperty("--divider-line-opacity",String((b.dividerLineOpacity??35)/100));
+  divider.dataset.align=b.dividerAlign||"center";
+  divider.style.justifyContent=(b.dividerAlign||"center")==="left"?"flex-start":(b.dividerAlign||"center")==="right"?"flex-end":"center";
+  divider.style.textAlign=b.dividerAlign||"center";
   divider.style.fontSize=(b.dividerSize??16)+"px";
   // Blank-line spacers now provide the vertical breathing room.
   divider.style.margin="0";

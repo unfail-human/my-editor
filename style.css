@@ -1999,47 +1999,70 @@ button{cursor:pointer}
 }
 
 
-/* ===== V64 refined document composition ===== */
-.template-layout-box{
-  padding:13px 12px 11px !important;
-  border-radius:10px !important;
+
+
+/* ===== V66 body text-only positioning ===== */
+.paper.layout-enabled{
+  --body-frame-left:5.1%;
+  --body-frame-right:7.2%;
+  --body-text-shift:-4%;
 }
 
-.template-layout-box .layout-subhead{
-  margin-top:0 !important;
-  padding-top:0 !important;
-  border-top:0 !important;
-  margin-bottom:10px !important;
-}
-
-/* Title/subtitle feel like one deliberate header block. */
-.paper.layout-enabled .title-input{
-  line-height:1.1 !important;
-  padding-bottom:4px !important;
-}
-
-.paper.layout-enabled .subtitle-input{
-  line-height:1.35 !important;
-  padding-top:1px !important;
-  padding-bottom:8px !important;
-}
-
-/* Top layouts should feel compact, not float far above the body. */
-.paper.layout-enabled.body-clear-top .editor.writing-horizontal,
-.paper.layout-enabled.body-clear-top .editor.layout-columns{
-  padding-top:var(--heading-safe-top) !important;
-}
-
-/* Body horizontal shift uses padding geometry, never text-align/transform. */
+/* The editor frame stays stable. Dividers use this fixed frame. */
 .paper.layout-enabled .editor.writing-horizontal,
 .paper.layout-enabled .editor.layout-columns{
-  padding-left:var(--body-left) !important;
-  padding-right:var(--body-right) !important;
+  padding-left:var(--body-frame-left) !important;
+  padding-right:var(--body-frame-right) !important;
 }
 
+/* Only actual body text blocks move left/right. */
+.paper.layout-enabled .editor > .body-shiftable-block{
+  position:relative;
+  left:var(--body-block-shift,0%) !important;
+  width:calc(100% - var(--body-block-shift,0%)) !important;
+  box-sizing:border-box;
+}
 
-/* ===== V65 body position defaults ===== */
-.paper.layout-enabled{
-  --body-left:5.1%;
-  --body-right:7.2%;
+/* Divider ornaments are independent from body position. */
+.paper.layout-enabled .editor > .paragraph-divider,
+.paper.layout-enabled .editor > .paragraph-divider-spacer{
+  position:relative !important;
+  left:0 !important;
+  width:100% !important;
+  max-width:100% !important;
+}
+
+/* Divider alignment. Center is the default. */
+.paragraph-divider{
+  text-align:center;
+}
+.paragraph-divider[data-align="left"]{
+  text-align:left !important;
+  justify-content:flex-start !important;
+}
+.paragraph-divider[data-align="center"]{
+  text-align:center !important;
+  justify-content:center !important;
+}
+.paragraph-divider[data-align="right"]{
+  text-align:right !important;
+  justify-content:flex-end !important;
+}
+
+/* With-line alignment keeps the ornament position meaningful. */
+.paragraph-divider.with-line[data-align="left"]::before{
+  flex:.28 1 auto;
+}
+.paragraph-divider.with-line[data-align="left"]::after{
+  flex:1 1 auto;
+}
+.paragraph-divider.with-line[data-align="right"]::before{
+  flex:1 1 auto;
+}
+.paragraph-divider.with-line[data-align="right"]::after{
+  flex:.28 1 auto;
+}
+.paragraph-divider.with-line[data-align="center"]::before,
+.paragraph-divider.with-line[data-align="center"]::after{
+  flex:1 1 auto;
 }

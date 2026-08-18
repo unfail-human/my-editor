@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="65">
+  <meta name="my-editor-version" content="66">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -26,7 +26,7 @@
 
 
 
-  <link rel="stylesheet" href="style.css?v=65">
+  <link rel="stylesheet" href="style.css?v=66">
 </head>
 <body>
 
@@ -283,8 +283,8 @@
           </label>
           <label class="range-field">
             <span>본문 위치</span>
-            <input id="templateBodyShiftX" type="range" min="-12" max="8" step="0.5" value="-2">
-            <output id="templateBodyShiftXOut">왼쪽 2%</output>
+            <input id="templateBodyShiftX" type="range" min="-20" max="8" step="0.5" value="-4">
+            <output id="templateBodyShiftXOut">왼쪽 4%</output>
           </label>
           <p class="hint compact-hint">본문 영역 자체의 가로 위치를 조절합니다. 정렬 설정에는 영향을 주지 않습니다.</p>
 
@@ -526,7 +526,17 @@
           <output id="dividerMarginOut">18px</output>
         </label>
         
-        <label class="check-field">
+        
+        <label class="field">
+          <span>기호 정렬</span>
+          <select id="dividerAlign">
+            <option value="left">왼쪽</option>
+            <option value="center" selected>가운데</option>
+            <option value="right">오른쪽</option>
+          </select>
+        </label>
+
+<label class="check-field">
           <input id="dividerLineEnabled" type="checkbox">
           <span>구분선 함께 사용</span>
         </label>
@@ -811,7 +821,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=65"></script>
-<script src="script.js?v=65"></script>
+<script src="notice.js?v=66"></script>
+<script src="script.js?v=66"></script>
 </body>
 </html>
