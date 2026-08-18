@@ -38,7 +38,11 @@
           <span id="saveStatus" class="save-status">자동 저장됨</span>
           <button class="ghost-btn" id="settingsBtn">꾸미기</button>
           <button class="ghost-btn" id="copyBtn">복사</button>
-          <div class="export-menu-wrap">
+          <div class="document-actions">
+          <button class="top-action-btn" id="copyDocumentBtn">복사</button>
+          <button class="top-action-btn" id="previewDocumentBtn">미리보기</button>
+        </div>
+        <div class="export-menu-wrap">
           <button class="primary-btn" id="exportMenuBtn">저장 ▾</button>
           <div class="export-menu" id="exportMenu">
             <button type="button" data-export="png">PNG로 저장</button>
@@ -94,11 +98,10 @@
       <button class="drawer-close" id="closeSettingsBtn">×</button>
     </div>
 
-    <div class="settings-tabs four-tabs" role="tablist">
+    <div class="settings-tabs" role="tablist">
       <button class="settings-tab active" data-tab="text">폰트 편집</button>
       <button class="settings-tab" data-tab="slot">슬롯 편집</button>
       <button class="settings-tab" data-tab="background">문서 배경</button>
-      <button class="settings-tab" data-tab="preview">미리 보기</button>
     </div>
 
     <div class="tab-panel active" data-panel="text">
@@ -291,21 +294,28 @@
       </section>
     </div>
 
-    <div class="tab-panel" data-panel="preview">
-      <section class="setting-section first-section">
-        <div class="preview-head">
-          <div>
-            <h3>문서 미리 보기</h3>
-            <p>편집 도구 없이 실제 문서에 가까운 모습으로 확인해요.</p>
-          </div>
-          <button class="outline-btn preview-refresh-btn" id="refreshPreviewBtn">새로고침</button>
-        </div>
-        <div class="preview-stage" id="previewStage">
-          <div class="preview-page" id="previewPage"></div>
-        </div>
-      </section>
-    </div>
+
   </aside>
+
+  <div class="preview-modal" id="previewModal" aria-hidden="true">
+    <div class="preview-modal-backdrop" id="previewModalBackdrop"></div>
+    <div class="preview-modal-dialog">
+      <div class="preview-modal-head">
+        <div>
+          <div class="drawer-kicker">DOCUMENT PREVIEW</div>
+          <h2>미리보기</h2>
+        </div>
+        <div class="preview-modal-actions">
+          <button class="top-action-btn" id="previewCopyBtn">복사</button>
+          <button class="primary-btn" id="previewSaveBtn">저장 ▾</button>
+          <button class="drawer-close preview-close" id="closePreviewBtn">×</button>
+        </div>
+      </div>
+      <div class="preview-modal-stage">
+        <div class="preview-modal-page" id="previewModalPage"></div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>

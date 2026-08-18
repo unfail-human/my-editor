@@ -718,7 +718,7 @@ document.querySelectorAll(".settings-tab").forEach(tab => {
     document.querySelectorAll(".tab-panel").forEach(panel => {
       panel.classList.toggle("active", panel.dataset.panel === tab.dataset.tab);
     });
-    if (tab.dataset.tab === "preview") buildPreview();
+
   });
 });
 
@@ -858,6 +858,93 @@ function hexToRgb(hex) {
   return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
 }
 
+
+
+/* ---------- top copy / preview ---------- */
+async function copyCurrentDocument() {
+  saveCurrent(false);
+  const slot = currentSlot();
+  const text = [
+    slot.title || "",
+    slot.subtitle || "",
+    editor.innerText || ""
+  ].filter(Boolean).join("\n\n");
+
+  try {
+    await navigator.clipboard.writeText(text);
+    saveStatus.textContent = "복사됨";
+    setTimeout(() => saveStatus.textContent = "자동 저장됨", 1200);
+  } catch (e) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    saveStatus.textContent = "복사됨";
+    setTimeout(() => saveStatus.textContent = "자동 저장됨", 1200);
+  }
+}
+
+function buildModalPreview() {
+  saveCurrent(false);
+  const target = $("previewModalPage");
+  const source = $("documentPage");
+  if (!target || !source) return;
+
+  const clone = source.cloneNode(true);
+  clone.removeAttribute("id");
+
+  const toolbar = clone.querySelector(".toolbar");
+  if (toolbar) toolbar.remove();
+
+  const cloneEditor = clone.querySelector(".editor");
+  if (cloneEditor) {
+    cloneEditor.removeAttribute("contenteditable");
+    cloneEditor.style.overflow = "visible";
+    cloneEditor.style.height = "auto";
+    cloneEditor.style.minHeight = `${Math.max(820, editor.scrollHeight + 24)}px`;
+  }
+
+  const sourceInputs = source.querySelectorAll("input");
+  clone.querySelectorAll("input").forEach((input, i) => {
+    if (sourceInputs[i]) {
+      input.value = sourceInputs[i].value;
+      input.setAttribute("value", sourceInputs[i].value);
+      input.readOnly = true;
+    }
+  });
+
+  target.innerHTML = "";
+  target.appendChild(clone);
+}
+
+function openPreviewModal() {
+  buildModalPreview();
+  $("previewModal")?.classList.add("open");
+  $("previewModal")?.setAttribute("aria-hidden", "false");
+}
+function closePreviewModal() {
+  $("previewModal")?.classList.remove("open");
+  $("previewModal")?.setAttribute("aria-hidden", "true");
+}
+
+$("copyDocumentBtn")?.addEventListener("click", copyCurrentDocument);
+$("previewDocumentBtn")?.addEventListener("click", openPreviewModal);
+$("previewCopyBtn")?.addEventListener("click", copyCurrentDocument);
+$("closePreviewBtn")?.addEventListener("click", closePreviewModal);
+$("previewModalBackdrop")?.addEventListener("click", closePreviewModal);
+
+$("previewSaveBtn")?.addEventListener("click", () => {
+  closePreviewModal();
+  exportMenu?.classList.add("open");
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("previewModal")?.classList.contains("open")) {
+    closePreviewModal();
+  }
+});
 
 /* ---------- PNG / JPG / PDF export ---------- */
 const exportMenuBtn = $("exportMenuBtn");

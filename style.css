@@ -871,3 +871,107 @@ body.exporting .document-page {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+/* ===== V9 top copy/save/preview actions ===== */
+.document-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.top-action-btn {
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0 11px;
+  background: white;
+  color: #5d5952;
+  font-size: 10px;
+  font-weight: 650;
+}
+.top-action-btn:hover { background: var(--accent-soft); }
+
+.preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+}
+.preview-modal.open { display: block; }
+.preview-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(31, 29, 26, .42);
+  backdrop-filter: blur(4px);
+}
+.preview-modal-dialog {
+  position: absolute;
+  inset: 28px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f7f5f1;
+  box-shadow: 0 28px 90px rgba(0,0,0,.22);
+}
+.preview-modal-head {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.88);
+}
+.preview-modal-head h2 {
+  margin: 1px 0 0;
+  font-size: 17px;
+}
+.preview-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.preview-close {
+  display: inline-block !important;
+  position: static;
+  margin-left: 4px;
+}
+.preview-modal-stage {
+  flex: 1;
+  overflow: auto;
+  padding: 28px;
+  display: grid;
+  justify-items: center;
+  background: #d9d5ce;
+}
+.preview-modal-page {
+  width: min(794px, calc(100vw - 120px));
+}
+.preview-modal-page .document-page {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 1123px !important;
+  aspect-ratio: 210 / 297;
+  overflow: visible !important;
+  padding: 70px 72px 45px !important;
+  box-shadow: 0 16px 55px rgba(0,0,0,.16) !important;
+}
+.preview-modal-page .toolbar { display: none !important; }
+.preview-modal-page .editor {
+  overflow: visible !important;
+  min-height: 820px !important;
+  height: auto !important;
+  font-size: 16px !important;
+}
+.preview-modal-page input { pointer-events: none; }
+
+@media (max-width: 800px) {
+  .preview-modal-dialog { inset: 10px; }
+  .preview-modal-stage { padding: 12px; }
+  .preview-modal-page { width: 100%; }
+  .document-actions .top-action-btn { padding-inline: 7px; }
+}
