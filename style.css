@@ -774,3 +774,32 @@ button{cursor:pointer}
   color:#77726b;
 }
 #slotModalDeleteBtn{ color:#a05656; }
+
+
+/* ===== V24 ===== */
+#previewModal .modal-stage{
+  padding:10px !important;
+}
+
+
+/* ===== V25 automatic palette controls ===== */
+.check-field{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:8px 0 10px;
+  padding:8px 9px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:#fff;
+  color:#77726b;
+  font-size:10px;
+}
+.check-field input[type="checkbox"]{
+  width:15px;
+  height:15px;
+  accent-color:#2d2b28;
+}
+.auto-color-active input[type="color"]{
+  opacity:.62;
+}

@@ -266,6 +266,10 @@
                 <span>효과 색상</span>
                 <input id="effectColor" type="color" value="#8f887f">
               </label>
+              <label class="check-field">
+                <input id="effectAutoColor" type="checkbox">
+                <span>자동 색상 적용</span>
+              </label>
             </section>
 
     </div>
@@ -380,6 +384,10 @@
           </select>
         </label>
         <label class="field"><span>테두리색</span><input id="paperBorderColor" type="color" value="#d8d2c8"></label>
+        <label class="check-field">
+          <input id="paperBorderAutoColor" type="checkbox">
+          <span>자동 색상 적용</span>
+        </label>
         <label class="range-field">
           <span>테두리 굵기</span>
           <input id="paperBorderWidth" type="range" min="0" max="8" value="1">
@@ -389,6 +397,11 @@
           <span>안쪽 여백</span>
           <input id="paperInnerInset" type="range" min="0" max="36" value="0">
           <output id="paperInnerInsetOut">0px</output>
+        </label>
+        <label class="range-field">
+          <span>테두리 투명도</span>
+          <input id="paperBorderOpacity" type="range" min="0" max="100" value="100">
+          <output id="paperBorderOpacityOut">100%</output>
         </label>
         <label class="field">
           <span>내부 프레임</span>
@@ -400,17 +413,16 @@
           </select>
         </label>
         <label class="field"><span>프레임 색</span><input id="paperFrameColor" type="color" value="#bdb5a8"></label>
+        <label class="check-field">
+          <input id="paperFrameAutoColor" type="checkbox">
+          <span>자동 색상 적용</span>
+        </label>
         <label class="range-field">
           <span>그림자</span>
           <input id="paperShadow" type="range" min="0" max="40" value="16">
           <output id="paperShadowOut">16</output>
         </label>
       
-        <label class="range-field">
-          <span>테두리 투명도</span>
-          <input id="paperBorderOpacity" type="range" min="0" max="100" value="100">
-          <output id="paperBorderOpacityOut">100%</output>
-        </label>
         <label class="range-field">
           <span>내부 프레임 투명도</span>
           <input id="paperFrameOpacity" type="range" min="0" max="100" value="100">
