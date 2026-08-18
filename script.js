@@ -162,8 +162,6 @@ function currentLayout(){
 function layoutRatio(layout=currentLayout()){
   const base={
     a4:210/297,
-    a5:148/210,
-    b5:176/250,
     letter:216/279,
     postcard:100/148,
     card:3/2,
@@ -177,11 +175,7 @@ function layoutRatio(layout=currentLayout()){
 
 function layoutExportSpec(layout=currentLayout()){
   let mm,px;
-  if(layout.template==="a5"){
-    mm=[148,210]; px=[700,993];
-  }else if(layout.template==="b5"){
-    mm=[176,250]; px=[744,1057];
-  }else if(layout.template==="letter"){
+  if(layout.template==="letter"){
     mm=[216,279]; px=[816,1054];
   }else if(layout.template==="postcard"){
     mm=[100,148]; px=[675,999];
@@ -222,8 +216,6 @@ function fitLivePaperToLayout(){
   // A4 is the baseline; smaller/card formats visibly shrink and wide formats expand horizontally.
   const scaleMap={
     a4:1,
-    a5:.78,
-    b5:.88,
     letter:1.02,
     postcard:.68,
     card:.72,
@@ -282,31 +274,42 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   const showHeading=!layout.coverTitleFirstPage || pageIndex===0;
   const largeHeading=showHeading && !!layout.coverTitleLargeFirstPage && pageIndex===0;
+  const columns=layout.writingMode==="vertical"?1:Number(layout.columns||1);
+  const compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
+
   paper.classList.toggle("layout-no-heading",!showHeading);
   paper.classList.toggle("heading-large-first",largeHeading);
+  paper.dataset.columnCount=String(columns);
 
   if(title)title.style.display=showHeading?"":"none";
   if(subtitle)subtitle.style.display=showHeading?"":"none";
 
   const hp=headingPreset(layout.headingPosition,layout.headingX,layout.headingY);
-  const compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
 
-  // One shared horizontal content box for title, subtitle and body.
-  let left=7,right=7,align=hp.align;
-  if(showHeading && hp.align==="left"){
-    left=Math.max(5,Math.min(34,hp.x));
-    right=7;
+  // Heading group becomes a wider, cleaner visual block.
+  let left=6,right=6,align=hp.align;
+
+  // Multi-column layouts benefit from a more centered heading block.
+  if(columns>1){
+    left=8;
+    right=8;
+    align="center";
+  }else if(showHeading && hp.align==="left"){
+    left=Math.max(5,Math.min(26,hp.x));
+    right=5;
   }else if(showHeading && hp.align==="right"){
-    left=7;
-    right=Math.max(5,Math.min(34,100-hp.x));
+    left=5;
+    right=Math.max(5,Math.min(26,100-hp.x));
   }else if(showHeading){
-    left=layout.orientation==="landscape"?10:9;
+    left=layout.orientation==="landscape"?8:7;
     right=left;
   }
+
   paper.style.setProperty("--content-left",left+"%");
   paper.style.setProperty("--content-right",right+"%");
+  paper.style.setProperty("--heading-left",left+"%");
+  paper.style.setProperty("--heading-right",right+"%");
 
-  // Title/subtitle share exactly the same width and left/right edges as body.
   [title,subtitle].forEach(el=>{
     if(!el)return;
     el.style.left=left+"%";
@@ -317,35 +320,50 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   });
 
   if(showHeading){
-    let titleY=hp.y;
-    if(hp.y<30) titleY=compact?10:9;
-    else if(hp.y>65) titleY=compact?68:74;
-    title.style.top=titleY+"%";
-    subtitle.style.top="calc("+titleY+"% + "+(largeHeading?52:38)+"px)";
+    let titleTop;
+    if(columns>1){
+      titleTop=compact?8:7;
+    }else if(hp.y<30){
+      titleTop=compact?9:8;
+    }else if(hp.y>65){
+      titleTop=compact?66:72;
+    }else{
+      titleTop=Math.max(34,Math.min(52,hp.y));
+    }
+
+    title.style.top=titleTop+"%";
+    subtitle.style.top=`calc(${titleTop}% + ${largeHeading?58:42}px)`;
   }
 
-  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
+  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom","heading-columns");
   if(showHeading){
-    if(hp.y<30)paper.classList.add("body-clear-top");
-    else if(hp.y>65)paper.classList.add("body-clear-bottom");
-    else paper.classList.add("body-clear-center");
+    if(columns>1){
+      paper.classList.add("body-clear-top","heading-columns");
+    }else if(hp.y<30){
+      paper.classList.add("body-clear-top");
+    }else if(hp.y>65){
+      paper.classList.add("body-clear-bottom");
+    }else{
+      paper.classList.add("body-clear-center");
+    }
   }
 
-  const topClear=largeHeading?(compact?132:170):(compact?104:138);
-  const bottomClear=largeHeading?(compact?142:184):(compact?116:156);
+  // Wider visual separation from body.
+  const topClear=largeHeading?(compact?142:184):(compact?112:150);
+  const bottomClear=largeHeading?(compact?150:194):(compact?124:166);
   paper.style.setProperty("--heading-clear-top",topClear+"px");
   paper.style.setProperty("--heading-clear-bottom",bottomClear+"px");
 
   const vertical=layout.writingMode==="vertical";
   editor.classList.toggle("writing-vertical",vertical);
   editor.classList.toggle("writing-horizontal",!vertical);
-  editor.classList.toggle("layout-columns",!vertical && Number(layout.columns)>1);
+  editor.classList.toggle("layout-columns",!vertical && columns>1);
+
   editor.style.writingMode=vertical?"vertical-rl":"horizontal-tb";
   editor.style.textOrientation=vertical?"mixed":"initial";
-  editor.style.columnCount=vertical?1:Number(layout.columns||1);
+  editor.style.columnCount=vertical?1:columns;
   editor.style.columnGap=(layout.columnGap??28)+"px";
 
-  // Dividers always belong to their current column.
   editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{
     el.style.columnSpan="none";
     el.style.width="100%";
