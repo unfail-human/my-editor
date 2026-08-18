@@ -2047,3 +2047,32 @@ button{cursor:pointer}
 .paper.layout-enabled .editor.writing-vertical{
   padding:7% 8% 8% 6% !important;
 }
+
+
+/* ===== V61 subtitle-rule aligned body ===== */
+.paper.layout-enabled{
+  --content-left:5%;
+  --content-right:7%;
+  --body-left:6.2%;
+  --body-right:7%;
+}
+
+/* Heading + subtitle rule begin farther left. */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  left:var(--content-left) !important;
+  right:var(--content-right) !important;
+}
+
+/* Body begins just after the left end of the subtitle rule. */
+.paper.layout-enabled .editor.writing-horizontal,
+.paper.layout-enabled .editor.layout-columns{
+  padding-left:var(--body-left) !important;
+  padding-right:var(--body-right) !important;
+}
+
+/* Pages without headings keep the same body alignment for visual continuity. */
+.paper.layout-enabled.layout-no-heading .editor.writing-horizontal{
+  padding-left:var(--body-left) !important;
+  padding-right:var(--body-right) !important;
+}

@@ -332,11 +332,14 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   const hp=headingPreset(ts.headingPosition||layout.headingPosition||"top-left",layout.headingX,layout.headingY);
 
   // One shared left edge: title, subtitle rule and body all start here.
-  const contentLeft=layout.orientation==="landscape"?5:6;
-  const contentRight=layout.orientation==="landscape"?7:8;
+  // Subtitle rule is the master alignment guide.
+  // Body starts only a tiny step to the right of the rule's left edge.
+  const contentLeft=layout.orientation==="landscape"?4.5:5;
+  const contentRight=layout.orientation==="landscape"?6:7;
+  const bodyLeft=contentLeft+1.2;
   paper.style.setProperty("--content-left",contentLeft+"%");
   paper.style.setProperty("--content-right",contentRight+"%");
-  paper.style.setProperty("--body-left",contentLeft+"%");
+  paper.style.setProperty("--body-left",bodyLeft+"%");
   paper.style.setProperty("--body-right",contentRight+"%");
   paper.style.setProperty("--heading-left",contentLeft+"%");
   paper.style.setProperty("--heading-right",contentRight+"%");
