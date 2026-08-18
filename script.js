@@ -41,7 +41,7 @@ function defaultAppearance() {
     backgroundBlur: 0,
     backgroundBrightness: 100,
     paperColor: "#ffffff",
-    paperOpacity: 96
+    paperOpacity: 100
   };
 }
 
@@ -55,6 +55,11 @@ function defaultSlot(index) {
     pagePrefix: "—",
     pageNumber: String(index).padStart(2, "0"),
     pageSuffix: "—",
+    typography: {
+      letterSpacing: "0em",
+      lineHeight: "1.78",
+      paragraphSpacing: "0px"
+    },
     updatedAt: null
   };
 }
@@ -65,24 +70,32 @@ function loadState() {
     if (saved) {
       const parsed = JSON.parse(saved);
       parsed.appearance = { ...defaultAppearance(), ...(parsed.appearance || {}) };
-      parsed.slots = (parsed.slots || []).map((s, i) => ({
-        ...defaultSlot(i + 1),
-        ...s
-      }));
+      parsed.slots = (parsed.slots || []).map((s, i) => {
+        const d = defaultSlot(i + 1);
+        return {
+          ...d,
+          ...s,
+          typography: { ...d.typography, ...(s.typography || {}) }
+        };
+      });
       if (parsed.slots.length) return parsed;
     }
 
     const old = localStorage.getItem(OLD_STORAGE_KEY);
     if (old) {
       const parsedOld = JSON.parse(old);
-      const slots = (parsedOld.slots || []).map((s, i) => ({
-        ...defaultSlot(i + 1),
-        ...s,
-        subtitle: "",
-        pagePrefix: "—",
-        pageNumber: String(i + 1).padStart(2, "0"),
-        pageSuffix: "—"
-      }));
+      const slots = (parsedOld.slots || []).map((s, i) => {
+        const d = defaultSlot(i + 1);
+        return {
+          ...d,
+          ...s,
+          subtitle: "",
+          pagePrefix: "—",
+          pageNumber: String(i + 1).padStart(2, "0"),
+          pageSuffix: "—",
+          typography: { ...d.typography, ...(s.typography || {}) }
+        };
+      });
       if (slots.length) {
         return {
           slots,
@@ -136,6 +149,7 @@ function renderEditor() {
   pageNumberInput.value = slot.pageNumber ?? String(index).padStart(2, "0");
   pageSuffixInput.value = slot.pageSuffix ?? "—";
   updatePageNumberPreview();
+  applySlotTypography();
   updatedAt.textContent = slot.updatedAt ? formatDate(slot.updatedAt) : "-";
   updateCounts();
   renderSlots();
@@ -191,6 +205,98 @@ function updateCounts() {
 function updatePageNumberPreview() {
   const parts = [pagePrefixInput.value, pageNumberInput.value, pageSuffixInput.value].filter(v => v !== "");
   pageNumberPreview.textContent = parts.join(" ");
+}
+
+
+function applySlotTypography() {
+  const slot = currentSlot();
+  if (!slot) return;
+  const t = slot.typography || { letterSpacing:"0em", lineHeight:"1.78", paragraphSpacing:"0px" };
+  editor.style.setProperty("--editor-letter-spacing", t.letterSpacing || "0em");
+  editor.style.setProperty("--editor-line-height", t.lineHeight || "1.78");
+  editor.style.setProperty("--editor-paragraph-spacing", t.paragraphSpacing || "0px");
+
+  if ($("globalLetterSpacing")) {
+    const n = parseFloat(t.letterSpacing || "0");
+    $("globalLetterSpacing").value = Math.round(n * 100);
+    $("globalLetterSpacingValue").textContent = `${t.letterSpacing || "0em"}`;
+  }
+  if ($("globalLineHeight")) {
+    $("globalLineHeight").value = Math.round(parseFloat(t.lineHeight || "1.78") * 100);
+    $("globalLineHeightValue").textContent = t.lineHeight || "1.78";
+  }
+  if ($("globalParagraphSpacing")) {
+    $("globalParagraphSpacing").value = parseInt(t.paragraphSpacing || "0", 10) || 0;
+    $("globalParagraphSpacingValue").textContent = t.paragraphSpacing || "0px";
+  }
+}
+
+function setGlobalTypography(key, value) {
+  const slot = currentSlot();
+  if (!slot.typography) slot.typography = { letterSpacing:"0em", lineHeight:"1.78", paragraphSpacing:"0px" };
+  slot.typography[key] = value;
+  applySlotTypography();
+  persist();
+  saveCurrent(false);
+}
+
+function applyStyleToSelection(styleProperty, value) {
+  editor.focus();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false;
+
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return false;
+
+  const span = document.createElement("span");
+  span.style[styleProperty] = value;
+  try {
+    range.surroundContents(span);
+  } catch (e) {
+    const fragment = range.extractContents();
+    span.appendChild(fragment);
+    range.insertNode(span);
+  }
+  sel.removeAllRanges();
+  const newRange = document.createRange();
+  newRange.selectNodeContents(span);
+  sel.addRange(newRange);
+  scheduleSave();
+  return true;
+}
+
+function applyParagraphSpacingToSelection(value) {
+  editor.focus();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false;
+  const range = sel.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return false;
+
+  const blocks = new Set();
+  let node = range.startContainer;
+  while (node && node !== editor) {
+    if (node.nodeType === 1 && /^(P|DIV|BLOCKQUOTE|LI|H1|H2|H3)$/.test(node.tagName)) {
+      blocks.add(node);
+      break;
+    }
+    node = node.parentNode;
+  }
+
+  node = range.endContainer;
+  while (node && node !== editor) {
+    if (node.nodeType === 1 && /^(P|DIV|BLOCKQUOTE|LI|H1|H2|H3)$/.test(node.tagName)) {
+      blocks.add(node);
+      break;
+    }
+    node = node.parentNode;
+  }
+
+  blocks.forEach(el => el.style.marginBottom = value);
+  if (blocks.size) {
+    scheduleSave();
+    return true;
+  }
+  return false;
 }
 
 function addSlot() {
@@ -313,6 +419,33 @@ $("fontSizeSelect").addEventListener("change", e => {
   e.target.value = "";
 });
 
+$("letterSpacingSelect").addEventListener("change", e => {
+  const value = e.target.value;
+  if (!value) return;
+  if (!applyStyleToSelection("letterSpacing", value)) {
+    setGlobalTypography("letterSpacing", value);
+  }
+  e.target.value = "";
+});
+
+$("lineHeightSelect").addEventListener("change", e => {
+  const value = e.target.value;
+  if (!value) return;
+  if (!applyStyleToSelection("lineHeight", value)) {
+    setGlobalTypography("lineHeight", value);
+  }
+  e.target.value = "";
+});
+
+$("paragraphSpacingSelect").addEventListener("change", e => {
+  const value = e.target.value;
+  if (!value) return;
+  if (!applyParagraphSpacingToSelection(value)) {
+    setGlobalTypography("paragraphSpacing", value);
+  }
+  e.target.value = "";
+});
+
 $("textColor").addEventListener("input", e => exec("foreColor", e.target.value));
 $("highlightColor").addEventListener("input", e => exec("hiliteColor", e.target.value));
 
@@ -333,7 +466,7 @@ $("newSlotBtn").addEventListener("click", addSlot);
 $("deleteSlotBtn").addEventListener("click", deleteCurrentSlot);
 $("renameBtn").addEventListener("click", renameSlot);
 $("copyBtn").addEventListener("click", copyCurrent);
-$("downloadBtn").addEventListener("click", exportCurrent);
+
 $("exportAllBtn").addEventListener("click", exportAll);
 
 $("importBackupInput").addEventListener("change", e => {
@@ -566,27 +699,34 @@ function syncAppearanceControls() {
 
 async function applyAppearance() {
   const a = state.appearance;
+  const page = $("documentPage");
   const layer = $("backgroundLayer");
+
+  // 바깥 작업 공간은 중립색으로 고정
+  layer.style.background = "#dedbd4";
+  layer.style.backgroundImage = "none";
+  layer.style.filter = "none";
 
   if (activeBgObjectUrl) {
     URL.revokeObjectURL(activeBgObjectUrl);
     activeBgObjectUrl = null;
   }
 
-  layer.style.backgroundImage = "none";
-  layer.style.backgroundColor = a.solid;
-  layer.style.backgroundSize = a.backgroundSize;
-  layer.style.backgroundRepeat = a.backgroundRepeat;
-  layer.style.backgroundPosition = "center";
-  layer.style.filter = `blur(${a.backgroundBlur}px) brightness(${a.backgroundBrightness}%)`;
+  // 문서 자체에 배경 적용
+  page.style.backgroundImage = "none";
+  page.style.backgroundColor = a.solid;
+  page.style.backgroundSize = a.backgroundSize;
+  page.style.backgroundRepeat = a.backgroundRepeat;
+  page.style.backgroundPosition = "center";
+  page.style.filter = `brightness(${a.backgroundBrightness}%)`;
 
   if (a.mode === "gradient") {
-    layer.style.backgroundImage = `linear-gradient(${a.gradientAngle}deg, ${a.gradient1}, ${a.gradient2})`;
+    page.style.backgroundImage = `linear-gradient(${a.gradientAngle}deg, ${a.gradient1}, ${a.gradient2})`;
   } else if (a.mode === "image" && a.backgroundAssetId) {
     const asset = await getAsset(BG_STORE, a.backgroundAssetId);
     if (asset?.file) {
       activeBgObjectUrl = URL.createObjectURL(asset.file);
-      layer.style.backgroundImage = `url("${activeBgObjectUrl}")`;
+      page.style.backgroundImage = `url("${activeBgObjectUrl}")`;
     }
   }
 
@@ -600,6 +740,181 @@ function hexToRgb(hex) {
   const n = parseInt(h.length === 3 ? h.split("").map(x=>x+x).join("") : h, 16);
   return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
 }
+
+
+/* ---------- PNG / JPG / PDF export ---------- */
+const exportMenuBtn = $("exportMenuBtn");
+const exportMenu = $("exportMenu");
+
+exportMenuBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  exportMenu.classList.toggle("open");
+});
+
+document.addEventListener("click", () => exportMenu?.classList.remove("open"));
+exportMenu?.addEventListener("click", e => e.stopPropagation());
+
+document.querySelectorAll("[data-export]").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    exportMenu.classList.remove("open");
+    const type = btn.dataset.export;
+    if (type === "txt") {
+      exportCurrent();
+      return;
+    }
+    await exportDocumentAs(type);
+  });
+});
+
+async function captureDocumentCanvas() {
+  saveCurrent(false);
+
+  if (typeof html2canvas !== "function") {
+    alert("이미지 저장 모듈을 불러오지 못했습니다. 인터넷 연결 후 새로고침해주세요.");
+    throw new Error("html2canvas unavailable");
+  }
+
+  const page = $("documentPage");
+  document.body.classList.add("exporting");
+  saveStatus.textContent = "파일 만드는 중…";
+
+  // capture용으로 현재 스크롤 위치와 높이를 잠시 보존
+  const oldEditorOverflow = editor.style.overflow;
+  const oldEditorHeight = editor.style.height;
+  const oldPageHeight = page.style.height;
+  const oldPageMinHeight = page.style.minHeight;
+
+  try {
+    editor.style.overflow = "visible";
+    editor.style.height = "auto";
+
+    // 본문이 길면 내보내기 시 잘리지 않도록 문서를 필요한 만큼 확장
+    const contentExtra = Math.max(0, editor.scrollHeight - editor.clientHeight);
+    if (contentExtra > 0) {
+      const baseHeight = page.getBoundingClientRect().height;
+      page.style.height = `${baseHeight + contentExtra}px`;
+      page.style.minHeight = `${baseHeight + contentExtra}px`;
+    }
+
+    await document.fonts.ready;
+
+    const canvas = await html2canvas(page, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: null,
+      logging: false,
+      imageTimeout: 15000
+    });
+
+    return canvas;
+  } finally {
+    editor.style.overflow = oldEditorOverflow;
+    editor.style.height = oldEditorHeight;
+    page.style.height = oldPageHeight;
+    page.style.minHeight = oldPageMinHeight;
+    document.body.classList.remove("exporting");
+    saveStatus.textContent = "자동 저장됨";
+  }
+}
+
+async function exportDocumentAs(type) {
+  try {
+    const slot = currentSlot();
+    const filename = safeFilename(slot.title || slot.name || "document");
+    const canvas = await captureDocumentCanvas();
+
+    if (type === "png") {
+      canvas.toBlob(blob => {
+        if (blob) downloadBlobFile(blob, `${filename}.png`);
+      }, "image/png");
+      return;
+    }
+
+    if (type === "jpg") {
+      // JPG는 투명 배경을 지원하지 않으므로 흰색 캔버스에 합성
+      const jpgCanvas = document.createElement("canvas");
+      jpgCanvas.width = canvas.width;
+      jpgCanvas.height = canvas.height;
+      const ctx = jpgCanvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, jpgCanvas.width, jpgCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+      jpgCanvas.toBlob(blob => {
+        if (blob) downloadBlobFile(blob, `${filename}.jpg`);
+      }, "image/jpeg", 0.94);
+      return;
+    }
+
+    if (type === "pdf") {
+      if (!window.jspdf?.jsPDF) {
+        alert("PDF 저장 모듈을 불러오지 못했습니다. 인터넷 연결 후 새로고침해주세요.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true
+      });
+
+      const pageW = 210;
+      const pageH = 297;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+      // 문서가 길어졌을 경우 여러 A4 페이지로 분할
+      const imgW = pageW;
+      const imgH = canvas.height * pageW / canvas.width;
+
+      if (imgH <= pageH) {
+        pdf.addImage(imgData, "JPEG", 0, 0, imgW, imgH, undefined, "FAST");
+      } else {
+        const pageCanvasPx = Math.floor(canvas.width * pageH / pageW);
+        let y = 0;
+        let pageIndex = 0;
+
+        while (y < canvas.height) {
+          const sliceH = Math.min(pageCanvasPx, canvas.height - y);
+          const slice = document.createElement("canvas");
+          slice.width = canvas.width;
+          slice.height = sliceH;
+          const ctx = slice.getContext("2d");
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, slice.width, slice.height);
+          ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+
+          const sliceData = slice.toDataURL("image/jpeg", 0.95);
+          const sliceHmm = sliceH * pageW / canvas.width;
+
+          if (pageIndex > 0) pdf.addPage("a4", "portrait");
+          pdf.addImage(sliceData, "JPEG", 0, 0, pageW, sliceHmm, undefined, "FAST");
+
+          y += sliceH;
+          pageIndex++;
+        }
+      }
+
+      pdf.save(`${filename}.pdf`);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("파일 저장 중 문제가 생겼습니다. 새로고침 후 다시 시도해주세요.");
+  }
+}
+
+function downloadBlobFile(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 
 /* ---------- helpers ---------- */
 function stripHtml(html) {
@@ -630,6 +945,27 @@ function downloadBlob(content, filename, type) {
   a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
+
+
+/* ---------- global typography controls ---------- */
+$("globalLetterSpacing")?.addEventListener("input", e => {
+  const value = `${Number(e.target.value) / 100}em`;
+  $("globalLetterSpacingValue").textContent = value;
+  setGlobalTypography("letterSpacing", value);
+});
+
+$("globalLineHeight")?.addEventListener("input", e => {
+  const value = (Number(e.target.value) / 100).toFixed(2).replace(/0+$/,"").replace(/\.$/,"");
+  $("globalLineHeightValue").textContent = value;
+  setGlobalTypography("lineHeight", value);
+});
+
+$("globalParagraphSpacing")?.addEventListener("input", e => {
+  const value = `${Number(e.target.value)}px`;
+  $("globalParagraphSpacingValue").textContent = value;
+  setGlobalTypography("paragraphSpacing", value);
+});
+
 
 /* ---------- init ---------- */
 syncAppearanceControls();

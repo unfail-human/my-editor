@@ -1,22 +1,15 @@
-MY EDITOR V4
+MY EDITOR V6
 
-GitHub에 아래 파일/폴더를 모두 업로드하세요.
+추가 기능
+- 자간 조절
+- 행간 조절
+- 문단 간격 조절
+- 선택한 글이 있으면 선택 영역에 적용
+- 선택 영역이 없으면 현재 슬롯 전체 본문 기본값으로 적용
+- 오른쪽 꾸미기 패널에서 기본 자간/행간/문단 간격을 슬라이더로 조절
+- 슬롯마다 간격 설정 저장
 
-index.html
-style.css
-script.js
-fonts/
-  PretendardVariable.woff2
-  NotoSansKR-Variable.ttf
-  KoPubWorldBatangLight.ttf
-  KoPubWorldBatangMedium.ttf
-  KoPubWorldBatangBold.ttf
-  KoPubWorldDotumLight.ttf
-  KoPubWorldDotumMedium.ttf
-  KoPubWorldDotumBold.ttf
-
-기본 내장 글꼴:
-- Pretendard (원본 ZIP의 Variable WOFF2 1개로 100~900 굵기 지원)
-- Noto Sans KR (원본 ZIP의 Variable TTF 1개로 가변 굵기 지원)
-- KoPubWorld 바탕 (Light / Medium / Bold)
-- KoPubWorld 돋움 (Light / Medium / Bold)
+기존 V5 기능은 유지됩니다.
+- 문서 배경 단색/그라데이션/이미지
+- PNG/JPG/PDF/TXT 저장
+- 기본 내장 폰트

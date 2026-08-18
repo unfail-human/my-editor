@@ -557,3 +557,114 @@ body.settings-open .app {
     aspect-ratio: auto;
   }
 }
+
+
+/* ===== V5: document background + export menu ===== */
+.background-layer {
+  background: #dedbd4 !important;
+  background-image: none !important;
+  filter: none !important;
+}
+
+.document-page {
+  background-color: rgba(var(--paper-rgb), var(--paper-opacity));
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  isolation: isolate;
+}
+
+.document-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: rgba(var(--paper-rgb), calc(1 - var(--paper-opacity)));
+}
+
+.export-menu-wrap {
+  position: relative;
+}
+
+.export-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 7px);
+  min-width: 130px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 12px 30px rgba(0,0,0,.10);
+  display: none;
+  z-index: 80;
+}
+
+.export-menu.open {
+  display: grid;
+}
+
+.export-menu button {
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  text-align: left;
+  color: #4f4c47;
+  font-size: 11px;
+}
+
+.export-menu button:hover {
+  background: var(--accent-soft);
+}
+
+body.exporting .toolbar {
+  visibility: hidden !important;
+}
+
+body.exporting .editor {
+  overflow: visible !important;
+}
+
+body.exporting .document-page {
+  overflow: visible !important;
+}
+
+
+
+/* ===== V6 typography spacing ===== */
+.editor {
+  letter-spacing: var(--editor-letter-spacing, 0em);
+  line-height: var(--editor-line-height, 1.78);
+}
+
+.editor p,
+.editor div,
+.editor blockquote,
+.editor ul,
+.editor ol,
+.editor h1,
+.editor h2,
+.editor h3 {
+  margin-bottom: var(--editor-paragraph-spacing, 0px);
+}
+
+.spacing-applied {
+  letter-spacing: inherit;
+}
+
+.toolbar select#letterSpacingSelect,
+.toolbar select#lineHeightSelect,
+.toolbar select#paragraphSpacingSelect {
+  max-width: 92px;
+}
+
+@media (max-width: 900px) {
+  .toolbar select#letterSpacingSelect,
+  .toolbar select#lineHeightSelect,
+  .toolbar select#paragraphSpacingSelect {
+    max-width: 78px;
+  }
+}
