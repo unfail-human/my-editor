@@ -6,7 +6,7 @@
   <title>My Writing Editor</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="settings-open">
   <div id="backgroundLayer" class="background-layer"></div>
 
   <div class="app">
@@ -57,7 +57,11 @@
             </select>
 
             <select id="fontSelect" title="글꼴">
-              <option value="">기본 글꼴</option>
+              <option value="Pretendard">Pretendard</option>
+              <option value="Noto Sans KR">Noto Sans KR</option>
+              <option value="KoPubWorld Batang">KoPubWorld 바탕</option>
+              <option value="KoPubWorld Dotum">KoPubWorld 돋움</option>
+              <option value="">시스템 기본</option>
               <option value="Arial">Arial</option>
               <option value="Georgia">Georgia</option>
               <option value="Times New Roman">Times New Roman</option>
@@ -165,8 +169,8 @@
     </aside>
   </div>
 
-  <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="settings-drawer" id="settingsDrawer">
+  <div class="drawer-backdrop open" id="drawerBackdrop"></div>
+  <aside class="settings-drawer open" id="settingsDrawer">
     <div class="drawer-head">
       <div>
         <div class="drawer-kicker">APPEARANCE</div>

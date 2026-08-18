@@ -479,10 +479,12 @@ const drawerBackdrop = $("drawerBackdrop");
 function openSettings() {
   settingsDrawer.classList.add("open");
   drawerBackdrop.classList.add("open");
+  document.body.classList.add("settings-open");
 }
 function closeSettings() {
   settingsDrawer.classList.remove("open");
   drawerBackdrop.classList.remove("open");
+  document.body.classList.remove("settings-open");
 }
 $("settingsBtn").addEventListener("click", openSettings);
 $("closeSettingsBtn").addEventListener("click", closeSettings);
@@ -634,3 +636,5 @@ syncAppearanceControls();
 applyAppearance();
 loadCustomFonts();
 renderEditor();
+if ($("fontSelect")) $("fontSelect").value = "Pretendard";
+openSettings();

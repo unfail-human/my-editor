@@ -1,3 +1,61 @@
+
+@font-face {
+  font-family: "KoPubWorld Batang";
+  src: url("./fonts/KoPubWorldBatangLight.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "KoPubWorld Batang";
+  src: url("./fonts/KoPubWorldBatangMedium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "KoPubWorld Batang";
+  src: url("./fonts/KoPubWorldBatangBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "KoPubWorld Dotum";
+  src: url("./fonts/KoPubWorldDotumLight.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "KoPubWorld Dotum";
+  src: url("./fonts/KoPubWorldDotumMedium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "KoPubWorld Dotum";
+  src: url("./fonts/KoPubWorldDotumBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Pretendard";
+  src: url("./fonts/PretendardVariable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url("./fonts/NotoSansKR-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   --bg: #f5f4f1;
   --panel: rgba(255,255,255,.94);
@@ -250,4 +308,252 @@ button { cursor: pointer; }
   .document-page { min-height:900px; padding:38px 22px 28px; }
   .title-input { font-size:27px; }
   .toolbar { top:66px; }
+}
+
+
+/* ===== V3 layout: one-page overview + always-open appearance panel ===== */
+body {
+  font-family: "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+}
+
+.app {
+  height: 100vh;
+  min-height: 0;
+  grid-template-columns: 220px minmax(0, 1fr) 0;
+}
+
+.sidebar {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  height: 58px;
+  min-height: 58px;
+  padding: 0 22px;
+}
+
+.workspace {
+  height: calc(100vh - 92px);
+  min-height: 0;
+  padding: 18px 24px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.document-page {
+  width: min(
+    calc((100vh - 128px) * 0.70707),
+    calc(100vw - 220px - 390px - 90px)
+  );
+  min-width: 430px;
+  max-width: 760px;
+  height: min(
+    calc(100vh - 128px),
+    calc((100vw - 220px - 390px - 90px) * 1.4142)
+  );
+  min-height: 608px;
+  aspect-ratio: 210 / 297;
+  margin: 0;
+  padding: clamp(30px, 4vh, 52px) clamp(34px, 4vw, 58px) 28px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 14px 50px rgba(30, 28, 24, .16);
+}
+
+.title-input {
+  font-size: clamp(23px, 2.4vw, 32px);
+  padding-bottom: 5px;
+}
+
+.subtitle-input {
+  font-size: clamp(11px, 1.1vw, 14px);
+  padding-bottom: 14px;
+}
+
+.toolbar {
+  position: static;
+  margin: 0 -8px;
+  padding: 6px 4px;
+  max-height: 76px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.toolbar button,
+.toolbar select,
+.color-tool {
+  height: 27px;
+  font-size: 10px;
+}
+
+.editor {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 20px 2px 12px;
+  overflow-y: auto;
+  font-size: clamp(12px, 1.15vw, 15px);
+  line-height: 1.78;
+  scrollbar-width: thin;
+}
+
+.page-footer {
+  min-height: 32px;
+}
+
+.page-number {
+  padding-top: 10px;
+  font-size: 10px;
+}
+
+.statusbar {
+  height: 34px;
+  min-height: 34px;
+  padding: 0 22px;
+}
+
+.info-panel {
+  display: none !important;
+}
+
+/* Settings becomes a visible right-side work panel */
+.drawer-backdrop {
+  display: none !important;
+}
+
+.settings-drawer {
+  transform: none;
+  width: 390px;
+  left: auto;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  box-shadow: -1px 0 0 var(--line);
+  padding: 22px 20px 36px;
+  z-index: 30;
+}
+
+.settings-drawer.open {
+  transform: none;
+}
+
+body.settings-open .app {
+  padding-right: 390px;
+}
+
+.drawer-close {
+  display: none;
+}
+
+.drawer-head {
+  position: sticky;
+  top: -22px;
+  z-index: 4;
+  margin: -22px -20px 0;
+  padding: 20px 20px 16px;
+  background: rgba(251, 250, 248, .96);
+  backdrop-filter: blur(12px);
+}
+
+.drawer-head h2 {
+  font-size: 20px;
+}
+
+.setting-section {
+  padding: 16px 0;
+}
+
+.setting-section h3 {
+  font-size: 12px;
+}
+
+.setting-row {
+  margin: 8px 0;
+}
+
+.segmented {
+  margin: 10px 0 12px;
+}
+
+#settingsBtn {
+  display: none;
+}
+
+/* Denser slot navigation */
+.brand {
+  padding-bottom: 18px;
+}
+.new-slot-btn {
+  margin-bottom: 16px;
+}
+.slot {
+  padding: 9px 10px;
+}
+.slot-preview {
+  margin-top: 2px;
+}
+
+/* Tablet/mobile: settings panel can overlay to preserve editor space */
+@media (max-width: 1150px) {
+  body.settings-open .app {
+    padding-right: 0;
+  }
+
+  .app {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  .settings-drawer {
+    width: min(360px, 88vw);
+    transform: translateX(102%);
+    box-shadow: -20px 0 60px rgba(0,0,0,.14);
+  }
+
+  .settings-drawer.open {
+    transform: translateX(0);
+  }
+
+  .drawer-backdrop.open {
+    display: block !important;
+  }
+
+  .drawer-close,
+  #settingsBtn {
+    display: inline-block;
+  }
+
+  .document-page {
+    width: min(calc((100vh - 128px) * .70707), calc(100vw - 190px - 70px));
+    height: min(calc(100vh - 128px), calc((100vw - 190px - 70px) * 1.4142));
+    min-width: 390px;
+  }
+}
+
+@media (max-width: 700px) {
+  body {
+    overflow: auto;
+  }
+  .app,
+  .main,
+  .sidebar {
+    height: auto;
+  }
+  .workspace {
+    height: auto;
+    overflow: auto;
+  }
+  .document-page {
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    min-height: 820px;
+    aspect-ratio: auto;
+  }
 }
