@@ -871,3 +871,28 @@ button{cursor:pointer}
   padding:0 !important;
   margin:0 !important;
 }
+
+
+/* ===== V30 highlight stability ===== */
+.editor span.text-highlight[data-highlight="1"]{
+  display:inline !important;
+  position:static !important;
+  float:none !important;
+  clear:none !important;
+  width:auto !important;
+  height:auto !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:none !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  line-height:inherit !important;
+  vertical-align:baseline !important;
+  white-space:inherit !important;
+  transform:none !important;
+  box-shadow:none !important;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
