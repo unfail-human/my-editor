@@ -2047,15 +2047,16 @@ button{cursor:pointer}
   max-width:100% !important;
 }
 
-/* Title width continues to work normally. */
-.paper.layout-enabled .title-input,
-.paper.layout-enabled .subtitle-input{
-  box-sizing:border-box !important;
-  max-width:96% !important;
-}
 
 /* ===== V69 editable body margin ===== */
 .paper.layout-enabled{
   --body-frame-left:2%;
   --body-frame-right:3%;
+}
+
+/* ===== V70 document margin ===== */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  width:auto !important;
+  max-width:none !important;
 }

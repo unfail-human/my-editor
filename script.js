@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86,bodyMargin:2}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,bodyMargin:4.5}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -186,7 +186,7 @@ function templateDefaults(template){
     titleSize:34,
     headingGap:150,
     headingPosition:"top-left",
-    bodyShiftX:-2,titleWidth:86,bodyMargin:2
+    bodyShiftX:-2,bodyMargin:4.5
   });
 }
 
@@ -346,35 +346,38 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   const shiftX=Math.max(-4,Math.min(5,Number(ts.bodyShiftX??-2)));
   // Safe body positioning:
   // adjust the body content box itself but clamp it inside paper margins.
-  const bodyMargin=Math.max(1,Math.min(10,Number(ts.bodyMargin??2)));
+  const bodyMargin=Math.max(1,Math.min(15,Number(ts.bodyMargin??4.5)));
   const baseBodyLeft=bodyMargin;
-  const baseBodyRight=Math.max(bodyMargin,bodyMargin+1);
+  const baseBodyRight=bodyMargin;
 
-  // Position may shift the body, but never beyond the editable safe margin.
-  const safeLeft=Math.max(bodyMargin,baseBodyLeft+shiftX);
-  const safeRight=Math.max(bodyMargin,baseBodyRight-shiftX);
+  // Body position remains a small independent adjustment inside the page.
+  const safeLeft=Math.max(1,baseBodyLeft+shiftX);
+  const safeRight=Math.max(1,baseBodyRight-shiftX);
 
-  paper.style.setProperty("--rule-left",ruleLeft+"%");
-  paper.style.setProperty("--rule-right",ruleRight+"%");
+  // Document margin controls the overall content inset, including heading rule.
+  const headingInset=Math.max(1,bodyMargin);
+  paper.style.setProperty("--rule-left",headingInset+"%");
+  paper.style.setProperty("--rule-right",headingInset+"%");
   paper.style.setProperty("--body-frame-left",safeLeft+"%");
   paper.style.setProperty("--body-frame-right",safeRight+"%");
+  const effectiveRuleLeft=headingInset;
+  const effectiveRuleRight=headingInset;
 
   [title,subtitle].forEach(el=>{
     if(!el)return;
-    el.style.left=ruleLeft+"%";
-    el.style.right=ruleRight+"%";
+    el.style.left=effectiveRuleLeft+"%";
+    el.style.right=effectiveRuleRight+"%";
     el.style.width="auto";
     el.style.transform="none";
     el.style.textAlign=hp.align;
   });
 
   const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
-  const titleWidth=Math.max(45,Math.min(96,Number(ts.titleWidth??86)));
-
   if(title){
     title.style.setProperty("font-size",titleSize+"px","important");
-    title.style.setProperty("width",titleWidth+"%","important");
-    title.style.setProperty("right","auto","important");
+    title.style.setProperty("left",effectiveRuleLeft+"%","important");
+    title.style.setProperty("right",effectiveRuleRight+"%","important");
+    title.style.setProperty("width","auto","important");
   }
   if(subtitle){
     subtitle.style.setProperty(
@@ -382,8 +385,9 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       Math.max(10,Math.round(titleSize*.38))+"px",
       "important"
     );
-    subtitle.style.setProperty("width",titleWidth+"%","important");
-    subtitle.style.setProperty("right","auto","important");
+    subtitle.style.setProperty("left",effectiveRuleLeft+"%","important");
+    subtitle.style.setProperty("right",effectiveRuleRight+"%","important");
+    subtitle.style.setProperty("width","auto","important");
   }
 
   // Explicit vertical zones.
@@ -398,20 +402,6 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(showHeading){
-    const titleLeftBase=ruleLeft;
-    if(hp.align==="center"){
-      const centerLeft=(100-titleWidth)/2;
-      title.style.left=centerLeft+"%";
-      subtitle.style.left=centerLeft+"%";
-    }else if(hp.align==="right"){
-      const rightLeft=100-ruleRight-titleWidth;
-      title.style.left=rightLeft+"%";
-      subtitle.style.left=rightLeft+"%";
-    }else{
-      title.style.left=titleLeftBase+"%";
-      subtitle.style.left=titleLeftBase+"%";
-    }
-
     title.style.top=titleTop+"%";
     subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.32)}px)`;
   }
@@ -1670,12 +1660,9 @@ function syncControls(){
   const bodyShiftX=ts.bodyShiftX??-2;
   $("templateBodyShiftX").value=bodyShiftX;
   $("templateBodyShiftXOut").textContent=bodyShiftX===0?"기본":(bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(bodyShiftX)+"%";
-  const bodyMargin=ts.bodyMargin??2;
+  const bodyMargin=ts.bodyMargin??4.5;
   $("templateBodyMargin").value=bodyMargin;
   $("templateBodyMarginOut").textContent=bodyMargin+"%";
-  const titleWidth=ts.titleWidth??86;
-  $("templateTitleWidth").value=titleWidth;
-  $("templateTitleWidthOut").textContent=titleWidth+"%";
   $("templateHeadingPosition").value=ts.headingPosition;
   $("writingMode").value=l.writingMode;
   $("columnCount").value=String(l.columns);
@@ -1767,17 +1754,6 @@ $("templateHeadingGap").oninput=e=>{
 $("templateHeadingGap").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 
 
-
-$("templateTitleWidth").oninput=e=>{
-  const layout=currentLayout();
-  const ts=ensureTemplateSettings(layout);
-  ts.titleWidth=Number(e.target.value);
-  $("templateTitleWidthOut").textContent=e.target.value+"%";
-  persist();
-  applyDocumentLayout();
-  scheduleLayoutReflow();
-};
-$("templateTitleWidth").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 
 $("templateBodyMargin").oninput=e=>{
   const layout=currentLayout();
