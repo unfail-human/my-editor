@@ -576,7 +576,7 @@ function applyParagraphIndent(direction){
     if(el.tagName==="LI")return;
 
     const current=parseFloat(el.style.textIndent)||0;
-    const step=1.2; // gentler first-line indent, roughly 1–2 Korean character widths
+    const step=0.8; // compact first-line indent, close to a few space presses
     const next=Math.max(0,current + direction*step);
     el.style.textIndent=next===0?"":next+"em";
   });
@@ -685,138 +685,167 @@ function removeHighlightMarksInSelection(){
   const editor=$("editor");
   if(!editor.contains(range.commonAncestorContainer))return false;
 
-  // Save selection as plain-text offsets before changing DOM.
-  function getTextOffset(container,offset){
+  function offsetFromEditor(container,offset){
     const r=document.createRange();
-    r.selectNodeContents(editor);
+    r.setStart(editor,0);
     r.setEnd(container,offset);
     return r.toString().length;
   }
 
-  const startOffset=getTextOffset(range.startContainer,range.startOffset);
-  const endOffset=getTextOffset(range.endContainer,range.endOffset);
-
-  // Create exact text-node segments for the selected range.
-  const walker=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT);
-  const selected=[];
-  let total=0,node;
-
-  while((node=walker.nextNode())){
-    const len=node.nodeValue.length;
-    const nodeStart=total;
-    const nodeEnd=total+len;
-
-    const overlapStart=Math.max(startOffset,nodeStart);
-    const overlapEnd=Math.min(endOffset,nodeEnd);
-
-    if(overlapStart<overlapEnd){
-      selected.push({
-        node,
-        start:overlapStart-nodeStart,
-        end:overlapEnd-nodeStart
-      });
+  function pointInElementAtTextOffset(el,target){
+    const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
+    let total=0,node,last=null;
+    while((node=walker.nextNode())){
+      last=node;
+      const len=node.nodeValue.length;
+      if(target<=total+len){
+        return {node,offset:Math.max(0,target-total)};
+      }
+      total+=len;
     }
-
-    total=nodeEnd;
+    return last
+      ? {node:last,offset:last.nodeValue.length}
+      : {node:el,offset:0};
   }
 
-  if(!selected.length)return false;
+  function stripHighlightFromFragment(root){
+    const nodes=[...root.querySelectorAll?.(
+      "mark.text-highlight, span.text-highlight, span[style*='background-color'], span[style*='background:']"
+    )||[]];
 
-  // Process backwards so splitText does not invalidate later offsets.
-  for(let i=selected.length-1;i>=0;i--){
-    let {node,start,end}=selected[i];
+    nodes.reverse().forEach(el=>{
+      el.style.background="";
+      el.style.backgroundColor="";
+      el.classList.remove("text-highlight");
 
-    if(end<node.nodeValue.length){
-      node.splitText(end);
-    }
-    if(start>0){
-      node=node.splitText(start);
-    }
-
-    // At this point `node` contains only the selected text fragment.
-    // Remove highlight by lifting this fragment out of any highlighted ancestor.
-    let ancestor=node.parentElement;
-    let highlightedAncestor=null;
-
-    while(ancestor && ancestor!==editor){
-      const bg=ancestor.style?.backgroundColor || ancestor.style?.background || "";
-      if(
-        ancestor.matches?.("mark.text-highlight, span.text-highlight") ||
-        bg
-      ){
-        highlightedAncestor=ancestor;
-        break;
+      if(el.tagName==="MARK" || (!(el.getAttribute("style")||"").trim() && !el.className)){
+        const parent=el.parentNode;
+        if(parent){
+          while(el.firstChild)parent.insertBefore(el.firstChild,el);
+          el.remove();
+        }
       }
-      ancestor=ancestor.parentElement;
-    }
+    });
 
-    if(highlightedAncestor){
-      // Clone the highlighted wrapper into left / selected / right parts.
-      const wrapper=highlightedAncestor;
-      const wrapperParent=wrapper.parentNode;
-      if(!wrapperParent)continue;
+    [...root.childNodes].forEach(node=>{
+      if(node.nodeType!==Node.ELEMENT_NODE)return;
+      if(node.matches?.("mark.text-highlight,span.text-highlight")){
+        node.style.background="";
+        node.style.backgroundColor="";
+        node.classList.remove("text-highlight");
 
-      const fullRange=document.createRange();
-      fullRange.selectNodeContents(wrapper);
-
-      const selectedRange=document.createRange();
-      selectedRange.selectNodeContents(node);
-
-      const beforeRange=document.createRange();
-      beforeRange.setStart(fullRange.startContainer,fullRange.startOffset);
-      beforeRange.setEndBefore(node);
-
-      const afterRange=document.createRange();
-      afterRange.setStartAfter(node);
-      afterRange.setEnd(fullRange.endContainer,fullRange.endOffset);
-
-      const beforeFrag=beforeRange.cloneContents();
-      const afterFrag=afterRange.cloneContents();
-
-      // Rebuild as:
-      // highlighted before + clean selected text + highlighted after
-      const replacement=document.createDocumentFragment();
-
-      if(beforeFrag.textContent){
-        const beforeWrap=wrapper.cloneNode(false);
-        beforeWrap.appendChild(beforeFrag);
-        replacement.appendChild(beforeWrap);
+        const holder=document.createDocumentFragment();
+        while(node.firstChild)holder.appendChild(node.firstChild);
+        node.replaceWith(holder);
       }
-
-      const clean=document.createElement("span");
-      clean.className="highlight-cleared";
-      clean.style.background="transparent";
-      clean.style.backgroundColor="transparent";
-      clean.textContent=node.nodeValue;
-      replacement.appendChild(clean);
-
-      if(afterFrag.textContent){
-        const afterWrap=wrapper.cloneNode(false);
-        afterWrap.appendChild(afterFrag);
-        replacement.appendChild(afterWrap);
-      }
-
-      wrapperParent.replaceChild(replacement,wrapper);
-    }
+    });
   }
 
-  // Restore logical selection from saved text offsets.
-  function pointAtOffset(target){
-    const w=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT);
-    let acc=0,n,last=null;
-    while((n=w.nextNode())){
-      last=n;
-      const len=n.nodeValue.length;
-      if(target<=acc+len){
-        return {node:n,offset:Math.max(0,target-acc)};
-      }
-      acc+=len;
+  const selectionStart=offsetFromEditor(range.startContainer,range.startOffset);
+  const selectionEnd=offsetFromEditor(range.endContainer,range.endOffset);
+
+  // Only process outermost highlight wrappers. If highlights are nested,
+  // clearing the middle fragment will strip every nested highlight inside it too.
+  const allHighlights=[...editor.querySelectorAll(
+    "mark.text-highlight, span.text-highlight, span[style*='background-color']"
+  )];
+
+  const highlights=allHighlights.filter(el=>{
+    const parentHighlight=el.parentElement?.closest(
+      "mark.text-highlight, span.text-highlight, span[style*='background-color']"
+    );
+    return !parentHighlight;
+  });
+
+  let changed=false;
+
+  // Work from the end of the document backwards so replacements do not
+  // invalidate the text offsets of earlier highlight wrappers.
+  const items=highlights.map(el=>{
+    const before=document.createRange();
+    before.setStart(editor,0);
+    before.setEndBefore(el);
+    const start=before.toString().length;
+    const length=el.textContent.length;
+    return {el,start,end:start+length};
+  }).filter(item=>item.end>selectionStart && item.start<selectionEnd)
+    .sort((a,b)=>b.start-a.start);
+
+  for(const item of items){
+    const {el,start:highlightStart,end:highlightEnd}=item;
+    if(!el.isConnected)continue;
+
+    const overlapStart=Math.max(selectionStart,highlightStart);
+    const overlapEnd=Math.min(selectionEnd,highlightEnd);
+    if(overlapStart>=overlapEnd)continue;
+
+    const localStart=overlapStart-highlightStart;
+    const localEnd=overlapEnd-highlightStart;
+
+    const startPoint=pointInElementAtTextOffset(el,localStart);
+    const endPoint=pointInElementAtTextOffset(el,localEnd);
+
+    const beforeRange=document.createRange();
+    beforeRange.selectNodeContents(el);
+    beforeRange.setEnd(startPoint.node,startPoint.offset);
+
+    const middleRange=document.createRange();
+    middleRange.setStart(startPoint.node,startPoint.offset);
+    middleRange.setEnd(endPoint.node,endPoint.offset);
+
+    const afterRange=document.createRange();
+    afterRange.selectNodeContents(el);
+    afterRange.setStart(endPoint.node,endPoint.offset);
+
+    const beforeFrag=beforeRange.cloneContents();
+    const middleFrag=middleRange.cloneContents();
+    const afterFrag=afterRange.cloneContents();
+
+    stripHighlightFromFragment(middleFrag);
+
+    const replacement=document.createDocumentFragment();
+
+    if(beforeFrag.textContent){
+      const beforeWrap=el.cloneNode(false);
+      beforeWrap.appendChild(beforeFrag);
+      replacement.appendChild(beforeWrap);
     }
-    return last ? {node:last,offset:last.nodeValue.length} : {node:editor,offset:0};
+
+    // Keep all non-highlight formatting in the selected fragment,
+    // but remove the highlight itself.
+    replacement.appendChild(middleFrag);
+
+    if(afterFrag.textContent){
+      const afterWrap=el.cloneNode(false);
+      afterWrap.appendChild(afterFrag);
+      replacement.appendChild(afterWrap);
+    }
+
+    el.replaceWith(replacement);
+    changed=true;
   }
 
-  const sp=pointAtOffset(startOffset);
-  const ep=pointAtOffset(endOffset);
+  if(!changed)return false;
+
+  // Restore the logical selection after DOM reconstruction.
+  function pointAtEditorOffset(target){
+    const walker=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT);
+    let total=0,node,last=null;
+    while((node=walker.nextNode())){
+      last=node;
+      const len=node.nodeValue.length;
+      if(target<=total+len){
+        return {node,offset:Math.max(0,target-total)};
+      }
+      total+=len;
+    }
+    return last
+      ? {node:last,offset:last.nodeValue.length}
+      : {node:editor,offset:0};
+  }
+
+  const sp=pointAtEditorOffset(selectionStart);
+  const ep=pointAtEditorOffset(selectionEnd);
   const restored=document.createRange();
   restored.setStart(sp.node,sp.offset);
   restored.setEnd(ep.node,ep.offset);

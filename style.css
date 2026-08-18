@@ -863,3 +863,11 @@ button{cursor:pointer}
   background:transparent !important;
   background-color:transparent !important;
 }
+
+
+/* ===== V29 ===== */
+.editor mark.text-highlight{
+  display:inline !important;
+  padding:0 !important;
+  margin:0 !important;
+}
