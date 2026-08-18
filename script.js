@@ -1715,6 +1715,49 @@ function showPreviewActionToast(message){
   toast.className="preview-action-toast";
   toast.textContent=message;
   head.appendChild(toast);
+  setTimeout(()=>toast.remove(),1400);
+}
+
+function closePreviewSaveMenu(){
+  const menu=$("previewSaveMenu");
+  if(menu)menu.hidden=true;
+}
+
+async function copyTextReliable(text){
+  try{
+    if(navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch{}
+
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=text;
+    ta.setAttribute("readonly","");
+    ta.style.position="fixed";
+    ta.style.left="-9999px";
+    ta.style.top="0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok=document.execCommand("copy");
+    ta.remove();
+    return !!ok;
+  }catch{
+    return false;
+  }
+}
+
+function showPreviewActionToast(message){
+  const modal=$("previewModal");
+  if(!modal)return;
+  modal.querySelector(".preview-action-toast")?.remove();
+
+  const toast=document.createElement("div");
+  toast.className="preview-action-toast";
+  toast.textContent=message;
+  modal.appendChild(toast);
   setTimeout(()=>toast.remove(),3200);
 }
 
@@ -1726,8 +1769,12 @@ document.querySelectorAll("[data-close-preview]").forEach(x=>x.onclick=()=>{
 $("previewCopyBtn").onclick=async e=>{
   e.preventDefault();
   e.stopPropagation();
+
   const p=current().pages[previewPageIndex];
-  const text=[p.title,p.subtitle,strip(p.content),"MY EDITOR · unfail-human.github.io/my-editor/"].filter(Boolean).join("\\n\\n");
+  const text=[p.title,p.subtitle,strip(p.content),"MY EDITOR · unfail-human.github.io/my-editor/"]
+    .filter(Boolean)
+    .join("\n\n");
+
   const ok=await copyTextReliable(text);
   showPreviewActionToast(
     ok
@@ -1747,6 +1794,7 @@ function showPreviewSaveStep(step){
 $("previewSaveBtn").onclick=e=>{
   e.preventDefault();
   e.stopPropagation();
+
   previewSaveScope="current";
   $("previewSaveScopeLabel").textContent="현재 페이지";
   showPreviewSaveStep("scope");
@@ -1760,7 +1808,8 @@ document.querySelectorAll("[data-preview-save-scope]").forEach(btn=>{
     e.preventDefault();
     e.stopPropagation();
     previewSaveScope=btn.dataset.previewSaveScope;
-    $("previewSaveScopeLabel").textContent=previewSaveScope==="current"?"현재 페이지":"전체 페이지";
+    $("previewSaveScopeLabel").textContent=
+      previewSaveScope==="current"?"현재 페이지":"전체 페이지";
     showPreviewSaveStep("format");
   };
 });
@@ -1777,11 +1826,13 @@ document.querySelectorAll("[data-preview-export]").forEach(btn=>{
   btn.onclick=async e=>{
     e.preventDefault();
     e.stopPropagation();
+
     closePreviewSaveMenu();
 
     const s=current();
     const originalIndex=s.currentPageIndex;
     const originalScope=saveScope;
+
     try{
       if(previewSaveScope==="current")s.currentPageIndex=previewPageIndex;
       saveScope=previewSaveScope;
