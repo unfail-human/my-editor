@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left"},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left"},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left"},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left"},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left"},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left"},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left"},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left"}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyOffset:0},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyOffset:0},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyOffset:0},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyOffset:0},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyOffset:0},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyOffset:0},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyOffset:0},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyOffset:0}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -185,7 +185,8 @@ function templateDefaults(template){
     orientation:"portrait",
     titleSize:34,
     headingGap:150,
-    headingPosition:"top-left"
+    headingPosition:"top-left",
+    bodyOffset:0
   });
 }
 
@@ -382,29 +383,36 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
 
   const configuredGap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
+  const bodyOffset=Math.max(-60,Math.min(100,Number(ts.bodyOffset||0)));
 
   if(showHeading){
     if(hp.y<30){
       paper.classList.add("body-clear-top");
-      paper.style.setProperty(
-        "--heading-safe-top",
-        Math.max(configuredGap, compact?110:145)+"px"
+
+      // Top layout is calculated from the actual title block:
+      // title top + title line + subtitle line/rule + a small visual gap.
+      // This removes the large empty band from previous versions.
+      const titleBlockPx=Math.round(titleSize*1.32)+Math.max(24,Math.round(titleSize*.62));
+      const naturalTop=compact?86:104;
+      const userGapInfluence=(configuredGap-150)*.22;
+      const topSafe=Math.max(
+        compact?72:88,
+        naturalTop + (titleSize-34)*1.15 + userGapInfluence + bodyOffset
       );
+      paper.style.setProperty("--heading-safe-top",Math.round(topSafe)+"px");
     }else if(hp.y<65){
       paper.classList.add("body-clear-center");
 
-      // Middle title/subtitle must own the whole upper-middle block.
-      // Body starts after the subtitle rule + a small breathing space.
+      // Center must stay below the title/subtitle block.
       const centerSafe=compact
-        ? Math.max(205,configuredGap+95)
-        : Math.max(300,configuredGap+135);
-
-      paper.style.setProperty("--heading-safe-center",centerSafe+"px");
+        ? Math.max(190,configuredGap+78)
+        : Math.max(280,configuredGap+118);
+      paper.style.setProperty("--heading-safe-center",Math.round(centerSafe+bodyOffset)+"px");
     }else{
       paper.classList.add("body-clear-bottom");
       paper.style.setProperty(
         "--heading-safe-bottom",
-        (compact?150:215)+"px"
+        Math.max(120,(compact?150:215)-bodyOffset)+"px"
       );
     }
   }
@@ -1590,6 +1598,8 @@ function syncControls(){
   $("templateTitleSizeOut").textContent=ts.titleSize+"px";
   $("templateHeadingGap").value=ts.headingGap;
   $("templateHeadingGapOut").textContent=ts.headingGap+"px";
+  $("templateBodyOffset").value=ts.bodyOffset||0;
+  $("templateBodyOffsetOut").textContent=(ts.bodyOffset||0)===0?"자동":((ts.bodyOffset||0)>0?"+":"")+(ts.bodyOffset||0)+"px";
   $("templateHeadingPosition").value=ts.headingPosition;
   $("writingMode").value=l.writingMode;
   $("columnCount").value=String(l.columns);
@@ -1679,6 +1689,18 @@ $("templateHeadingGap").oninput=e=>{
 };
 
 $("templateHeadingGap").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+
+
+$("templateBodyOffset").oninput=e=>{
+  const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+  ts.bodyOffset=Number(e.target.value);
+  $("templateBodyOffsetOut").textContent=ts.bodyOffset===0?"자동":(ts.bodyOffset>0?"+":"")+ts.bodyOffset+"px";
+  persist();
+  applyDocumentLayout();
+  scheduleLayoutReflow();
+};
+$("templateBodyOffset").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 
 $("templateHeadingPosition").onchange=e=>{
   const layout=currentLayout();

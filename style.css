@@ -1984,3 +1984,16 @@ button{cursor:pointer}
   padding:7% 7% 8% 5.5% !important;
   overflow:hidden !important;
 }
+
+
+/* ===== V63 automatic heading/body rhythm ===== */
+.paper.layout-enabled.body-clear-top .editor.writing-horizontal,
+.paper.layout-enabled.body-clear-top .editor.layout-columns{
+  padding-top:var(--heading-safe-top) !important;
+}
+
+/* Fine adjustment is secondary; automatic layout remains the default. */
+.compact-hint{
+  margin-top:-4px !important;
+  opacity:.72;
+}
