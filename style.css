@@ -856,3 +856,10 @@ button{cursor:pointer}
   margin:0 !important;
   line-height:inherit !important;
 }
+
+
+/* ===== V28 ===== */
+.editor .highlight-cleared{
+  background:transparent !important;
+  background-color:transparent !important;
+}
