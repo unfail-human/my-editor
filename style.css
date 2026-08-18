@@ -2001,68 +2001,43 @@ button{cursor:pointer}
 
 
 
-/* ===== V66 body text-only positioning ===== */
+
+
+/* ===== V67 safe body positioning / title width ===== */
 .paper.layout-enabled{
-  --body-frame-left:5.1%;
-  --body-frame-right:7.2%;
-  --body-text-shift:-4%;
+  --body-frame-left:4.6%;
+  --body-frame-right:6.6%;
 }
 
-/* The editor frame stays stable. Dividers use this fixed frame. */
+/* Editor frame is wider and starts farther left. */
 .paper.layout-enabled .editor.writing-horizontal,
 .paper.layout-enabled .editor.layout-columns{
   padding-left:var(--body-frame-left) !important;
   padding-right:var(--body-frame-right) !important;
 }
 
-/* Only actual body text blocks move left/right. */
+/* Only body text moves. Transform preserves its intrinsic width and avoids clipping text. */
 .paper.layout-enabled .editor > .body-shiftable-block{
   position:relative;
-  left:var(--body-block-shift,0%) !important;
-  width:calc(100% - var(--body-block-shift,0%)) !important;
+  transform:translateX(var(--body-block-shift,0%)) !important;
+  left:auto !important;
+  width:auto !important;
+  max-width:100% !important;
   box-sizing:border-box;
 }
 
-/* Divider ornaments are independent from body position. */
+/* Divider remains fully independent from body movement. */
 .paper.layout-enabled .editor > .paragraph-divider,
 .paper.layout-enabled .editor > .paragraph-divider-spacer{
-  position:relative !important;
+  transform:none !important;
   left:0 !important;
   width:100% !important;
   max-width:100% !important;
 }
 
-/* Divider alignment. Center is the default. */
-.paragraph-divider{
-  text-align:center;
-}
-.paragraph-divider[data-align="left"]{
-  text-align:left !important;
-  justify-content:flex-start !important;
-}
-.paragraph-divider[data-align="center"]{
-  text-align:center !important;
-  justify-content:center !important;
-}
-.paragraph-divider[data-align="right"]{
-  text-align:right !important;
-  justify-content:flex-end !important;
-}
-
-/* With-line alignment keeps the ornament position meaningful. */
-.paragraph-divider.with-line[data-align="left"]::before{
-  flex:.28 1 auto;
-}
-.paragraph-divider.with-line[data-align="left"]::after{
-  flex:1 1 auto;
-}
-.paragraph-divider.with-line[data-align="right"]::before{
-  flex:1 1 auto;
-}
-.paragraph-divider.with-line[data-align="right"]::after{
-  flex:.28 1 auto;
-}
-.paragraph-divider.with-line[data-align="center"]::before,
-.paragraph-divider.with-line[data-align="center"]::after{
-  flex:1 1 auto;
+/* Title width is controlled per template. */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  max-width:96% !important;
+  box-sizing:border-box !important;
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="66">
+  <meta name="my-editor-version" content="67">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -26,7 +26,7 @@
 
 
 
-  <link rel="stylesheet" href="style.css?v=66">
+  <link rel="stylesheet" href="style.css?v=67">
 </head>
 <body>
 
@@ -282,11 +282,16 @@
             <output id="templateTitleSizeOut">34px</output>
           </label>
           <label class="range-field">
-            <span>본문 위치</span>
-            <input id="templateBodyShiftX" type="range" min="-20" max="8" step="0.5" value="-4">
-            <output id="templateBodyShiftXOut">왼쪽 4%</output>
+            <span>제목 폭</span>
+            <input id="templateTitleWidth" type="range" min="45" max="96" step="1" value="86">
+            <output id="templateTitleWidthOut">86%</output>
           </label>
-          <p class="hint compact-hint">본문 영역 자체의 가로 위치를 조절합니다. 정렬 설정에는 영향을 주지 않습니다.</p>
+          <label class="range-field">
+            <span>본문 위치</span>
+            <input id="templateBodyShiftX" type="range" min="-8" max="6" step="0.5" value="-3">
+            <output id="templateBodyShiftXOut">왼쪽 3%</output>
+          </label>
+          <p class="hint compact-hint">본문 영역의 위치를 조정합니다.</p>
 
           <label class="range-field">
             <span>제목 · 본문 간격</span>
@@ -821,7 +826,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=66"></script>
-<script src="script.js?v=66"></script>
+<script src="notice.js?v=67"></script>
+<script src="script.js?v=67"></script>
 </body>
 </html>
