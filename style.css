@@ -312,3 +312,51 @@ button{cursor:pointer}
 .paragraph-divider[data-ornament="···"] {
   letter-spacing: .35em;
 }
+
+
+/* ===== V14 fixes / custom ornaments / stronger add-page ===== */
+.add-page-strong{
+  height:24px;
+  border:0;
+  border-radius:7px;
+  padding:0 10px;
+  background:#2d2b28;
+  color:#fff;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.02em;
+  box-shadow:0 3px 9px rgba(0,0,0,.08);
+}
+.add-page-strong:hover{background:#171614}
+
+.field input[type=text]{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:6px;
+  background:white;
+  padding:9px 10px;
+  font-size:11px;
+  color:#514d47;
+}
+
+.custom-page-deco{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:0;
+  max-width:80%;
+  text-align:center;
+  pointer-events:none;
+}
+.custom-page-deco.top{top:18px}
+.custom-page-deco.bottom{bottom:18px}
+.custom-page-deco.text{
+  font-family:Georgia,"KoPubWorld Batang",serif;
+  color:rgba(55,50,45,.55);
+  white-space:pre-wrap;
+}
+.custom-page-deco.image img{
+  display:block;
+  width:100%;
+  height:auto;
+}

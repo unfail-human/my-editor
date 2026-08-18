@@ -36,7 +36,7 @@
           <button id="prevPageBtn" class="page-nav-btn" title="이전 페이지">‹</button>
           <span id="pageNavLabel">PAGE 01 / 01</span>
           <button id="nextPageBtn" class="page-nav-btn" title="다음 페이지">›</button>
-          <button id="addPageBtn" class="page-nav-btn add" title="다음 페이지 추가">＋</button>
+          <button id="addPageBtn" class="add-page-strong" title="새 페이지 추가">＋ 새 페이지</button>
           <button id="deletePageBtn" class="page-nav-btn danger" title="현재 페이지 삭제">−</button>
         </div>
         <div id="saveStatus" class="save-status">자동 저장됨</div>
@@ -270,6 +270,11 @@
           <button data-symbol="「 」">「 」</button>
           <button data-symbol="『 』">『 』</button>
         </div>
+        <label class="field">
+          <span>직접 문자</span>
+          <input id="customDividerText" type="text" placeholder="예: ✦ ✦ ✦">
+        </label>
+        <button id="insertCustomDividerBtn" class="wide-btn">현재 문단 뒤에 삽입</button>
         <label class="range-field">
           <span>장식 크기</span>
           <input id="dividerSize" type="range" min="10" max="32" value="16">
@@ -280,7 +285,7 @@
           <input id="dividerMargin" type="range" min="4" max="48" value="18">
           <output id="dividerMarginOut">18px</output>
         </label>
-        <p class="hint">기호를 누르면 현재 문단 뒤에 가운데 정렬된 장식 구분줄이 삽입됩니다.</p>
+        <p class="hint">기호나 직접 입력한 문자를 현재 문단 뒤에 구분 장식으로 삽입합니다.</p>
       </section>
 
       <section class="panel-section">
@@ -291,6 +296,28 @@
           <button data-deco="topmark">상단 표식</button>
           <button data-deco="bottommark">하단 표식</button>
         </div>
+
+        <label class="field">
+          <span>직접 문자</span>
+          <input id="customDecoText" type="text" placeholder="예: ☾ 또는  chapter  ">
+        </label>
+        <div class="button-grid two">
+          <button id="addCustomTopTextBtn">상단에 추가</button>
+          <button id="addCustomBottomTextBtn">하단에 추가</button>
+        </div>
+
+        <label class="upload" for="customDecoImageInput">＋ 장식 이미지 파일 추가</label>
+        <input id="customDecoImageInput" type="file" accept="image/*" hidden>
+        <div class="button-grid two">
+          <button id="placeImageTopBtn">이미지 상단 배치</button>
+          <button id="placeImageBottomBtn">이미지 하단 배치</button>
+        </div>
+        <label class="range-field">
+          <span>장식 크기</span>
+          <input id="customDecoSize" type="range" min="20" max="240" value="80">
+          <output id="customDecoSizeOut">80px</output>
+        </label>
+
         <button id="clearDecoBtn" class="wide-btn">지면 장식 지우기</button>
       </section>
     </div>
