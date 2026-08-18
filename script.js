@@ -1614,7 +1614,6 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
       source.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
     }
   }
-
   return clone;
 }
 function applyPreviewZoom(){
@@ -1678,49 +1677,7 @@ $("previewZoomResetBtn").onclick=()=>{
 
 
 function closePreviewSaveMenu(){
-  const menu=$("previewSaveMenu");
-  if(menu)menu.hidden=true;
-}
-
-async function copyTextReliable(text){
-  try{
-    if(navigator.clipboard?.writeText){
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  }catch{}
-
-  try{
-    const ta=document.createElement("textarea");
-    ta.value=text;
-    ta.setAttribute("readonly","");
-    ta.style.position="fixed";
-    ta.style.left="-9999px";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    const ok=document.execCommand("copy");
-    ta.remove();
-    return !!ok;
-  }catch{
-    return false;
-  }
-}
-
-function showPreviewActionToast(message){
-  const head=$("previewModal").querySelector(".modal-head");
-  if(!head)return;
-  head.querySelector(".preview-action-toast")?.remove();
-  const toast=document.createElement("div");
-  toast.className="preview-action-toast";
-  toast.textContent=message;
-  head.appendChild(toast);
-  setTimeout(()=>toast.remove(),1400);
-}
-
-function closePreviewSaveMenu(){
-  const menu=$("previewSaveMenu");
-  if(menu)menu.hidden=true;
+  $("previewSaveMenu")?.classList.remove("open");
 }
 
 async function copyTextReliable(text){
@@ -1750,14 +1707,15 @@ async function copyTextReliable(text){
 }
 
 function showPreviewActionToast(message){
-  const modal=$("previewModal");
-  if(!modal)return;
-  modal.querySelector(".preview-action-toast")?.remove();
+  const dialog=$("previewModal").querySelector(".modal-dialog");
+  if(!dialog)return;
+
+  dialog.querySelector(".preview-action-toast")?.remove();
 
   const toast=document.createElement("div");
   toast.className="preview-action-toast";
   toast.textContent=message;
-  modal.appendChild(toast);
+  dialog.appendChild(toast);
   setTimeout(()=>toast.remove(),3200);
 }
 
@@ -1795,10 +1753,16 @@ $("previewSaveBtn").onclick=e=>{
   e.preventDefault();
   e.stopPropagation();
 
-  previewSaveScope="current";
-  $("previewSaveScopeLabel").textContent="현재 페이지";
-  showPreviewSaveStep("scope");
-  $("previewSaveMenu").hidden=!$("previewSaveMenu").hidden;
+  const menu=$("previewSaveMenu");
+  const opening=!menu.classList.contains("open");
+
+  menu.classList.toggle("open");
+
+  if(opening){
+    previewSaveScope="current";
+    $("previewSaveScopeLabel").textContent="현재 페이지";
+    showPreviewSaveStep("scope");
+  }
 };
 
 $("previewSaveMenu").onclick=e=>e.stopPropagation();
@@ -1807,9 +1771,11 @@ document.querySelectorAll("[data-preview-save-scope]").forEach(btn=>{
   btn.onclick=e=>{
     e.preventDefault();
     e.stopPropagation();
+
     previewSaveScope=btn.dataset.previewSaveScope;
     $("previewSaveScopeLabel").textContent=
       previewSaveScope==="current"?"현재 페이지":"전체 페이지";
+
     showPreviewSaveStep("format");
   };
 });
@@ -1817,6 +1783,7 @@ document.querySelectorAll("[data-preview-save-scope]").forEach(btn=>{
 $("previewSaveBackBtn").onclick=e=>{
   e.preventDefault();
   e.stopPropagation();
+
   previewSaveScope="current";
   $("previewSaveScopeLabel").textContent="현재 페이지";
   showPreviewSaveStep("scope");
@@ -1834,9 +1801,13 @@ document.querySelectorAll("[data-preview-export]").forEach(btn=>{
     const originalScope=saveScope;
 
     try{
-      if(previewSaveScope==="current")s.currentPageIndex=previewPageIndex;
+      if(previewSaveScope==="current"){
+        s.currentPageIndex=previewPageIndex;
+      }
+
       saveScope=previewSaveScope;
       await exportFile(btn.dataset.previewExport);
+
       showPreviewActionToast("저장을 시작했습니다.");
     }catch(err){
       console.error(err);

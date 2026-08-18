@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="46">
+  <meta name="my-editor-version" content="47">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -12,21 +12,20 @@
   <meta property="og:title" content="MY EDITOR">
   <meta property="og:description" content="Writing Space">
   <meta property="og:url" content="https://unfail-human.github.io/my-editor/">
-  <meta property="og:image" content="https://unfail-human.github.io/my-editor/og-image-v46.jpg">
-  <meta property="og:image:secure_url" content="https://unfail-human.github.io/my-editor/og-image-v46.jpg">
+  <meta property="og:image" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
+  <meta property="og:image:url" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
+  <meta property="og:image:secure_url" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="MY EDITOR · Writing Space">
-  <link rel="image_src" href="https://unfail-human.github.io/my-editor/og-image-v46.jpg">
+  <meta property="og:image:alt" content="MY EDITOR">
+  <link rel="image_src" href="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MY EDITOR">
   <meta name="twitter:description" content="Writing Space">
-  <meta name="twitter:image" content="https://unfail-human.github.io/my-editor/og-image-v46.jpg">
+  <meta name="twitter:image" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
 
-
-
-  <link rel="stylesheet" href="style.css?v=46">
+  <link rel="stylesheet" href="style.css?v=47">
 </head>
 <body>
 
@@ -565,40 +564,32 @@
           <button id="previewZoomInBtn" class="top-btn" title="확대">＋</button>
         </span>
         <button id="previewCopyBtn" class="top-btn">복사</button>
-        <button id="previewSaveBtn" class="top-btn primary">저장</button>
-
+        <div class="save-wrap preview-save-wrap">
+          <button id="previewSaveBtn" class="top-btn primary">저장 ▾</button>
+          <div id="previewSaveMenu" class="save-menu save-menu-step">
+            <div class="save-step active" data-preview-save-step="scope">
+              <div class="save-menu-title">저장 범위</div>
+              <button data-preview-save-scope="current">현재 페이지 저장</button>
+              <button data-preview-save-scope="all">전체 페이지 저장</button>
             </div>
-            <button data-preview-export="png">PNG</button>
-            <button data-preview-export="jpg">JPG</button>
-            <button data-preview-export="pdf">PDF</button>
-            <button data-preview-export="txt">TXT</button>
+            <div class="save-step" data-preview-save-step="format">
+              <div class="save-menu-head">
+                <button id="previewSaveBackBtn" class="save-back-btn">‹</button>
+                <div>
+                  <div class="save-menu-title">파일 형식</div>
+                  <div id="previewSaveScopeLabel" class="save-menu-sub">현재 페이지</div>
+                </div>
+              </div>
+              <button data-preview-export="png">PNG</button>
+              <button data-preview-export="jpg">JPG</button>
+              <button data-preview-export="pdf">PDF</button>
+              <button data-preview-export="txt">TXT</button>
+            </div>
           </div>
         </div>
         <button class="close-btn" data-close-preview>×</button>
       </div>
     </header>
-    
-    <div id="previewSaveMenu" class="save-menu save-menu-step preview-save-menu" hidden>
-      <div class="save-step active" data-preview-save-step="scope">
-        <div class="save-menu-title">저장 범위</div>
-        <button data-preview-save-scope="current">현재 페이지 저장</button>
-        <button data-preview-save-scope="all">전체 페이지 저장</button>
-      </div>
-      <div class="save-step" data-preview-save-step="format">
-        <div class="save-menu-head">
-          <button id="previewSaveBackBtn" class="save-back-btn">‹</button>
-          <div>
-            <div class="save-menu-title">파일 형식</div>
-            <div id="previewSaveScopeLabel" class="save-menu-sub">현재 페이지</div>
-          </div>
-        </div>
-        <button data-preview-export="png">PNG</button>
-        <button data-preview-export="jpg">JPG</button>
-        <button data-preview-export="pdf">PDF</button>
-        <button data-preview-export="txt">TXT</button>
-      </div>
-    </div>
-
     <div class="modal-stage"><div id="previewHost"></div></div>
   </div>
 </div>
@@ -695,7 +686,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=46"></script>
-<script src="script.js?v=46"></script>
+<script src="notice.js?v=47"></script>
+<script src="script.js?v=47"></script>
 </body>
 </html>
