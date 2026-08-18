@@ -1261,3 +1261,21 @@ button{cursor:pointer}
   left:auto !important;
   text-align:right !important;
 }
+
+/* ===== V42 preview actions ===== */
+#previewModal .modal-head{position:relative}
+.preview-save-menu{
+  position:absolute;top:52px;right:42px;z-index:135000;
+  min-width:180px;padding:7px;border:1px solid rgba(80,74,67,.13);
+  border-radius:9px;background:#fbfaf7;box-shadow:0 14px 36px rgba(36,31,27,.16);
+}
+.preview-save-menu[hidden]{display:none!important}
+.preview-save-menu .save-step{display:none}
+.preview-save-menu .save-step.active{display:grid}
+.preview-save-menu button{width:100%;text-align:left}
+.preview-action-toast{
+  position:absolute;top:58px;right:18px;z-index:135500;
+  padding:6px 9px;border:1px solid rgba(80,74,67,.11);border-radius:7px;
+  background:#fbfaf7;box-shadow:0 8px 20px rgba(36,31,27,.10);
+  color:#716b64;font-size:9px;pointer-events:none;
+}

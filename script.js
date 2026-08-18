@@ -1660,8 +1660,8 @@ $("previewBtn").onclick=()=>{
   renderPreviewPage();
   $("previewModal").hidden=false;
 };
-$("previewPrevBtn").onclick=()=>{previewPageIndex--;renderPreviewPage()};
-$("previewNextBtn").onclick=()=>{previewPageIndex++;renderPreviewPage()};
+$("previewPrevBtn").onclick=()=>{closePreviewSaveMenu();previewPageIndex--;renderPreviewPage()};
+$("previewNextBtn").onclick=()=>{closePreviewSaveMenu();previewPageIndex++;renderPreviewPage()};
 
 $("previewZoomOutBtn").onclick=()=>{
   previewZoom=Math.max(.6,Math.round((previewZoom-.1)*10)/10);
@@ -1677,27 +1677,122 @@ $("previewZoomResetBtn").onclick=()=>{
 };
 
 
-document.querySelectorAll("[data-close-preview]").forEach(x=>x.onclick=()=>{$("previewModal").hidden=true});
-$("previewCopyBtn").onclick=async()=>{
-  const p=current().pages[previewPageIndex];
-  await navigator.clipboard.writeText([p.title,p.subtitle,strip(p.content),"MY EDITOR · unfail-human.github.io/my-editor/"].filter(Boolean).join("\n\n"));
-};
-$("previewSaveBtn").onclick=e=>{
-  e.stopPropagation();
+function closePreviewSaveMenu(){
+  const menu=$("previewSaveMenu");
+  if(menu)menu.hidden=true;
+}
 
-  const s=current();
-  s.currentPageIndex=previewPageIndex;
-  persist();
+async function copyTextReliable(text){
+  try{
+    if(navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch{}
 
-  // Close preview and show that exact page in the editor.
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=text;
+    ta.setAttribute("readonly","");
+    ta.style.position="fixed";
+    ta.style.left="-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok=document.execCommand("copy");
+    ta.remove();
+    return !!ok;
+  }catch{
+    return false;
+  }
+}
+
+function showPreviewActionToast(message){
+  const head=$("previewModal").querySelector(".modal-head");
+  if(!head)return;
+  head.querySelector(".preview-action-toast")?.remove();
+  const toast=document.createElement("div");
+  toast.className="preview-action-toast";
+  toast.textContent=message;
+  head.appendChild(toast);
+  setTimeout(()=>toast.remove(),1400);
+}
+
+document.querySelectorAll("[data-close-preview]").forEach(x=>x.onclick=()=>{
+  closePreviewSaveMenu();
   $("previewModal").hidden=true;
-  renderAll();
+});
 
-  // Open the same two-step save popup used by the normal editor.
-  saveScope="current";
-  showSaveStep("scope");
-  $("saveMenu").classList.add("open");
+$("previewCopyBtn").onclick=async e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  const p=current().pages[previewPageIndex];
+  const text=[p.title,p.subtitle,strip(p.content),"MY EDITOR · unfail-human.github.io/my-editor/"].filter(Boolean).join("\\n\\n");
+  const ok=await copyTextReliable(text);
+  showPreviewActionToast(ok?"복사했습니다.":"복사에 실패했습니다.");
 };
+
+let previewSaveScope="current";
+
+function showPreviewSaveStep(step){
+  document.querySelectorAll("#previewSaveMenu .save-step").forEach(el=>{
+    el.classList.toggle("active",el.dataset.previewSaveStep===step);
+  });
+}
+
+$("previewSaveBtn").onclick=e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  previewSaveScope="current";
+  $("previewSaveScopeLabel").textContent="현재 페이지";
+  showPreviewSaveStep("scope");
+  $("previewSaveMenu").hidden=!$("previewSaveMenu").hidden;
+};
+
+$("previewSaveMenu").onclick=e=>e.stopPropagation();
+
+document.querySelectorAll("[data-preview-save-scope]").forEach(btn=>{
+  btn.onclick=e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    previewSaveScope=btn.dataset.previewSaveScope;
+    $("previewSaveScopeLabel").textContent=previewSaveScope==="current"?"현재 페이지":"전체 페이지";
+    showPreviewSaveStep("format");
+  };
+});
+
+$("previewSaveBackBtn").onclick=e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  previewSaveScope="current";
+  $("previewSaveScopeLabel").textContent="현재 페이지";
+  showPreviewSaveStep("scope");
+};
+
+document.querySelectorAll("[data-preview-export]").forEach(btn=>{
+  btn.onclick=async e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    closePreviewSaveMenu();
+
+    const s=current();
+    const originalIndex=s.currentPageIndex;
+    const originalScope=saveScope;
+    try{
+      if(previewSaveScope==="current")s.currentPageIndex=previewPageIndex;
+      saveScope=previewSaveScope;
+      await exportFile(btn.dataset.previewExport);
+      showPreviewActionToast("저장을 시작했습니다.");
+    }catch(err){
+      console.error(err);
+      alert("저장 중 오류가 발생했습니다.");
+    }finally{
+      saveScope=originalScope;
+      s.currentPageIndex=originalIndex;
+      persist();
+    }
+  };
+});
 
 async function copyCurrent(){
   saveCurrent(false);
@@ -1733,7 +1828,7 @@ $("saveBackBtn").onclick=()=>{
   showSaveStep("scope");
 };
 
-document.addEventListener("click",()=>{$("saveMenu").classList.remove("open")});$("saveMenu").onclick=e=>e.stopPropagation();
+document.addEventListener("click",()=>{$("saveMenu").classList.remove("open");closePreviewSaveMenu()});$("saveMenu").onclick=e=>e.stopPropagation();
 document.querySelectorAll("[data-export]").forEach(b=>b.onclick=()=>exportFile(b.dataset.export));
 
 async function capture(pageIndex=current().currentPageIndex||0){
