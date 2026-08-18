@@ -1945,3 +1945,42 @@ button{cursor:pointer}
   transform:none !important;
   position:static !important;
 }
+
+
+/* ===== V59 page composition ===== */
+.paper.layout-enabled{
+  --body-left:7%;
+  --body-right:9%;
+}
+
+/* Body sits a little farther left and uses more of the page width. */
+.paper.layout-enabled .editor.writing-horizontal,
+.paper.layout-enabled .editor.layout-columns{
+  padding-left:var(--body-left) !important;
+  padding-right:var(--body-right) !important;
+}
+
+/* Lightweight automatic-page notice. */
+.auto-page-toast{
+  position:fixed;
+  left:50%;
+  bottom:28px;
+  transform:translate(-50%,10px);
+  z-index:99999;
+  padding:9px 14px;
+  border:1px solid rgba(60,55,50,.12);
+  border-radius:9px;
+  background:rgba(38,36,34,.90);
+  color:#fff;
+  font-size:12px;
+  line-height:1.35;
+  letter-spacing:-.01em;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease,transform .18s ease;
+}
+.auto-page-toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
