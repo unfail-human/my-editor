@@ -374,8 +374,11 @@ button{cursor:pointer}
 }
 .editor br{
   display:block;
-  content:"";
-  margin-bottom:var(--editor-break,0px);
+  content:" ";
+  height:0;
+  line-height:0;
+  margin-top:var(--editor-break,0px);
+  margin-bottom:0;
 }
 
 .scope-btn{
@@ -692,3 +695,15 @@ button{cursor:pointer}
 [data-panel="background"] .panel-section:last-child{
   border-bottom:0;
 }
+
+
+/* ===== V21 ===== */
+.paper{overflow:hidden!important}
+.editor{overflow:hidden!important;contain:paint;clip-path:inset(0)}
+.editor .text-highlight,.editor .selection-style{
+  display:inline!important;position:static!important;float:none!important;
+  width:auto!important;max-width:none!important;
+}
+.preview-zoom-group{display:inline-flex;align-items:center;gap:4px;margin:0 3px}
+.preview-zoom-label{min-width:48px;text-align:center}
+.workspace{transition:background-color .22s ease}
