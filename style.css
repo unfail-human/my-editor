@@ -1669,3 +1669,98 @@ button{cursor:pointer}
 .paper[data-document-template="ticket"]{
   padding:30px 36px 23px !important;
 }
+
+
+/* ===== V54 layout normalization ===== */
+.paper.layout-enabled{
+  --content-left:7%;
+  --content-right:7%;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+
+/* Remove old title/subtitle width/transform assumptions. */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  position:absolute !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  max-width:none !important;
+  z-index:4;
+}
+
+.paper.layout-enabled .subtitle-input{
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+
+/* Body uses the exact same left/right content edges as headings. */
+.paper.layout-enabled .editor.writing-horizontal{
+  position:relative !important;
+  box-sizing:border-box !important;
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding-left:var(--content-left) !important;
+  padding-right:var(--content-right) !important;
+  overflow:hidden !important;
+}
+
+.paper.layout-enabled.layout-no-heading .editor.writing-horizontal{
+  padding-left:var(--content-left) !important;
+  padding-right:var(--content-right) !important;
+}
+
+.paper.layout-enabled.body-clear-top .editor.writing-horizontal{
+  padding-top:var(--heading-clear-top) !important;
+  padding-bottom:26px !important;
+}
+.paper.layout-enabled.body-clear-center .editor.writing-horizontal{
+  padding-top:30px !important;
+  padding-bottom:var(--heading-clear-bottom) !important;
+}
+.paper.layout-enabled.body-clear-bottom .editor.writing-horizontal{
+  padding-top:26px !important;
+  padding-bottom:var(--heading-clear-bottom) !important;
+}
+
+/* Multi-column content and dividers stay inside the content box. */
+.paper.layout-enabled .editor.layout-columns{
+  column-fill:auto !important;
+}
+.paper.layout-enabled .editor.layout-columns .paragraph-divider,
+.paper.layout-enabled .editor.layout-columns .paragraph-divider-spacer{
+  column-span:none !important;
+  break-inside:avoid !important;
+  -webkit-column-break-inside:avoid !important;
+  width:100% !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+.paper.layout-enabled .editor.layout-columns .paragraph-divider{
+  text-align:center !important;
+}
+
+/* Vertical writing gets its own clean box and does not inherit horizontal padding. */
+.paper.layout-enabled .editor.writing-vertical{
+  box-sizing:border-box !important;
+  width:100% !important;
+  height:100% !important;
+  margin:0 !important;
+  padding:8% 8% 7% !important;
+  overflow:hidden !important;
+}
+
+/* Compact formats are truly compact; padding no longer makes their content drift. */
+.paper[data-document-template="postcard"],
+.paper[data-document-template="card"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="square"],
+.paper[data-document-template="ticket"]{
+  padding:18px 22px 18px !important;
+}
+.paper[data-document-template="a5"],
+.paper[data-document-template="b5"]{
+  padding:24px 28px 20px !important;
+}

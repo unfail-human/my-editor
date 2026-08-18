@@ -213,24 +213,43 @@ function fitLivePaperToLayout(){
   const workspace=document.querySelector(".workspace");
   if(!paper||!workspace)return;
 
-  const ratio=layoutRatio();
+  const layout=currentLayout();
+  const spec=layoutExportSpec(layout);
+  const ratio=spec.widthPx/spec.heightPx;
   const rect=workspace.getBoundingClientRect();
-  const maxW=Math.max(300,rect.width-44);
-  const maxH=Math.max(300,rect.height-32);
 
-  let width=Math.min(maxW,maxH*ratio);
+  // Each template has a distinct physical editing scale.
+  // A4 is the baseline; smaller/card formats visibly shrink and wide formats expand horizontally.
+  const scaleMap={
+    a4:1,
+    a5:.78,
+    b5:.88,
+    letter:1.02,
+    postcard:.68,
+    card:.72,
+    widecard:.82,
+    minicard:.72,
+    square:.76,
+    ticket:.76
+  };
+  const templateScale=scaleMap[layout.template]||1;
+  const baseA4Width=Math.min(690,Math.max(520,rect.width*.72));
+  let width=baseA4Width*templateScale;
   let height=width/ratio;
-  if(height>maxH){
-    height=maxH;
-    width=height*ratio;
-  }
 
-  paper.style.setProperty("width",Math.floor(width)+"px","important");
-  paper.style.setProperty("height",Math.floor(height)+"px","important");
+  // Landscape should be visibly wide, but never leave the workspace.
+  const maxW=Math.max(320,rect.width-46);
+  const maxH=Math.max(280,rect.height-34);
+  if(width>maxW){width=maxW;height=width/ratio}
+  if(height>maxH){height=maxH;width=height*ratio}
+
+  paper.style.setProperty("width",Math.round(width)+"px","important");
+  paper.style.setProperty("height",Math.round(height)+"px","important");
   paper.style.setProperty("min-width","0","important");
   paper.style.setProperty("min-height","0","important");
   paper.style.setProperty("max-width","none","important");
-  paper.style.setProperty("aspect-ratio",String(ratio),"important");
+  paper.style.setProperty("max-height","none","important");
+  paper.style.setProperty("aspect-ratio","auto","important");
 }
 
 function headingPreset(position,customX,customY){
@@ -263,7 +282,6 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   const showHeading=!layout.coverTitleFirstPage || pageIndex===0;
   const largeHeading=showHeading && !!layout.coverTitleLargeFirstPage && pageIndex===0;
-
   paper.classList.toggle("layout-no-heading",!showHeading);
   paper.classList.toggle("heading-large-first",largeHeading);
 
@@ -271,42 +289,40 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   if(subtitle)subtitle.style.display=showHeading?"":"none";
 
   const hp=headingPreset(layout.headingPosition,layout.headingX,layout.headingY);
-  const subtitleOffset=largeHeading ? 12 : 8;
-  const titlePos={...hp};
-  const subtitlePos={...hp,y:Math.min(92,hp.y+subtitleOffset)};
-
-  if(showHeading){
-    setHeadingPosition(title,titlePos);
-    setHeadingPosition(subtitle,subtitlePos);
-  }
-
-  // Match the horizontal starting edge of body and heading.
-  // Left/custom-left positions use exactly the same X percentage.
-  // Centered headings use a symmetrical readable body column.
-  let bodyLeft=7,bodyRight=7;
-  if(showHeading){
-    if(hp.align==="left"){
-      bodyLeft=Math.max(5,Math.min(42,hp.x));
-      bodyRight=7;
-    }else if(hp.align==="right"){
-      bodyLeft=7;
-      bodyRight=Math.max(5,Math.min(42,100-hp.x));
-    }else{
-      const centeredInset=layout.orientation==="landscape"?12:10;
-      bodyLeft=centeredInset;
-      bodyRight=centeredInset;
-    }
-  }
-
-  paper.style.setProperty("--heading-body-left",bodyLeft+"%");
-  paper.style.setProperty("--heading-body-right",bodyRight+"%");
-
-  // More distance between heading group and body; scales for large cover titles.
   const compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
-  const topClear=largeHeading?(compact?116:154):(compact?92:126);
-  const bottomClear=largeHeading?(compact?126:172):(compact?104:148);
-  paper.style.setProperty("--heading-clear-top",topClear+"px");
-  paper.style.setProperty("--heading-clear-bottom",bottomClear+"px");
+
+  // One shared horizontal content box for title, subtitle and body.
+  let left=7,right=7,align=hp.align;
+  if(showHeading && hp.align==="left"){
+    left=Math.max(5,Math.min(34,hp.x));
+    right=7;
+  }else if(showHeading && hp.align==="right"){
+    left=7;
+    right=Math.max(5,Math.min(34,100-hp.x));
+  }else if(showHeading){
+    left=layout.orientation==="landscape"?10:9;
+    right=left;
+  }
+  paper.style.setProperty("--content-left",left+"%");
+  paper.style.setProperty("--content-right",right+"%");
+
+  // Title/subtitle share exactly the same width and left/right edges as body.
+  [title,subtitle].forEach(el=>{
+    if(!el)return;
+    el.style.left=left+"%";
+    el.style.right=right+"%";
+    el.style.width="auto";
+    el.style.transform="none";
+    el.style.textAlign=align;
+  });
+
+  if(showHeading){
+    let titleY=hp.y;
+    if(hp.y<30) titleY=compact?10:9;
+    else if(hp.y>65) titleY=compact?68:74;
+    title.style.top=titleY+"%";
+    subtitle.style.top="calc("+titleY+"% + "+(largeHeading?52:38)+"px)";
+  }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
   if(showHeading){
@@ -315,20 +331,26 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     else paper.classList.add("body-clear-center");
   }
 
+  const topClear=largeHeading?(compact?132:170):(compact?104:138);
+  const bottomClear=largeHeading?(compact?142:184):(compact?116:156);
+  paper.style.setProperty("--heading-clear-top",topClear+"px");
+  paper.style.setProperty("--heading-clear-bottom",bottomClear+"px");
+
   const vertical=layout.writingMode==="vertical";
   editor.classList.toggle("writing-vertical",vertical);
   editor.classList.toggle("writing-horizontal",!vertical);
   editor.classList.toggle("layout-columns",!vertical && Number(layout.columns)>1);
-
   editor.style.writingMode=vertical?"vertical-rl":"horizontal-tb";
   editor.style.textOrientation=vertical?"mixed":"initial";
   editor.style.columnCount=vertical?1:Number(layout.columns||1);
   editor.style.columnGap=(layout.columnGap??28)+"px";
 
-  // Existing divider ornaments should immediately follow the current column layout.
+  // Dividers always belong to their current column.
   editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{
     el.style.columnSpan="none";
+    el.style.width="100%";
     el.style.maxWidth="100%";
+    el.style.boxSizing="border-box";
   });
 }
 function applyDocumentLayout(){
