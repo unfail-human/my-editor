@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Writing Editor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">✦</div>
+        <div>
+          <div class="brand-title">MY EDITOR</div>
+          <div class="brand-subtitle">Writing Space</div>
+        </div>
+      </div>
+
+      <button class="new-slot-btn" id="newSlotBtn">＋ 새 슬롯</button>
+
+      <div class="slot-section-title">PAGES</div>
+      <div id="slotList" class="slot-list"></div>
+
+      <div class="sidebar-bottom">
+        <button class="side-btn" id="exportAllBtn">전체 백업</button>
+        <button class="side-btn danger" id="resetBtn">전체 초기화</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumb">
+          <span id="currentSlotLabel">SLOT 01</span>
+        </div>
+        <div class="top-actions">
+          <span id="saveStatus" class="save-status">자동 저장됨</span>
+          <button class="ghost-btn" id="copyBtn">복사</button>
+          <button class="primary-btn" id="downloadBtn">내보내기</button>
+        </div>
+      </header>
+
+      <section class="editor-wrap">
+        <input id="titleInput" class="title-input" type="text" placeholder="제목을 입력하세요">
+
+        <div class="toolbar" role="toolbar" aria-label="편집 도구">
+          <button data-command="bold" title="굵게"><strong>B</strong></button>
+          <button data-command="italic" title="기울임"><em>I</em></button>
+          <button data-command="underline" title="밑줄"><u>U</u></button>
+          <button data-command="strikeThrough" title="취소선"><s>S</s></button>
+          <span class="divider"></span>
+          <button data-command="formatBlock" data-value="h2" title="제목">H2</button>
+          <button data-command="formatBlock" data-value="blockquote" title="인용">❝</button>
+          <button data-command="insertUnorderedList" title="목록">• 목록</button>
+          <button data-command="insertOrderedList" title="번호 목록">1. 목록</button>
+          <span class="divider"></span>
+          <button data-command="justifyLeft" title="왼쪽 정렬">≡</button>
+          <button data-command="justifyCenter" title="가운데 정렬">≡</button>
+          <button data-command="justifyRight" title="오른쪽 정렬">≡</button>
+          <span class="divider"></span>
+          <button id="linkBtn" title="링크">🔗</button>
+          <button id="imageBtn" title="이미지 URL">🖼</button>
+          <button id="clearFormatBtn" title="서식 지우기">Tx</button>
+        </div>
+
+        <article id="editor" class="editor" contenteditable="true" spellcheck="true"
+          data-placeholder="이곳에 글을 작성하세요.">
+        </article>
+      </section>
+
+      <footer class="statusbar">
+        <span id="wordCount">0자</span>
+        <span id="lastSaved">아직 저장하지 않음</span>
+      </footer>
+    </main>
+
+    <aside class="info-panel">
+      <div class="info-title">DOCUMENT</div>
+      <div class="info-card">
+        <div class="info-label">슬롯 이름</div>
+        <input id="slotNameInput" class="slot-name-input" type="text">
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">최근 수정</div>
+        <div id="updatedAt" class="info-value">-</div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">문서 정보</div>
+        <div class="info-value" id="docInfo">0자</div>
+      </div>
+
+      <button class="outline-btn" id="renameBtn">슬롯 이름 변경</button>
+      <button class="outline-btn delete" id="deleteSlotBtn">현재 슬롯 삭제</button>
+    </aside>
+  </div>
+
+  <input id="imageFileInput" type="file" accept="image/*" hidden>
+  <script src="script.js"></script>
+</body>
+</html>
