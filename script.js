@@ -1824,3 +1824,44 @@ $("importBackupInput").onchange=e=>{const f=e.target.files?.[0];if(!f)return;con
 loadFonts();renderAll();syncBackgroundOptionPanels();
 
 window.addEventListener("resize",()=>{if(!$("previewModal").hidden)fitPreviewPage();});
+
+
+/* ===== V36 patch notice controller =====
+   To announce a future patch:
+   1) set PATCH_STATUS to "patching" while uploading files;
+   2) after all files are uploaded, set it to "complete";
+   3) bump PATCH_NOTICE_VERSION each time you want everyone to see a new notice.
+*/
+const PATCH_NOTICE_VERSION="36";
+const PATCH_STATUS="complete"; // "patching" | "complete" | "off"
+
+function showPatchNotice(){
+  if(PATCH_STATUS==="off")return;
+
+  const modal=document.getElementById("patchNoticeModal");
+  const text=document.getElementById("patchNoticeText");
+  const confirm=document.getElementById("patchNoticeConfirm");
+  if(!modal || !text || !confirm)return;
+
+  const seenKey=`my-editor-patch-${PATCH_NOTICE_VERSION}-${PATCH_STATUS}`;
+  if(localStorage.getItem(seenKey)==="seen")return;
+
+  if(PATCH_STATUS==="patching"){
+    text.textContent="현재 사이트 패치가 진행 중입니다.\n일부 기능이 일시적으로 정상 작동하지 않을 수 있어요.\n패치 완료 안내가 뜰 때까지 잠시만 기다려 주세요.";
+  }else{
+    text.textContent="사이트 패치가 완료되었습니다.\n최신 파일을 확실하게 불러오기 위해\nCtrl + F5로 강력 새로고침해 주세요.";
+  }
+
+  modal.hidden=false;
+
+  confirm.onclick=()=>{
+    localStorage.setItem(seenKey,"seen");
+    modal.hidden=true;
+  };
+}
+
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",showPatchNotice,{once:true});
+}else{
+  showPatchNotice();
+}

@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="35">
+  <meta name="my-editor-version" content="36">
   <title>My Writing Editor</title>
-  <link rel="stylesheet" href="style.css?v=35">
+  <link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
 <div class="app">
@@ -543,8 +543,20 @@
   </div>
 </div>
 
+
+<div id="patchNoticeModal" class="patch-notice-modal" hidden>
+  <div class="patch-notice-card" role="dialog" aria-modal="true" aria-labelledby="patchNoticeTitle">
+    <div class="patch-notice-mark">✦</div>
+    <h2 id="patchNoticeTitle">MY EDITOR 업데이트 안내</h2>
+    <p id="patchNoticeText"></p>
+    <div class="patch-notice-actions">
+      <button id="patchNoticeConfirm" class="top-btn primary">확인</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="script.js?v=35"></script>
+<script src="script.js?v=36"></script>
 </body>
 </html>

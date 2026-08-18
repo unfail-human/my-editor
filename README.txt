@@ -1,31 +1,34 @@
-MY EDITOR V35
+MY EDITOR V36
 
-긴급 복구 버전
+패치 안내 팝업 추가
 
-클릭 먹통 원인
-- state=loadState()가 DISTRIBUTION_TYPOGRAPHY / DISTRIBUTION_BACKGROUND 초기화보다 먼저 실행됨
-- loadState() → newSlot() → defaultTypography()에서 const가 아직 초기화되지 않아 ReferenceError 발생
-- 이 오류 때문에 버튼 이벤트가 등록되기 전에 script.js 전체 실행이 중단됨
+현재 설정
+- PATCH_STATUS = "complete"
+- 처음 접속하면 '사이트 패치가 완료되었습니다' 안내가 1회 표시
+- Ctrl + F5 강력 새로고침 안내 포함
+- 확인을 누르면 같은 버전/상태 안내는 다시 뜨지 않음
 
-수정
-- 기본 설정 상수와 newSlot 함수가 준비된 뒤 state를 초기화하도록 실행 순서 수정
-- Node 문법 검사 통과
-- DOM ID 참조 누락 없음
-- 별도 런타임 smoke test에서 초기 실행 성공 확인
+다음 패치 때 사용하는 방법
 
-출처
-- 브라우저 화면에는 표시하지 않음
-- 문서 footer 내부 가장 아래쪽에 표시
-- 왼쪽 → 오른쪽으로 이동
-- MY EDITOR · unfail-human.github.io/my-editor/
+[패치 파일을 올리는 중]
+script.js 맨 아래:
+const PATCH_NOTICE_VERSION="37";
+const PATCH_STATUS="patching";
 
-왼쪽 슬롯
-- 설정 내보내기 / 설정 불러오기 없음
-- 전체 백업 / 백업 불러오기만 유지
+이 상태의 script.js를 먼저 GitHub에 올리면 방문자에게
+'현재 사이트 패치가 진행 중입니다' 팝업이 표시됩니다.
 
-캐시
-- style.css?v=35
-- script.js?v=35
-로 변경해 이전에 캐시된 고장난 JS/CSS를 강제로 우회
+[모든 파일 업로드 완료 후]
+const PATCH_STATUS="complete";
+로 변경한 script.js를 마지막으로 올리세요.
 
-GitHub에서 index.html / style.css / script.js를 v35로 세 파일 모두 교체하세요.
+그러면 방문자에게
+'사이트 패치가 완료되었습니다. Ctrl + F5로 강력 새로고침해 주세요.'
+팝업이 새로 표시됩니다.
+
+주의
+- GitHub Pages는 서버에서 실시간으로 '업로드 중' 상태를 자동 감지할 수는 없습니다.
+- 따라서 patching → complete 상태를 코드로 전환하는 방식입니다.
+- PATCH_NOTICE_VERSION을 올리면 이전 안내를 본 사람에게도 새 패치 안내가 표시됩니다.
+
+GitHub에는 index.html / style.css / script.js를 v36으로 모두 교체하세요.

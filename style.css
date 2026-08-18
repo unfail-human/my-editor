@@ -972,3 +972,56 @@ button{cursor:pointer}
 }
 
 /* No browser-viewport source badge exists in this version. */
+
+
+/* ===== V36 patch notice ===== */
+.patch-notice-modal{
+  position:fixed;
+  inset:0;
+  z-index:120000;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(35,32,29,.30);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.patch-notice-modal[hidden]{
+  display:none !important;
+}
+.patch-notice-card{
+  width:min(360px,calc(100vw - 40px));
+  padding:25px 24px 21px;
+  border:1px solid rgba(80,74,67,.13);
+  border-radius:14px;
+  background:#fbfaf7;
+  box-shadow:0 20px 65px rgba(36,31,27,.18);
+  text-align:center;
+  font-family:Pretendard,system-ui,sans-serif;
+}
+.patch-notice-mark{
+  margin-bottom:9px;
+  font-size:16px;
+  color:#777067;
+}
+.patch-notice-card h2{
+  margin:0 0 11px;
+  font-size:15px;
+  font-weight:800;
+  color:#3f3b37;
+}
+.patch-notice-card p{
+  margin:0;
+  font-size:11px;
+  line-height:1.75;
+  color:#77716a;
+  white-space:pre-line;
+}
+.patch-notice-actions{
+  display:flex;
+  justify-content:center;
+  margin-top:19px;
+}
+.patch-notice-actions button{
+  min-width:90px;
+}
