@@ -616,3 +616,58 @@ button{cursor:pointer}
 .editor .selection-style{
   display:inline;
 }
+
+
+/* ===== V18 selection-first editing / draggable slots / automatic pagination ===== */
+.editor{
+  overflow:hidden !important;
+  overscroll-behavior:none;
+}
+.color-grid input[type="color"]{cursor:pointer}
+.slot-card[draggable="true"]{cursor:grab}
+.slot-card.dragging{opacity:.45;transform:scale(.98)}
+.slot-card.drag-over{
+  border-color:#8f887f !important;
+  box-shadow:0 0 0 2px rgba(70,65,60,.08);
+}
+.slot-image-thumb{
+  grid-row:1 / span 3;
+  width:31px;height:31px;border-radius:9px;object-fit:cover;background:#efede8;
+}
+.slot-modal-image-wrap{
+  width:48px;height:48px;position:relative;flex:0 0 48px;
+}
+.slot-modal-image{
+  width:48px;height:48px;border-radius:13px;object-fit:cover;
+  position:absolute;inset:0;background:#efede8;
+}
+.slot-image-controls{
+  display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:12px;
+}
+.slot-image-controls .subtle-btn{white-space:nowrap}
+.slot-drag-hint{margin:11px 0 0}
+.compact-dialog{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(420px,calc(100vw - 32px));border-radius:14px;overflow:hidden;
+  background:#faf9f6;box-shadow:0 24px 70px rgba(0,0,0,.22);
+}
+.compact-dialog-body{padding:18px}
+.compact-actions{display:flex;justify-content:flex-end;margin-top:14px}
+#previewModal .modal-dialog{
+  inset:28px;max-width:1100px;max-height:calc(100vh - 56px);margin:auto;
+}
+#previewModal .modal-stage{
+  overflow:hidden !important;padding:18px;display:grid;place-items:center;
+}
+#previewHost{
+  position:relative;width:100%;height:100%;display:grid;place-items:center;
+}
+#previewHost .paper{
+  flex:none;transform-origin:center center !important;
+  box-shadow:0 14px 42px rgba(40,35,30,.18) !important;
+}
+.export-host .paper{
+  width:794px!important;height:1123px!important;min-height:1123px!important;
+  max-height:1123px!important;overflow:hidden!important;
+}
+.export-host .editor{overflow:hidden!important}

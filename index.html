@@ -120,7 +120,6 @@
           <label>형광펜 <input id="highlightColor" type="color" value="#fff2a8"></label>
         </div>
         <div class="button-grid two">
-          <button id="applyTextColorBtn">글자색 적용</button>
           <button id="applyHighlightBtn">형광펜 적용</button>
           <button id="removeHighlightBtn">형광펜 지우기</button>
         </div>
@@ -128,7 +127,7 @@
           <button id="applyFontSectionBtn" class="section-apply primary">글꼴 적용</button>
           <button id="resetFormatBtn" class="section-apply">기본 서식으로</button>
         </div>
-        <p class="hint">기본적으로 드래그한 글자에만 적용됩니다. ‘글꼴 적용’은 이 글꼴 파트의 설정을 현재 페이지 전체에 적용합니다.</p>
+        <p class="hint">폰트·크기·글자색은 기본적으로 드래그한 글자에 적용됩니다. ‘글꼴 적용’은 현재 설정값을 페이지 전체에 일괄 적용합니다.</p>
       </section>
 
       <section class="panel-section">
@@ -406,15 +405,31 @@
   </aside>
 </div>
 
-<div id="slotMenu" class="slot-menu" hidden>
-  <button data-slot-action="save">지금 저장</button>
-  <button data-slot-action="rename">이름 변경</button>
-  <button data-slot-action="duplicate">복제</button>
-  <button data-slot-action="up">위로 이동</button>
-  <button data-slot-action="down">아래로 이동</button>
-  <button data-slot-action="delete" class="danger">삭제</button>
+<div id="linkModal" class="modal compact-modal" hidden>
+  <div class="modal-backdrop" data-close-link></div>
+  <div class="compact-dialog">
+    <header class="modal-head">
+      <div>
+        <span class="panel-kicker">LINK</span>
+        <h2>링크 삽입</h2>
+      </div>
+      <button class="close-btn" data-close-link>×</button>
+    </header>
+    <div class="compact-dialog-body">
+      <label class="modal-field">
+        <span>링크명</span>
+        <input id="linkNameInput" type="text" placeholder="보여줄 이름">
+      </label>
+      <label class="modal-field">
+        <span>링크 주소</span>
+        <input id="linkUrlInput" type="url" placeholder="https://">
+      </label>
+      <div class="compact-actions">
+        <button id="insertLinkBtn" class="top-btn primary">링크 넣기</button>
+      </div>
+    </div>
+  </div>
 </div>
-
 
 <div id="slotEditorModal" class="modal slot-editor-modal" hidden>
   <div class="modal-backdrop" data-close-slot-editor></div>
@@ -428,11 +443,19 @@
     </header>
     <div class="slot-dialog-body">
       <div class="slot-modal-preview">
-        <div class="slot-modal-badge" id="slotModalBadge">01</div>
+        <div class="slot-modal-image-wrap">
+          <div class="slot-modal-badge" id="slotModalBadge">01</div>
+          <img id="slotModalImagePreview" class="slot-modal-image" alt="" hidden>
+        </div>
         <div>
           <div class="slot-modal-label" id="slotModalLabel">SLOT 01</div>
           <div class="slot-modal-pages" id="slotModalPages">1 PAGE</div>
         </div>
+      </div>
+      <div class="slot-image-controls">
+        <label class="upload" for="slotImageInput">＋ 슬롯 이미지 추가 (선택)</label>
+        <input id="slotImageInput" type="file" accept="image/*" hidden>
+        <button id="removeSlotImageBtn" class="subtle-btn">기본 슬롯 모양으로</button>
       </div>
       <label class="modal-field">
         <span>슬롯 이름</span>
@@ -442,10 +465,9 @@
         <button id="slotModalSaveBtn">지금 저장</button>
         <button id="slotModalRenameBtn">이름 적용</button>
         <button id="slotModalDuplicateBtn">슬롯 복제</button>
-        <button id="slotModalUpBtn">위로 이동</button>
-        <button id="slotModalDownBtn">아래로 이동</button>
-        <button id="slotModalDeleteBtn" class="danger">슬롯 삭제</button>
+        <button id="slotModalClearBtn" class="danger">슬롯 비우기</button>
       </div>
+      <p class="hint slot-drag-hint">슬롯 순서는 왼쪽 슬롯 카드를 마우스로 드래그해서 바꿀 수 있어요.</p>
     </div>
   </div>
 </div>
