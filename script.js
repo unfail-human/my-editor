@@ -310,29 +310,98 @@ function setHeadingPosition(el,pos){
 
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
-  const ts=ensureTemplateSettings(layout);layout.orientation=ts.orientation||layout.orientation||"portrait";
-  paper.classList.add("layout-enabled");paper.dataset.documentTemplate=layout.template;paper.dataset.documentOrientation=layout.orientation;
-  const showHeading=!layout.coverTitleFirstPage||pageIndex===0, largeHeading=showHeading&&!!layout.coverTitleLargeFirstPage&&pageIndex===0;
-  const columns=layout.writingMode==="vertical"?1:Number(layout.columns||1), compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
-  paper.classList.toggle("layout-no-heading",!showHeading);paper.classList.toggle("heading-large-first",largeHeading);paper.dataset.columnCount=String(columns);
-  if(title)title.style.display=showHeading?"":"none";if(subtitle)subtitle.style.display=showHeading?"":"none";
-  const hp=headingPreset(ts.headingPosition||layout.headingPosition||"top-left",layout.headingX,layout.headingY);
-  const bodyLeft=layout.orientation==="landscape"?6:7;const bodyRight=layout.orientation==="landscape"?8:9;paper.style.setProperty("--body-left",bodyLeft+"%");paper.style.setProperty("--body-right",bodyRight+"%");
-  const headingInset=compact?6:7;paper.style.setProperty("--heading-left",headingInset+"%");paper.style.setProperty("--heading-right",headingInset+"%");
-  [title,subtitle].forEach(el=>{if(!el)return;el.style.left=headingInset+"%";el.style.right=headingInset+"%";el.style.width="auto";el.style.transform="none";el.style.textAlign=hp.align;});
-  const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
-  if(title)title.style.setProperty("font-size",(largeHeading?Math.round(titleSize*1.28):titleSize)+"px","important");
-  if(subtitle)subtitle.style.setProperty("font-size",Math.max(10,Math.round(titleSize*.38))+"px","important");
-  let titleTop=hp.y<30?6:(hp.y<65?38:66);if(compact)titleTop=hp.y<30?6:(hp.y<65?34:60);
-  if(showHeading){title.style.top=titleTop+"%";subtitle.style.top=`calc(${titleTop}% + ${largeHeading?Math.round(titleSize*1.65):Math.round(titleSize*1.3)}px)`;}
-  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom","heading-columns");
-  if(showHeading){if(hp.y<30)paper.classList.add("body-clear-top");else if(hp.y<65)paper.classList.add("body-clear-center");else paper.classList.add("body-clear-bottom");}
-  const gap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));paper.style.setProperty("--heading-clear-top",gap+"px");paper.style.setProperty("--heading-clear-center",(gap+18)+"px");paper.style.setProperty("--heading-clear-bottom",(gap+12)+"px");
-  const vertical=layout.writingMode==="vertical";editor.classList.toggle("writing-vertical",vertical);editor.classList.toggle("writing-horizontal",!vertical);editor.classList.toggle("layout-columns",!vertical&&columns>1);
-  editor.style.writingMode=vertical?((layout.verticalFlow||"rtl")==="ltr"?"vertical-lr":"vertical-rl"):"horizontal-tb";editor.style.textOrientation=vertical?"mixed":"initial";editor.style.columnCount=vertical?1:columns;editor.style.columnGap=(layout.columnGap??28)+"px";
-  editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{el.style.columnSpan="none";el.style.width="100%";el.style.maxWidth="100%";el.style.boxSizing="border-box";});
-}
 
+  const ts=ensureTemplateSettings(layout);
+  layout.orientation=ts.orientation||layout.orientation||"portrait";
+
+  paper.classList.add("layout-enabled");
+  paper.dataset.documentTemplate=layout.template;
+  paper.dataset.documentOrientation=layout.orientation;
+
+  const showHeading=!layout.coverTitleFirstPage||pageIndex===0;
+  const columns=layout.writingMode==="vertical"?1:Number(layout.columns||1);
+  const compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
+
+  paper.classList.toggle("layout-no-heading",!showHeading);
+  paper.classList.remove("heading-large-first");
+  paper.dataset.columnCount=String(columns);
+
+  if(title)title.style.display=showHeading?"":"none";
+  if(subtitle)subtitle.style.display=showHeading?"":"none";
+
+  const hp=headingPreset(ts.headingPosition||layout.headingPosition||"top-left",layout.headingX,layout.headingY);
+
+  // One shared left edge: title, subtitle rule and body all start here.
+  const contentLeft=layout.orientation==="landscape"?5:6;
+  const contentRight=layout.orientation==="landscape"?7:8;
+  paper.style.setProperty("--content-left",contentLeft+"%");
+  paper.style.setProperty("--content-right",contentRight+"%");
+  paper.style.setProperty("--body-left",contentLeft+"%");
+  paper.style.setProperty("--body-right",contentRight+"%");
+  paper.style.setProperty("--heading-left",contentLeft+"%");
+  paper.style.setProperty("--heading-right",contentRight+"%");
+
+  [title,subtitle].forEach(el=>{
+    if(!el)return;
+    el.style.left=contentLeft+"%";
+    el.style.right=contentRight+"%";
+    el.style.width="auto";
+    el.style.transform="none";
+    el.style.textAlign=hp.align;
+  });
+
+  const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
+  if(title)title.style.setProperty("font-size",titleSize+"px","important");
+  if(subtitle)subtitle.style.setProperty("font-size",Math.max(10,Math.round(titleSize*.38))+"px","important");
+
+  // Position blocks: top is high, middle is genuinely centered, bottom sits decisively low.
+  let titleTop=6;
+  let bodyTopPx=Math.max(76,Number(ts.headingGap||150));
+
+  if(hp.y>=30 && hp.y<65){
+    titleTop=compact?40:43;
+    // Body begins below the middle title/subtitle block, not above it.
+    bodyTopPx=compact?Math.max(180,Number(ts.headingGap||150)+72):Math.max(260,Number(ts.headingGap||150)+112);
+  }else if(hp.y>=65){
+    titleTop=compact?76:81;
+    // Bottom heading stays low; body occupies the upper area and stops before it.
+    bodyTopPx=28;
+  }
+
+  if(showHeading){
+    title.style.top=titleTop+"%";
+    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.3)}px)`;
+  }
+
+  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
+  if(showHeading){
+    if(hp.y<30)paper.classList.add("body-clear-top");
+    else if(hp.y<65)paper.classList.add("body-clear-center");
+    else paper.classList.add("body-clear-bottom");
+  }
+
+  const gap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
+  paper.style.setProperty("--heading-clear-top",gap+"px");
+  paper.style.setProperty("--heading-clear-center",bodyTopPx+"px");
+  paper.style.setProperty("--heading-clear-bottom",(compact?150:205)+"px");
+
+  const vertical=layout.writingMode==="vertical";
+  editor.classList.toggle("writing-vertical",vertical);
+  editor.classList.toggle("writing-horizontal",!vertical);
+  editor.classList.toggle("layout-columns",!vertical&&columns>1);
+
+  editor.style.writingMode=vertical?((layout.verticalFlow||"rtl")==="ltr"?"vertical-lr":"vertical-rl"):"horizontal-tb";
+  editor.style.textOrientation=vertical?"mixed":"initial";
+  editor.style.columnCount=vertical?1:columns;
+  editor.style.columnGap=(layout.columnGap??28)+"px";
+
+  editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{
+    el.style.columnSpan="none";
+    el.style.width="100%";
+    el.style.maxWidth="100%";
+    el.style.boxSizing="border-box";
+  });
+}
 function applyDocumentLayout(){
   const s=current();
   const layout=currentLayout();
@@ -1501,13 +1570,6 @@ function syncControls(){
   $("columnGap").value=l.columnGap??28;
   $("columnGapOut").textContent=(l.columnGap??28)+"px";
   $("coverTitleFirstPage").checked=!!l.coverTitleFirstPage;
-  $("coverTitleLargeFirstPage").checked=!!l.coverTitleLargeFirstPage;
-  $("headingPosition").value=l.headingPosition;
-  $("headingPosX").value=l.headingX;
-  $("headingPosXOut").textContent=l.headingX+"%";
-  $("headingPosY").value=l.headingY;
-  $("headingPosYOut").textContent=l.headingY+"%";
-  $("headingCustomPosition").classList.toggle("active",l.headingPosition==="custom");
   updateTemplateMiniPreview();
 }
 
@@ -1616,23 +1678,8 @@ $("coverTitleFirstPage").onchange=e=>{
   renderAll();
 };
 
-$("coverTitleLargeFirstPage").onchange=e=>{
-  updateLayoutSetting("coverTitleLargeFirstPage",e.target.checked,{reflow:false});
-  renderAll();
-};
 
-$("headingPosition").onchange=e=>{
-  updateLayoutSetting("headingPosition",e.target.value);
-};
 
-[["headingPosX","headingX"],["headingPosY","headingY"]].forEach(([id,key])=>{
-  $(id).oninput=e=>{
-    current().layout[key]=Number(e.target.value);
-    persist();
-    applyDocumentLayout();
-    syncControls();
-  };
-});
 
 function syncBackgroundOptionPanels(){
   const mode=current().background.mode||"solid";
