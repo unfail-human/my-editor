@@ -1598,18 +1598,17 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
   applyTypographyToClone(clone,page);
 
   // Preview/export footer:
-  // keep the site source, hide the editable page number.
+  // show both editable page number and permanent site source.
   const footer=clone.querySelector(".paper-footer");
   if(footer){
+    const spans=[...footer.querySelectorAll("span")];
     const source=footer.querySelector(".paper-source-credit");
-    footer.querySelectorAll("span").forEach(span=>{
-      if(span.classList.contains("paper-source-credit")){
-        span.style.display="";
-        span.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
-      }else{
-        span.style.display="none";
-      }
-    });
+    const pageNo=spans.find(el=>!el.classList.contains("paper-source-credit"));
+
+    if(pageNo){
+      pageNo.style.display="";
+      pageNo.textContent=[page.pagePrefix,page.pageNumber,page.pageSuffix].filter(Boolean).join(" ");
+    }
     if(source){
       source.style.display="";
       source.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
@@ -1743,14 +1742,19 @@ async function capture(pageIndex=current().currentPageIndex||0){
   const clone=clonePageForIndex(pageIndex,{forExport:true});
   const footer=clone.querySelector(".paper-footer");
   if(footer){
-    footer.querySelectorAll("span").forEach(span=>{
-      if(span.classList.contains("paper-source-credit")){
-        span.style.display="";
-        span.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
-      }else{
-        span.style.display="none";
-      }
-    });
+    const spans=[...footer.querySelectorAll("span")];
+    const source=footer.querySelector(".paper-source-credit");
+    const pageNo=spans.find(el=>!el.classList.contains("paper-source-credit"));
+    const page=current().pages[pageIndex];
+
+    if(pageNo){
+      pageNo.style.display="";
+      pageNo.textContent=[page.pagePrefix,page.pageNumber,page.pageSuffix].filter(Boolean).join(" ");
+    }
+    if(source){
+      source.style.display="";
+      source.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
+    }
   }
   host.appendChild(clone);document.body.appendChild(host);
   try{
@@ -1870,7 +1874,7 @@ window.addEventListener("resize",()=>{if(!$("previewModal").hidden)fitPreviewPag
 
 
 
-/* ===== V37 developer notice system ===== */
+/* ===== V40 developer notice system ===== */
 function noticeSeenKey(id){
   return `my-editor-notice-seen:${id}`;
 }
@@ -1893,6 +1897,38 @@ function showSiteNotice(notice){
     localStorage.setItem(noticeSeenKey(notice.id),"1");
     modal.hidden=true;
   };
+}
+
+
+function autoUpdateSeenKey(version){
+  return `my-editor-auto-update-seen:${version}`;
+}
+
+function bootAutomaticUpdateNotice(){
+  const cfg=window.MY_EDITOR_AUTO_UPDATE_NOTICE;
+  if(!cfg?.enabled || !cfg.version)return false;
+
+  const key=autoUpdateSeenKey(cfg.version);
+  if(localStorage.getItem(key)==="1")return false;
+
+  const modal=document.getElementById("patchNoticeModal");
+  const title=document.getElementById("patchNoticeTitle");
+  const text=document.getElementById("patchNoticeText");
+  const confirm=document.getElementById("patchNoticeConfirm");
+  if(!modal||!title||!text||!confirm)return false;
+
+  title.textContent=cfg.title||"업데이트 안내";
+  text.textContent=cfg.message||"업데이트가 완료되었습니다.\n새로고침 후 다시 사용해주시길 바랍니다.";
+  confirm.textContent=cfg.button||"확인";
+
+  modal.hidden=false;
+  confirm.onclick=()=>{
+    localStorage.setItem(key,"1");
+    modal.hidden=true;
+    // After auto notice closes, manual notice may appear if it is new.
+    setTimeout(bootSiteNotice,0);
+  };
+  return true;
 }
 
 function bootSiteNotice(){
@@ -1940,44 +1976,171 @@ function renderDeveloperNoticeHistory(){
   });
 }
 
-function openDeveloperNoticeHistory(){
+function unlockDeveloperNotice(){
   const cfg=window.MY_EDITOR_NOTICE||{};
   const expected=String(cfg.developerKey||"");
-  if(!expected)return;
-
-  const saved=sessionStorage.getItem("my-editor-developer-unlocked");
-  if(saved!==expected){
-    const key=prompt("개발자 키를 입력하세요.");
-    if(key!==expected){
-      if(key!==null)alert("개발자 키가 올바르지 않습니다.");
-      return;
-    }
-    sessionStorage.setItem("my-editor-developer-unlocked",expected);
+  if(!expected){
+    alert("notice.js에 developerKey가 설정되어 있지 않습니다.");
+    return false;
   }
 
+  const saved=sessionStorage.getItem("my-editor-developer-unlocked");
+  if(saved===expected)return true;
+
+  const key=prompt("개발자 키를 입력하세요.");
+  if(key===null)return false;
+  if(key!==expected){
+    alert("개발자 키가 올바르지 않습니다.");
+    return false;
+  }
+
+  sessionStorage.setItem("my-editor-developer-unlocked",expected);
+  return true;
+}
+
+function openDeveloperNoticeManager(){
+  if(!unlockDeveloperNotice())return;
+  fillDeveloperNoticeFormFromCurrent();
   renderDeveloperNoticeHistory();
   const modal=document.getElementById("developerNoticeModal");
   if(modal)modal.hidden=false;
 }
 
-function bootDeveloperNoticeMode(){
-  const params=new URLSearchParams(location.search);
-  if(params.get("developer")==="notice"){
-    // Remove the query from the visible URL after opening.
-    openDeveloperNoticeHistory();
-    try{
-      const clean=location.pathname+location.hash;
-      history.replaceState(null,"",clean);
-    }catch{}
+function fillDeveloperNoticeFormFromCurrent(){
+  const cfg=window.MY_EDITOR_NOTICE||{};
+  const n=cfg.current||{};
+  const today=new Date().toISOString().slice(0,10);
+
+  document.getElementById("developerNoticeType").value=n.type||"info";
+  document.getElementById("developerNoticeDate").value=n.date||today;
+  document.getElementById("developerNoticeTitleInput").value=n.title||"";
+  document.getElementById("developerNoticeMessage").value=n.message||"";
+  document.getElementById("developerNoticeButtonText").value=n.button||"확인";
+  document.getElementById("developerNoticeId").value=n.id||"";
+  document.getElementById("developerNoticeEnabled").checked=!!cfg.enabled;
+}
+
+function generateDeveloperNoticeId(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=String(now.getMonth()+1).padStart(2,"0");
+  const d=String(now.getDate()).padStart(2,"0");
+  const hh=String(now.getHours()).padStart(2,"0");
+  const mm=String(now.getMinutes()).padStart(2,"0");
+  const ss=String(now.getSeconds()).padStart(2,"0");
+  const id=`notice-${y}${m}${d}-${hh}${mm}${ss}`;
+  document.getElementById("developerNoticeId").value=id;
+  return id;
+}
+
+function getDeveloperFormNotice(){
+  const id=document.getElementById("developerNoticeId").value.trim()||generateDeveloperNoticeId();
+  return {
+    id,
+    type:document.getElementById("developerNoticeType").value||"info",
+    title:document.getElementById("developerNoticeTitleInput").value.trim()||"MY EDITOR 공지",
+    message:document.getElementById("developerNoticeMessage").value.trim(),
+    button:document.getElementById("developerNoticeButtonText").value.trim()||"확인",
+    date:document.getElementById("developerNoticeDate").value||new Date().toISOString().slice(0,10)
+  };
+}
+
+function buildNoticeFileText({enabled,current}){
+  const cfg=window.MY_EDITOR_NOTICE||{};
+  const oldCurrent=cfg.current||null;
+  const history=Array.isArray(cfg.history)?structuredClone(cfg.history):[];
+
+  // Keep the old current notice in developer-only history when publishing a new notice.
+  if(oldCurrent && oldCurrent.id && (!current || oldCurrent.id!==current.id)){
+    if(!history.some(x=>x.id===oldCurrent.id)){
+      history.unshift({
+        id:oldCurrent.id,
+        type:oldCurrent.type||"info",
+        title:oldCurrent.title||"",
+        message:oldCurrent.message||"",
+        button:oldCurrent.button||"확인",
+        date:oldCurrent.date||""
+      });
+    }
   }
+
+  const safeCfg={
+    enabled:!!enabled,
+    current:current||oldCurrent||{
+      id:"notice-empty",
+      type:"info",
+      title:"MY EDITOR 공지",
+      message:"",
+      button:"확인",
+      date:""
+    },
+    history,
+    developerKey:String(cfg.developerKey||"change-this-developer-key")
+  };
+
+  return `/* MY EDITOR developer notice config */
+window.MY_EDITOR_NOTICE = ${JSON.stringify(safeCfg,null,2)};
+`;
+}
+
+function downloadNoticeJs(enabled,current){
+  const text=buildNoticeFileText({enabled,current});
+  const blob=new Blob([text],{type:"text/javascript;charset=utf-8"});
+  download(blob,"notice.js");
+}
+
+function switchDeveloperNoticeTab(tab){
+  document.querySelectorAll(".developer-notice-tab").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.developerTab===tab);
+  });
+  document.querySelectorAll(".developer-notice-panel").forEach(panel=>{
+    panel.classList.toggle("active",panel.dataset.developerPanel===tab);
+  });
+  if(tab==="history")renderDeveloperNoticeHistory();
+}
+
+function bootDeveloperNoticeMode(){
+  document.getElementById("developerHiddenButton")?.addEventListener("click",e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    openDeveloperNoticeManager();
+  });
 
   document.getElementById("developerNoticeClose")?.addEventListener("click",()=>{
     document.getElementById("developerNoticeModal").hidden=true;
   });
+
+  document.querySelectorAll(".developer-notice-tab").forEach(btn=>{
+    btn.addEventListener("click",()=>switchDeveloperNoticeTab(btn.dataset.developerTab));
+  });
+
+  document.getElementById("developerNoticeFillCurrent")?.addEventListener("click",fillDeveloperNoticeFormFromCurrent);
+  document.getElementById("developerNoticeGenerateId")?.addEventListener("click",generateDeveloperNoticeId);
+
+  document.getElementById("developerNoticeDownload")?.addEventListener("click",()=>{
+    const current=getDeveloperFormNotice();
+    const enabled=document.getElementById("developerNoticeEnabled").checked;
+    downloadNoticeJs(enabled,current);
+  });
+
+  document.getElementById("developerNoticeDisable")?.addEventListener("click",()=>{
+    const cfg=window.MY_EDITOR_NOTICE||{};
+    downloadNoticeJs(false,cfg.current||null);
+  });
+
+  // Existing query-string route remains available as a backup.
+  const params=new URLSearchParams(location.search);
+  if(params.get("developer")==="notice"){
+    openDeveloperNoticeManager();
+    try{
+      history.replaceState(null,"",location.pathname+location.hash);
+    }catch{}
+  }
 }
 
 function bootNoticeSystem(){
-  bootSiteNotice();
+  const autoShown=bootAutomaticUpdateNotice();
+  if(!autoShown)bootSiteNotice();
   bootDeveloperNoticeMode();
 }
 

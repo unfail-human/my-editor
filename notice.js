@@ -31,3 +31,16 @@ window.MY_EDITOR_NOTICE = {
   // This is client-side only, so it is not strong authentication.
   developerKey: "change-this-developer-key"
 };
+
+
+/* Automatic update notice.
+   Bump `version` whenever a new site version is deployed.
+   This is separate from manual developer notices.
+*/
+window.MY_EDITOR_AUTO_UPDATE_NOTICE = {
+  enabled: true,
+  version: "41",
+  title: "업데이트 안내",
+  message: "업데이트가 완료되었습니다.\n새로고침 후 다시 사용해주시길 바랍니다.",
+  button: "확인"
+};

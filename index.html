@@ -3,11 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="39">
+  <meta name="my-editor-version" content="41">
   <title>My Writing Editor</title>
-  <link rel="stylesheet" href="style.css?v=39">
+  <link rel="stylesheet" href="style.css?v=41">
 </head>
 <body>
+
+<button
+  id="developerHiddenButton"
+  class="developer-hidden-button"
+  type="button"
+  aria-label="개발자 메뉴"
+  title=""
+></button>
+
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
@@ -556,22 +565,86 @@
 </div>
 
 
+
 <div id="developerNoticeModal" class="developer-notice-modal" hidden>
-  <div class="developer-notice-card">
+  <div class="developer-notice-card developer-notice-card-wide">
     <header class="developer-notice-head">
       <div>
         <div class="developer-notice-kicker">DEVELOPER</div>
-        <h2>공지 기록</h2>
+        <h2>공지 관리</h2>
       </div>
       <button id="developerNoticeClose" class="close-btn">×</button>
     </header>
-    <div id="developerNoticeList" class="developer-notice-list"></div>
+
+    <div class="developer-notice-tabs">
+      <button class="developer-notice-tab active" data-developer-tab="write">공지 작성</button>
+      <button class="developer-notice-tab" data-developer-tab="history">이전 공지</button>
+    </div>
+
+    <div class="developer-notice-panel active" data-developer-panel="write">
+      <div class="developer-form-grid">
+        <label class="modal-field">
+          <span>공지 유형</span>
+          <select id="developerNoticeType">
+            <option value="info">일반</option>
+            <option value="update">업데이트</option>
+            <option value="maintenance">점검</option>
+          </select>
+        </label>
+
+        <label class="modal-field">
+          <span>공지 날짜</span>
+          <input id="developerNoticeDate" type="date">
+        </label>
+
+        <label class="modal-field developer-form-wide">
+          <span>공지 제목</span>
+          <input id="developerNoticeTitleInput" type="text" placeholder="예: 업데이트 안내">
+        </label>
+
+        <label class="modal-field developer-form-wide">
+          <span>공지 내용</span>
+          <textarea id="developerNoticeMessage" rows="6" placeholder="공지 내용을 입력하세요."></textarea>
+        </label>
+
+        <label class="modal-field">
+          <span>버튼 문구</span>
+          <input id="developerNoticeButtonText" type="text" value="확인">
+        </label>
+
+        <label class="modal-field">
+          <span>공지 ID</span>
+          <input id="developerNoticeId" type="text" placeholder="자동 생성 가능">
+        </label>
+      </div>
+
+      <label class="developer-enabled-check">
+        <input id="developerNoticeEnabled" type="checkbox" checked>
+        <span>사이트에서 공지 띄우기</span>
+      </label>
+
+      <div class="developer-notice-actions">
+        <button id="developerNoticeFillCurrent" class="top-btn">현재 공지 불러오기</button>
+        <button id="developerNoticeGenerateId" class="top-btn">새 ID 생성</button>
+        <button id="developerNoticeDisable" class="top-btn">공지 끄기 파일 만들기</button>
+        <button id="developerNoticeDownload" class="top-btn primary">notice.js 만들기</button>
+      </div>
+
+      <p class="developer-notice-help">
+        생성된 notice.js를 GitHub 저장소의 기존 notice.js와 교체하면 공지가 적용됩니다.
+        새 공지를 올릴 때는 공지 ID가 이전 공지와 달라야 합니다.
+      </p>
+    </div>
+
+    <div class="developer-notice-panel" data-developer-panel="history">
+      <div id="developerNoticeList" class="developer-notice-list"></div>
+    </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=39"></script>
-<script src="script.js?v=39"></script>
+<script src="notice.js?v=41"></script>
+<script src="script.js?v=41"></script>
 </body>
 </html>
