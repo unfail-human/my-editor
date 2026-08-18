@@ -1,31 +1,19 @@
-MY EDITOR V43
+MY EDITOR V44
 
-링크 공유 이미지(OG 이미지) 적용
+미리보기 저장 디자인
+- 미리보기 저장 메뉴를 일반 편집 화면 저장 메뉴와 동일한 클래스/구조로 통일
+- 저장 범위 → 파일 형식 2단계 흐름 유지
+- 위치만 미리보기 헤더 아래에 맞게 배치
 
-추가 파일
-- og-image.png
+미리보기 복사
+- 복사는 파일을 생성하는 기능이 아님
+- 현재 미리보기 페이지의 제목/소제목/본문/출처 텍스트를 클립보드에 복사
+- 복사 후 안내:
+  '현재 페이지의 글 내용이 클립보드에 복사되었습니다.
+   Ctrl+V로 붙여넣어 사용할 수 있어요.'
+- 안내 표시 시간을 늘림
 
-index.html에 추가된 메타 정보
-- og:title = MY EDITOR
-- og:description = Writing Space
-- og:url = https://unfail-human.github.io/my-editor/
-- og:image = https://unfail-human.github.io/my-editor/og-image.png
-- twitter:card = summary_large_image
-- twitter:image = 동일 og-image.png
+자동 업데이트 공지 버전 44
 
-GitHub 업로드
-반드시 아래 5개를 함께 올리세요.
-- index.html
-- style.css
-- script.js
-- notice.js
-- og-image.png
-
-업로드 후 GitHub Pages 반영까지 잠시 기다린 뒤
-카카오톡/디스코드/슬랙 등에서 링크를 새로 공유하면
-MY EDITOR 공유 이미지가 표시됩니다.
-
-일부 서비스는 이전 링크 미리보기를 캐시하므로
-바로 안 바뀌면 잠시 기다린 뒤 다시 공유해야 할 수 있습니다.
-
-자동 업데이트 공지 버전 43 적용.
+GitHub 업로드:
+index.html / style.css / script.js / notice.js / og-image.png

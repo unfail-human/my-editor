@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="43">
+  <meta name="my-editor-version" content="44">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -21,7 +21,7 @@
   <meta name="twitter:description" content="Writing Space">
   <meta name="twitter:image" content="https://unfail-human.github.io/my-editor/og-image.png">
 
-  <link rel="stylesheet" href="style.css?v=43">
+  <link rel="stylesheet" href="style.css?v=44">
 </head>
 <body>
 
@@ -561,7 +561,7 @@
         </span>
         <button id="previewCopyBtn" class="top-btn">복사</button>
         <button id="previewSaveBtn" class="top-btn primary">저장</button>
-        <div id="previewSaveMenu" class="preview-save-menu" hidden>
+        <div id="previewSaveMenu" class="save-menu save-menu-step preview-save-menu" hidden>
           <div class="save-step active" data-preview-save-step="scope">
             <div class="save-menu-title">저장 범위</div>
             <button data-preview-save-scope="current">현재 페이지 저장</button>
@@ -574,6 +574,13 @@
                 <div class="save-menu-title">파일 형식</div>
                 <div id="previewSaveScopeLabel" class="save-menu-sub">현재 페이지</div>
               </div>
+            </div>
+            <button data-preview-export="png">PNG</button>
+            <button data-preview-export="jpg">JPG</button>
+            <button data-preview-export="pdf">PDF</button>
+            <button data-preview-export="txt">TXT</button>
+          </div>
+        </div>
             </div>
             <button data-preview-export="png">PNG</button>
             <button data-preview-export="jpg">JPG</button>
@@ -680,7 +687,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=43"></script>
-<script src="script.js?v=43"></script>
+<script src="notice.js?v=44"></script>
+<script src="script.js?v=44"></script>
 </body>
 </html>

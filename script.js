@@ -1715,7 +1715,7 @@ function showPreviewActionToast(message){
   toast.className="preview-action-toast";
   toast.textContent=message;
   head.appendChild(toast);
-  setTimeout(()=>toast.remove(),1400);
+  setTimeout(()=>toast.remove(),3200);
 }
 
 document.querySelectorAll("[data-close-preview]").forEach(x=>x.onclick=()=>{
@@ -1729,7 +1729,11 @@ $("previewCopyBtn").onclick=async e=>{
   const p=current().pages[previewPageIndex];
   const text=[p.title,p.subtitle,strip(p.content),"MY EDITOR · unfail-human.github.io/my-editor/"].filter(Boolean).join("\\n\\n");
   const ok=await copyTextReliable(text);
-  showPreviewActionToast(ok?"복사했습니다.":"복사에 실패했습니다.");
+  showPreviewActionToast(
+    ok
+      ?"현재 페이지의 글 내용이 클립보드에 복사되었습니다. Ctrl+V로 붙여넣어 사용할 수 있어요."
+      :"복사에 실패했습니다."
+  );
 };
 
 let previewSaveScope="current";
