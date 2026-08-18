@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="56">
+  <meta name="my-editor-version" content="58">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
@@ -26,7 +26,7 @@
 
 
 
-  <link rel="stylesheet" href="style.css?v=56">
+  <link rel="stylesheet" href="style.css?v=58">
 </head>
 <body>
 
@@ -291,11 +291,9 @@
           <label class="field">
             <span>제목 배치</span>
             <select id="templateHeadingPosition">
-              <option value="top-left">위 · 왼쪽</option>
-              <option value="top-center">위 · 가운데</option>
-              <option value="center">정중앙</option>
-              <option value="bottom-left">아래 · 왼쪽</option>
-              <option value="bottom-center">아래 · 가운데</option>
+              <option value="top-left">위 · 왼쪽</option><option value="top-center">위 · 가운데</option><option value="top-right">위 · 오른쪽</option>
+              <option value="middle-left">중앙 · 왼쪽</option><option value="center">중앙 · 가운데</option><option value="middle-right">중앙 · 오른쪽</option>
+              <option value="bottom-left">아래 · 왼쪽</option><option value="bottom-center">아래 · 가운데</option><option value="bottom-right">아래 · 오른쪽</option>
             </select>
           </label>
 
@@ -316,9 +314,12 @@
         <label class="field">
           <span>글쓰기 방향</span>
           <select id="writingMode">
-            <option value="horizontal">가로쓰기</option>
-            <option value="vertical">세로쓰기 · 오른쪽→왼쪽</option>
+            <option value="horizontal">가로쓰기</option><option value="vertical">세로쓰기</option>
           </select>
+        </label>
+        <label id="verticalFlowWrap" class="field">
+          <span>세로쓰기 진행 방향</span>
+          <select id="verticalFlow"><option value="rtl">오른쪽 → 왼쪽</option><option value="ltr">왼쪽 → 오른쪽</option></select>
         </label>
 
         <label class="field">
@@ -839,7 +840,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=56"></script>
-<script src="script.js?v=56"></script>
+<script src="notice.js?v=58"></script>
+<script src="script.js?v=58"></script>
 </body>
 </html>

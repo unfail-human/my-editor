@@ -1893,3 +1893,55 @@ button{cursor:pointer}
 .paper.layout-enabled .editor.writing-vertical{
   padding:7% 8% 9% !important;
 }
+
+/* V57 */
+.paper.layout-enabled{--body-left:9%;--body-right:9%;--heading-clear-center:168px;}
+.paper.layout-enabled .editor.writing-horizontal,.paper.layout-enabled .editor.layout-columns{padding-left:var(--body-left)!important;padding-right:var(--body-right)!important;margin-left:0!important;margin-right:0!important;}
+.paper.layout-enabled.body-clear-top .editor.writing-horizontal{padding-top:var(--heading-clear-top)!important;padding-bottom:34px!important;}
+.paper.layout-enabled.body-clear-center .editor.writing-horizontal{padding-top:30px!important;padding-bottom:var(--heading-clear-center)!important;}
+.paper.layout-enabled.body-clear-bottom .editor.writing-horizontal{padding-top:28px!important;padding-bottom:var(--heading-clear-bottom)!important;}
+.paper.layout-enabled .title-input,.paper.layout-enabled .subtitle-input{left:var(--heading-left)!important;right:var(--heading-right)!important;max-width:none!important;}
+.paper.layout-enabled .editor.writing-vertical{padding:8% 9% 9%!important;margin:0!important;}
+
+
+/* ===== V58 header logo sparkle centering ===== */
+.brand-logo,
+.logo-mark,
+.site-logo-mark,
+.header-logo-mark{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1 !important;
+}
+
+.brand-logo > *,
+.logo-mark > *,
+.site-logo-mark > *,
+.header-logo-mark > *{
+  margin:0 !important;
+  position:static !important;
+  transform:none !important;
+  line-height:1 !important;
+  vertical-align:middle !important;
+}
+
+/* Current header mark fallback: center any sparkle glyph inside the small rounded logo box. */
+.app-brand .brand-icon,
+.brand .brand-icon,
+.logo .brand-icon,
+.site-brand .brand-icon{
+  display:grid !important;
+  place-items:center !important;
+  line-height:1 !important;
+}
+
+.app-brand .brand-icon::before,
+.brand .brand-icon::before,
+.logo .brand-icon::before,
+.site-brand .brand-icon::before{
+  line-height:1 !important;
+  margin:0 !important;
+  transform:none !important;
+  position:static !important;
+}

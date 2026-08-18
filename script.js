@@ -22,6 +22,7 @@ const DISTRIBUTION_LAYOUT={
   template:"a4",
   orientation:"portrait",
   writingMode:"horizontal",
+  verticalFlow:"rtl",
   columns:1,
   columnGap:28,
   coverTitleFirstPage:false,
@@ -30,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:150,headingPosition:"top-left"},
-    letter:{orientation:"portrait",titleSize:34,headingGap:148,headingPosition:"top-left"},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:104,headingPosition:"top-left"},
-    card:{orientation:"landscape",titleSize:27,headingGap:102,headingPosition:"top-left"},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:96,headingPosition:"top-left"},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:100,headingPosition:"top-left"},
-    square:{orientation:"portrait",titleSize:29,headingGap:118,headingPosition:"top-left"},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:88,headingPosition:"top-left"}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left"},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left"},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left"},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left"},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left"},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left"},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left"},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left"}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -292,13 +293,10 @@ function fitLivePaperToLayout(){
 function headingPreset(position,customX,customY){
   if(position==="custom")return{x:customX,y:customY,align:customX<40?"left":customX>60?"right":"center"};
   const map={
-    "top-left":{x:18,y:10,align:"left"},
-    "top-center":{x:50,y:10,align:"center"},
-    "center":{x:50,y:46,align:"center"},
-    "bottom-left":{x:18,y:79,align:"left"},
-    "bottom-center":{x:50,y:79,align:"center"}
-  };
-  return map[position]||map["top-left"];
+    "top-left":{x:8,y:8,align:"left"},"top-center":{x:50,y:8,align:"center"},"top-right":{x:92,y:8,align:"right"},
+    "middle-left":{x:8,y:44,align:"left"},"center":{x:50,y:44,align:"center"},"middle-right":{x:92,y:44,align:"right"},
+    "bottom-left":{x:8,y:72,align:"left"},"bottom-center":{x:50,y:72,align:"center"},"bottom-right":{x:92,y:72,align:"right"}
+  };return map[position]||map["top-left"];
 }
 
 function setHeadingPosition(el,pos){
@@ -312,102 +310,29 @@ function setHeadingPosition(el,pos){
 
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
-
-  const ts=ensureTemplateSettings(layout);
-  layout.orientation=ts.orientation||layout.orientation||"portrait";
-
-  paper.classList.add("layout-enabled");
-  paper.dataset.documentTemplate=layout.template;
-  paper.dataset.documentOrientation=layout.orientation;
-
-  const showHeading=!layout.coverTitleFirstPage || pageIndex===0;
-  const largeHeading=showHeading && !!layout.coverTitleLargeFirstPage && pageIndex===0;
-  const columns=layout.writingMode==="vertical"?1:Number(layout.columns||1);
-  const compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
-
-  paper.classList.toggle("layout-no-heading",!showHeading);
-  paper.classList.toggle("heading-large-first",largeHeading);
-  paper.dataset.columnCount=String(columns);
-
-  if(title)title.style.display=showHeading?"":"none";
-  if(subtitle)subtitle.style.display=showHeading?"":"none";
-
-  const effectivePosition=columns>1?"top-center":(ts.headingPosition||layout.headingPosition||"top-left");
-  const hp=headingPreset(effectivePosition,layout.headingX,layout.headingY);
-
-  let left=6,right=6,align=hp.align;
-  if(columns>1){
-    left=8; right=8; align="center";
-  }else if(showHeading && hp.align==="left"){
-    left=Math.max(5,Math.min(26,hp.x)); right=5;
-  }else if(showHeading && hp.align==="right"){
-    left=5; right=Math.max(5,Math.min(26,100-hp.x));
-  }else if(showHeading){
-    left=layout.orientation==="landscape"?8:7; right=left;
-  }
-
-  paper.style.setProperty("--content-left",left+"%");
-  paper.style.setProperty("--content-right",right+"%");
-  paper.style.setProperty("--heading-left",left+"%");
-  paper.style.setProperty("--heading-right",right+"%");
-
-  [title,subtitle].forEach(el=>{
-    if(!el)return;
-    el.style.left=left+"%";
-    el.style.right=right+"%";
-    el.style.width="auto";
-    el.style.transform="none";
-    el.style.textAlign=align;
-  });
-
+  const ts=ensureTemplateSettings(layout);layout.orientation=ts.orientation||layout.orientation||"portrait";
+  paper.classList.add("layout-enabled");paper.dataset.documentTemplate=layout.template;paper.dataset.documentOrientation=layout.orientation;
+  const showHeading=!layout.coverTitleFirstPage||pageIndex===0, largeHeading=showHeading&&!!layout.coverTitleLargeFirstPage&&pageIndex===0;
+  const columns=layout.writingMode==="vertical"?1:Number(layout.columns||1), compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
+  paper.classList.toggle("layout-no-heading",!showHeading);paper.classList.toggle("heading-large-first",largeHeading);paper.dataset.columnCount=String(columns);
+  if(title)title.style.display=showHeading?"":"none";if(subtitle)subtitle.style.display=showHeading?"":"none";
+  const hp=headingPreset(ts.headingPosition||layout.headingPosition||"top-left",layout.headingX,layout.headingY);
+  const bodyInset=layout.orientation==="landscape"?8:9;paper.style.setProperty("--body-left",bodyInset+"%");paper.style.setProperty("--body-right",bodyInset+"%");
+  const headingInset=compact?6:7;paper.style.setProperty("--heading-left",headingInset+"%");paper.style.setProperty("--heading-right",headingInset+"%");
+  [title,subtitle].forEach(el=>{if(!el)return;el.style.left=headingInset+"%";el.style.right=headingInset+"%";el.style.width="auto";el.style.transform="none";el.style.textAlign=hp.align;});
   const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
-  if(title){
-    title.style.setProperty("font-size",(largeHeading?Math.round(titleSize*1.28):titleSize)+"px","important");
-  }
-  if(subtitle){
-    subtitle.style.setProperty("font-size",Math.max(10,Math.round(titleSize*.38))+"px","important");
-  }
-
-  if(showHeading){
-    let titleTop;
-    if(columns>1) titleTop=compact?8:7;
-    else if(hp.y<30) titleTop=compact?9:8;
-    else if(hp.y>65) titleTop=compact?66:72;
-    else titleTop=Math.max(34,Math.min(52,hp.y));
-
-    title.style.top=titleTop+"%";
-    subtitle.style.top=`calc(${titleTop}% + ${largeHeading?Math.round(titleSize*1.65):Math.round(titleSize*1.3)}px)`;
-  }
-
+  if(title)title.style.setProperty("font-size",(largeHeading?Math.round(titleSize*1.28):titleSize)+"px","important");
+  if(subtitle)subtitle.style.setProperty("font-size",Math.max(10,Math.round(titleSize*.38))+"px","important");
+  let titleTop=hp.y<30?8:(hp.y<65?42:70);if(compact)titleTop=hp.y<30?8:(hp.y<65?38:64);
+  if(showHeading){title.style.top=titleTop+"%";subtitle.style.top=`calc(${titleTop}% + ${largeHeading?Math.round(titleSize*1.65):Math.round(titleSize*1.3)}px)`;}
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom","heading-columns");
-  if(showHeading){
-    if(columns>1)paper.classList.add("body-clear-top","heading-columns");
-    else if(hp.y<30)paper.classList.add("body-clear-top");
-    else if(hp.y>65)paper.classList.add("body-clear-bottom");
-    else paper.classList.add("body-clear-center");
-  }
-
-  const headingGap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
-  paper.style.setProperty("--heading-clear-top",headingGap+"px");
-  paper.style.setProperty("--heading-clear-bottom",Math.max(headingGap,headingGap+10)+"px");
-
-  const vertical=layout.writingMode==="vertical";
-  editor.classList.toggle("writing-vertical",vertical);
-  editor.classList.toggle("writing-horizontal",!vertical);
-  editor.classList.toggle("layout-columns",!vertical && columns>1);
-
-  editor.style.writingMode=vertical?"vertical-rl":"horizontal-tb";
-  editor.style.textOrientation=vertical?"mixed":"initial";
-  editor.style.columnCount=vertical?1:columns;
-  editor.style.columnGap=(layout.columnGap??28)+"px";
-
-  editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{
-    el.style.columnSpan="none";
-    el.style.width="100%";
-    el.style.maxWidth="100%";
-    el.style.boxSizing="border-box";
-  });
+  if(showHeading){if(hp.y<30)paper.classList.add("body-clear-top");else if(hp.y<65)paper.classList.add("body-clear-center");else paper.classList.add("body-clear-bottom");}
+  const gap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));paper.style.setProperty("--heading-clear-top",gap+"px");paper.style.setProperty("--heading-clear-center",(gap+18)+"px");paper.style.setProperty("--heading-clear-bottom",(gap+12)+"px");
+  const vertical=layout.writingMode==="vertical";editor.classList.toggle("writing-vertical",vertical);editor.classList.toggle("writing-horizontal",!vertical);editor.classList.toggle("layout-columns",!vertical&&columns>1);
+  editor.style.writingMode=vertical?((layout.verticalFlow||"rtl")==="ltr"?"vertical-lr":"vertical-rl"):"horizontal-tb";editor.style.textOrientation=vertical?"mixed":"initial";editor.style.columnCount=vertical?1:columns;editor.style.columnGap=(layout.columnGap??28)+"px";
+  editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{el.style.columnSpan="none";el.style.width="100%";el.style.maxWidth="100%";el.style.boxSizing="border-box";});
 }
+
 function applyDocumentLayout(){
   const s=current();
   const layout=currentLayout();
@@ -1576,6 +1501,8 @@ document.querySelectorAll(".tab").forEach(tab=>{
 });
 
 
+let layoutReflowTimer=null;
+function scheduleLayoutReflow(){clearTimeout(layoutReflowTimer);layoutReflowTimer=setTimeout(()=>{renderAll();requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);},180);}
 function updateLayoutSetting(key,value,{reflow=true}={}){
   const s=current();
   s.layout={...defaultLayout(),...(s.layout||{})};
@@ -1623,6 +1550,7 @@ $("templateTitleSize").oninput=e=>{
   $("templateTitleSizeOut").textContent=e.target.value+"px";
   persist();
   applyDocumentLayout();
+  scheduleLayoutReflow();
 };
 
 $("templateTitleSize").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
@@ -1634,6 +1562,7 @@ $("templateHeadingGap").oninput=e=>{
   $("templateHeadingGapOut").textContent=e.target.value+"px";
   persist();
   applyDocumentLayout();
+  scheduleLayoutReflow();
 };
 
 $("templateHeadingGap").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
@@ -1648,7 +1577,8 @@ $("templateHeadingPosition").onchange=e=>{
   requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 };
 
-$("writingMode").onchange=e=>updateLayoutSetting("writingMode",e.target.value);
+$("writingMode").onchange=e=>{updateLayoutSetting("writingMode",e.target.value);syncControls();};
+$("verticalFlow").onchange=e=>updateLayoutSetting("verticalFlow",e.target.value);
 $("columnCount").onchange=e=>updateLayoutSetting("columns",Number(e.target.value));
 $("columnGap").oninput=e=>{
   updateLayoutSetting("columnGap",Number(e.target.value),{reflow:false});
