@@ -2003,30 +2003,42 @@ button{cursor:pointer}
 
 
 
-/* ===== V67 safe body positioning / title width ===== */
+
+
+/* ===== V68 safe body inset positioning ===== */
 .paper.layout-enabled{
-  --body-frame-left:4.6%;
-  --body-frame-right:6.6%;
+  --body-frame-left:3.2%;
+  --body-frame-right:5.2%;
 }
 
-/* Editor frame is wider and starts farther left. */
+/* The body itself uses the safe inset. No transforms, so text cannot be clipped. */
 .paper.layout-enabled .editor.writing-horizontal,
 .paper.layout-enabled .editor.layout-columns{
   padding-left:var(--body-frame-left) !important;
   padding-right:var(--body-frame-right) !important;
+  overflow:hidden !important;
 }
 
-/* Only body text moves. Transform preserves its intrinsic width and avoids clipping text. */
-.paper.layout-enabled .editor > .body-shiftable-block{
-  position:relative;
-  transform:translateX(var(--body-block-shift,0%)) !important;
+/* Body blocks stay in normal document flow. */
+.paper.layout-enabled .editor > p,
+.paper.layout-enabled .editor > blockquote,
+.paper.layout-enabled .editor > ul,
+.paper.layout-enabled .editor > ol,
+.paper.layout-enabled .editor > h1,
+.paper.layout-enabled .editor > h2,
+.paper.layout-enabled .editor > h3,
+.paper.layout-enabled .editor > h4,
+.paper.layout-enabled .editor > h5,
+.paper.layout-enabled .editor > h6,
+.paper.layout-enabled .editor > div:not(.paragraph-divider):not(.paragraph-divider-spacer){
+  position:static !important;
+  transform:none !important;
   left:auto !important;
   width:auto !important;
-  max-width:100% !important;
-  box-sizing:border-box;
+  max-width:none !important;
 }
 
-/* Divider remains fully independent from body movement. */
+/* Divider remains independent and centered/aligned by its own control. */
 .paper.layout-enabled .editor > .paragraph-divider,
 .paper.layout-enabled .editor > .paragraph-divider-spacer{
   transform:none !important;
@@ -2035,9 +2047,9 @@ button{cursor:pointer}
   max-width:100% !important;
 }
 
-/* Title width is controlled per template. */
+/* Title width continues to work normally. */
 .paper.layout-enabled .title-input,
 .paper.layout-enabled .subtitle-input{
-  max-width:96% !important;
   box-sizing:border-box !important;
+  max-width:96% !important;
 }

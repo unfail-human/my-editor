@@ -31,14 +31,14 @@ const DISTRIBUTION_LAYOUT={
   headingX:18,
   headingY:10,
   templateSettings:{
-    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86},
-    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-3,titleWidth:86}
+    a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
+    letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
+    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
+    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
+    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86},
+    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,titleWidth:86}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -186,7 +186,7 @@ function templateDefaults(template){
     titleSize:34,
     headingGap:150,
     headingPosition:"top-left",
-    bodyShiftX:-3,titleWidth:86
+    bodyShiftX:-2,titleWidth:86
   });
 }
 
@@ -310,35 +310,6 @@ function setHeadingPosition(el,pos){
 }
 
 
-function applyBodyTextShift(editor,layout=currentLayout()){
-  if(!editor)return;
-  const ts=ensureTemplateSettings(layout);
-  const shift=Math.max(-8,Math.min(6,Number(ts.bodyShiftX??-3)));
-
-  const movableSelector=[
-    ":scope > p",
-    ":scope > blockquote",
-    ":scope > ul",
-    ":scope > ol",
-    ":scope > h1",
-    ":scope > h2",
-    ":scope > h3",
-    ":scope > h4",
-    ":scope > h5",
-    ":scope > h6",
-    ":scope > div:not(.paragraph-divider):not(.paragraph-divider-spacer)"
-  ].join(",");
-
-  editor.querySelectorAll(movableSelector).forEach(el=>{
-    el.classList.add("body-shiftable-block");
-    el.style.setProperty("--body-block-shift",shift+"%");
-  });
-
-  editor.querySelectorAll(".paragraph-divider,.paragraph-divider-spacer").forEach(el=>{
-    el.classList.remove("body-shiftable-block");
-    el.style.removeProperty("--body-block-shift");
-  });
-}
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
 
@@ -372,16 +343,21 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   // Body position is independent of text alignment.
   // Negative values move the whole body box left, positive values move it right.
-  const shiftX=Math.max(-8,Math.min(6,Number(ts.bodyShiftX??-3)));
-  // The editor frame stays fixed so divider ornaments do not move.
-  // Only ordinary body blocks are shifted horizontally.
-  const baseBodyLeft=ruleLeft+.6;
-  const baseBodyRight=ruleRight+.7;
+  const shiftX=Math.max(-4,Math.min(5,Number(ts.bodyShiftX??-2)));
+  // Safe body positioning:
+  // adjust the body content box itself but clamp it inside paper margins.
+  const baseBodyLeft=ruleLeft+.35;
+  const baseBodyRight=ruleRight+.55;
+
+  // Negative shift means move left. We never allow the body to cross 2.2%.
+  const safeLeft=Math.max(2.2,baseBodyLeft+shiftX);
+  // Keep the right edge safely inside the paper too.
+  const safeRight=Math.max(3.2,baseBodyRight-shiftX);
+
   paper.style.setProperty("--rule-left",ruleLeft+"%");
   paper.style.setProperty("--rule-right",ruleRight+"%");
-  paper.style.setProperty("--body-frame-left",baseBodyLeft+"%");
-  paper.style.setProperty("--body-frame-right",baseBodyRight+"%");
-  paper.style.setProperty("--body-text-shift",shiftX+"%");
+  paper.style.setProperty("--body-frame-left",safeLeft+"%");
+  paper.style.setProperty("--body-frame-right",safeRight+"%");
 
   [title,subtitle].forEach(el=>{
     if(!el)return;
@@ -527,7 +503,6 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     el.style.boxSizing="border-box";
   });
 
-  applyBodyTextShift(editor,layout);
 }
 function applyDocumentLayout(){
   const s=current();
@@ -1692,7 +1667,7 @@ function syncControls(){
   $("templateTitleSizeOut").textContent=ts.titleSize+"px";
   $("templateHeadingGap").value=ts.headingGap;
   $("templateHeadingGapOut").textContent=ts.headingGap+"px";
-  const bodyShiftX=ts.bodyShiftX??-3;
+  const bodyShiftX=ts.bodyShiftX??-2;
   $("templateBodyShiftX").value=bodyShiftX;
   $("templateBodyShiftXOut").textContent=bodyShiftX===0?"기본":(bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(bodyShiftX)+"%";
   const titleWidth=ts.titleWidth??86;
