@@ -803,3 +803,56 @@ button{cursor:pointer}
 .auto-color-active input[type="color"]{
   opacity:.62;
 }
+
+
+/* ===== V26 auto-color UI / two-step save ===== */
+.check-field{
+  border:0 !important;
+  background:transparent !important;
+  padding:2px 0 !important;
+  margin:7px 0 10px !important;
+}
+
+.save-menu-step{
+  min-width:170px;
+}
+.save-step{
+  display:none;
+}
+.save-step.active{
+  display:grid;
+}
+.save-menu-title{
+  font-size:9px;
+  font-weight:800;
+  color:#5e5952;
+  letter-spacing:.06em;
+  padding:6px 9px 5px;
+}
+.save-menu-sub{
+  font-size:8px;
+  color:#99938b;
+  padding:0 9px 5px;
+}
+.save-menu-head{
+  display:flex;
+  align-items:flex-start;
+  gap:4px;
+}
+.save-back-btn{
+  width:26px;
+  flex:0 0 26px;
+  padding:5px 2px !important;
+  text-align:center !important;
+  font-size:15px !important;
+}
+
+
+/* ===== V27 highlight / indent fixes ===== */
+.editor .highlight-cleared{
+  background:transparent !important;
+  display:inline !important;
+  padding:0 !important;
+  margin:0 !important;
+  line-height:inherit !important;
+}

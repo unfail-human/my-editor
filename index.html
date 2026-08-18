@@ -47,11 +47,25 @@
         <button id="previewBtn" class="top-btn">미리보기</button>
         <div class="save-wrap">
           <button id="saveMenuBtn" class="top-btn primary">저장 ▾</button>
-          <div id="saveMenu" class="save-menu">
-            <button data-export="png">PNG</button>
-            <button data-export="jpg">JPG</button>
-            <button data-export="pdf">PDF</button>
-            <button data-export="txt">TXT</button>
+          <div id="saveMenu" class="save-menu save-menu-step">
+            <div class="save-step active" data-save-step="scope">
+              <div class="save-menu-title">저장 범위</div>
+              <button data-save-scope="current">현재 페이지 저장</button>
+              <button data-save-scope="all">전체 페이지 저장</button>
+            </div>
+            <div class="save-step" data-save-step="format">
+              <div class="save-menu-head">
+                <button id="saveBackBtn" class="save-back-btn">‹</button>
+                <div>
+                  <div class="save-menu-title">파일 형식</div>
+                  <div id="saveScopeLabel" class="save-menu-sub">현재 페이지</div>
+                </div>
+              </div>
+              <button data-export="png">PNG</button>
+              <button data-export="jpg">JPG</button>
+              <button data-export="pdf">PDF</button>
+              <button data-export="txt">TXT</button>
+            </div>
           </div>
         </div>
       </div>
@@ -267,7 +281,7 @@
                 <input id="effectColor" type="color" value="#8f887f">
               </label>
               <label class="check-field">
-                <input id="effectAutoColor" type="checkbox">
+                <input id="effectAutoColor" type="checkbox" checked>
                 <span>자동 색상 적용</span>
               </label>
             </section>
@@ -384,10 +398,7 @@
           </select>
         </label>
         <label class="field"><span>테두리색</span><input id="paperBorderColor" type="color" value="#d8d2c8"></label>
-        <label class="check-field">
-          <input id="paperBorderAutoColor" type="checkbox">
-          <span>자동 색상 적용</span>
-        </label>
+        
         <label class="range-field">
           <span>테두리 굵기</span>
           <input id="paperBorderWidth" type="range" min="0" max="8" value="1">
@@ -403,6 +414,10 @@
           <input id="paperBorderOpacity" type="range" min="0" max="100" value="100">
           <output id="paperBorderOpacityOut">100%</output>
         </label>
+        <label class="check-field">
+                  <input id="paperBorderAutoColor" type="checkbox" checked>
+                  <span>자동 색상 적용</span>
+                </label>
         <label class="field">
           <span>내부 프레임</span>
           <select id="paperFrameStyle">
@@ -413,10 +428,7 @@
           </select>
         </label>
         <label class="field"><span>프레임 색</span><input id="paperFrameColor" type="color" value="#bdb5a8"></label>
-        <label class="check-field">
-          <input id="paperFrameAutoColor" type="checkbox">
-          <span>자동 색상 적용</span>
-        </label>
+        
         <label class="range-field">
           <span>그림자</span>
           <input id="paperShadow" type="range" min="0" max="40" value="16">
@@ -428,6 +440,10 @@
           <input id="paperFrameOpacity" type="range" min="0" max="100" value="100">
           <output id="paperFrameOpacityOut">100%</output>
         </label>
+        <label class="check-field">
+                  <input id="paperFrameAutoColor" type="checkbox" checked>
+                  <span>자동 색상 적용</span>
+                </label>
 </section>
     </div>
   </aside>
