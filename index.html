@@ -22,6 +22,11 @@
     <div id="slotList" class="slot-list"></div>
 
     <div class="sidebar-bottom">
+      <div class="sidebar-tool-label">내 설정</div>
+      <button id="exportSettingsBtn" class="subtle-btn">설정 내보내기</button>
+      <label class="subtle-btn file-label" for="importSettingsInput">설정 불러오기</label>
+      <input id="importSettingsInput" type="file" accept=".json,application/json" hidden>
+      <div class="sidebar-tool-divider"></div>
       <button id="exportBackupBtn" class="subtle-btn">전체 백업</button>
       <label class="subtle-btn file-label" for="importBackupInput">백업 불러오기</label>
       <input id="importBackupInput" type="file" accept=".json,application/json" hidden>
@@ -293,7 +298,7 @@
 
     <div class="panel-body" data-panel="symbol">
       <section class="panel-section">
-        <h3>문단 구분 장식</h3>
+        <h3>무단 구분</h3>
         <div class="symbol-scroll">
           <div class="symbol-grid star-flower-grid">
             <button data-symbol="🜸" title="🜸">🜸</button>
@@ -383,7 +388,7 @@
           <input id="dividerMargin" type="range" min="4" max="48" value="18">
           <output id="dividerMarginOut">18px</output>
         </label>
-        <p class="hint">별·꽃 기호는 SNS Keyboard의 ‘별과 꽃’ 범주를 참고해 문단 구분에 어울리는 문자들을 골라 구성했습니다.</p>
+        <p class="hint">별·꽃 기호는 SNS Keyboard의 ‘별과 꽃’ 범주를 참고해 구분에 어울리는 문자들을 골라 구성했습니다.</p>
       </section>
 
       <section class="panel-section">

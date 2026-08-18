@@ -896,3 +896,25 @@ button{cursor:pointer}
   box-decoration-break:clone;
   -webkit-box-decoration-break:clone;
 }
+
+
+/* ===== V31 distribution defaults / settings pack / divider spacing ===== */
+.sidebar-tool-label{
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.12em;
+  color:#9a948c;
+  margin:2px 2px 5px;
+}
+.sidebar-tool-divider{
+  height:1px;
+  background:var(--line);
+  margin:6px 0;
+}
+.paragraph-divider-spacer{
+  display:block;
+  min-height:1em;
+  height:1em;
+  line-height:1em;
+  pointer-events:none;
+}
