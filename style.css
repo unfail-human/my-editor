@@ -489,3 +489,68 @@ button{cursor:pointer}
   padding-top:28px!important;
   padding-bottom:42px!important;
 }
+
+
+/* ===== V16 font application / batch apply / spacing / symbol palette / document styling ===== */
+.batch-apply-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+}
+.batch-apply{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:11px 8px;
+  background:white;
+  color:#625d56;
+  font-size:11px;
+  font-weight:750;
+}
+.batch-apply.primary{
+  background:#2d2b28;
+  color:white;
+  border-color:#2d2b28;
+}
+.bg-options{display:none}
+.bg-options.active{display:block}
+
+.symbol-scroll{
+  max-height:230px;
+  overflow-y:auto;
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+  scrollbar-width:thin;
+}
+.star-flower-grid{
+  grid-template-columns:repeat(6,1fr);
+}
+.star-flower-grid button{
+  height:36px;
+  font-size:18px;
+}
+.paper::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  z-index:0;
+  inset:var(--paper-frame-inset,0px);
+  border:var(--paper-frame-border,0 solid transparent);
+  border-radius:inherit;
+}
+.paper.frame-simple{--paper-frame-border:1px solid var(--paper-frame-color,#bdb5a8)}
+.paper.frame-double{--paper-frame-border:3px double var(--paper-frame-color,#bdb5a8)}
+.paper.frame-corner::after{
+  border:1px solid transparent;
+  background:
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) left top/28px 1px no-repeat,
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) left top/1px 28px no-repeat,
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) right top/28px 1px no-repeat,
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) right top/1px 28px no-repeat,
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) left bottom/28px 1px no-repeat,
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) left bottom/1px 28px no-repeat,
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) right bottom/28px 1px no-repeat,
+    linear-gradient(var(--paper-frame-color,#bdb5a8),var(--paper-frame-color,#bdb5a8)) right bottom/1px 28px no-repeat;
+}

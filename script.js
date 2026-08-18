@@ -6,8 +6,8 @@ let savedRange=null, slotMenuTarget=null, activeBgUrl=null, editScope="all";
 let state=loadState();
 let currentSlotId=state.currentSlotId;
 
-function defaultTypography(){return{fontFamily:"Pretendard",fontSizePt:12,textColor:"#3f3d3b",letterSpacing:0,lineHeight:1.45,paragraphSpacing:0,breakSpacing:0,widthScale:100}}
-function defaultBackground(){return{mode:"solid",solid:"#ffffff",grad1:"#ffffff",grad2:"#e8e2da",angle:135,imageId:null,size:"cover",brightness:100,effect:"none",effectOpacity:18,decorations:[],dividerSize:16,dividerMargin:18}}
+function defaultTypography(){return{fontFamily:"Pretendard",fontSizePt:12,textColor:"#3f3d3b",highlightColor:"#fff2a8",letterSpacing:0,lineHeight:1.25,paragraphSpacing:0,breakSpacing:0,widthScale:100}}
+function defaultBackground(){return{mode:"solid",solid:"#ffffff",grad1:"#ffffff",grad2:"#e8e2da",angle:135,imageId:null,size:"cover",brightness:100,effect:"none",effectOpacity:18,decorations:[],dividerSize:16,dividerMargin:18,paperBorderStyle:"none",paperBorderColor:"#d8d2c8",paperBorderWidth:1,paperInnerInset:0,paperFrameStyle:"none",paperFrameColor:"#bdb5a8",paperShadow:16}}
 function newPage(n){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),title:"",subtitle:"",content:"",pagePrefix:"—",pageNumber:String(n).padStart(2,"0"),pageSuffix:"—",pageTypography:{},pageDecorations:[]}}
 function newSlot(i){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:`새 문서 ${String(i).padStart(2,"0")}`,pages:[newPage(1)],currentPageIndex:0,typography:defaultTypography(),background:defaultBackground(),updatedAt:null}}
 
@@ -218,23 +218,49 @@ document.querySelectorAll("[data-cmd]").forEach(b=>{
 
 $("fontFamily").onchange=e=>{
   if(editScope==="selection"){
-    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
-    exec("fontName",e.target.value);
-  }else{
-    currentPage().pageTypography.fontFamily=e.target.value;
-    applyTypography();persist();
+    if(!hasSelection()) return;
+    applySelectionStyle("fontFamily",e.target.value);
   }
 };
 $("fontSize").onchange=e=>{
   const pt=Math.max(6,Math.min(54,Number(e.target.value)||12));
   if(editScope==="selection"){
-    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
+    if(!hasSelection()) return;
     applySelectionStyle("fontSize",pt+"pt");
-  }else{
-    currentPage().pageTypography.fontSizePt=pt;applyTypography();persist();syncControls();
   }
 };
 
+
+
+function collectTypographyControls(){
+  return {
+    fontFamily:$("fontFamily").value||"Pretendard",
+    fontSizePt:Math.max(6,Math.min(54,Number($("fontSize").value)||12)),
+    textColor:$("textColor").value||"#3f3d3b",
+    highlightColor:$("highlightColor").value||"#fff2a8",
+    letterSpacing:Number($("letterSpacing").value)||0,
+    lineHeight:(Number($("lineHeight").value)||125)/100,
+    paragraphSpacing:Number($("paragraphSpacing").value)||0,
+    breakSpacing:Number($("breakSpacing").value)||0,
+    widthScale:Number($("widthScale").value)||100
+  };
+}
+$("batchApplyBtn").onclick=()=>{
+  const values=collectTypographyControls();
+  if(editScope==="all"){
+    currentPage().pageTypography={...(currentPage().pageTypography||{}),...values};
+    applyTypography();persist();syncControls();
+  }else{
+    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 드래그해 선택해주세요.");
+    applySelectionStyle("fontFamily",values.fontFamily);
+    applySelectionStyle("fontSize",values.fontSizePt+"pt");
+    applySelectionStyle("color",values.textColor);
+    applySelectionStyle("letterSpacing",(values.letterSpacing/100)+"em");
+    applySelectionStyle("lineHeight",String(values.lineHeight));
+    applySelectionStyle("marginBottom",values.paragraphSpacing+"px");
+    if(values.widthScale!==100) applySelectionWidthScale(values.widthScale);
+  }
+};
 
 $("applyTextColorBtn").onclick=()=>{
   const color=$("textColor").value;
@@ -285,8 +311,9 @@ function resetPageFormatting(){
     fontFamily:"Pretendard",
     fontSizePt:12,
     textColor:"#3f3d3b",
+    highlightColor:"#fff2a8",
     letterSpacing:0,
-    lineHeight:1.45,
+    lineHeight:1.25,
     paragraphSpacing:0,
     breakSpacing:0,
     widthScale:100,
@@ -371,6 +398,9 @@ function applyTypography(){
   const t=effectiveTypography();
   const ed=$("editor");
   ed.style.setProperty("--editor-font",`"${t.fontFamily}"`);
+  ed.style.fontFamily=t.fontFamily;
+  $("titleInput").style.fontFamily=t.fontFamily;
+  $("subtitleInput").style.fontFamily=t.fontFamily;
   ed.style.setProperty("--editor-size",(t.fontSizePt??12)+"pt");
   ed.style.setProperty("--editor-letter",(t.letterSpacing/100)+"em");
   ed.style.setProperty("--editor-line",String(t.lineHeight??1.45));
@@ -392,17 +422,23 @@ function bindRange(id,key,format){
     const value=format(Number(e.target.value));
     if(editScope==="selection"){
       if(!hasSelection()) return;
-      const map={letterSpacing:"letterSpacing",lineHeight:"lineHeight",paragraphSpacing:"marginBottom",widthScale:"transform"};
       if(key==="letterSpacing") applySelectionStyle("letterSpacing",(value/100)+"em");
       else if(key==="lineHeight") applySelectionStyle("lineHeight",String(value));
       else if(key==="paragraphSpacing") applySelectionStyle("marginBottom",value+"px");
       else if(key==="breakSpacing") applySelectionStyle("paddingBottom",value+"px");
       else if(key==="widthScale") applySelectionWidthScale(value);
-    }else{
-      currentPage().pageTypography[key]=value;applyTypography();persist();syncControls();
     }
+    updateSpacingOutputsOnly();
   }
 }
+function updateSpacingOutputsOnly(){
+  $("letterSpacingOut").textContent=(Number($("letterSpacing").value)/100)+"em";
+  $("lineHeightOut").textContent=(Number($("lineHeight").value)/100).toFixed(2).replace(/0+$/,"").replace(/\.$/,"");
+  $("paragraphSpacingOut").textContent=$("paragraphSpacing").value+"px";
+  $("breakSpacingOut").textContent=$("breakSpacing").value+"px";
+  $("widthScaleOut").textContent=$("widthScale").value+"%";
+}
+
 bindRange("letterSpacing","letterSpacing",v=>v);
 bindRange("lineHeight","lineHeight",v=>v/100);
 bindRange("paragraphSpacing","paragraphSpacing",v=>v);
@@ -413,6 +449,7 @@ function syncControls(){
   const t=effectiveTypography(),b=current().background;
   $("fontFamily").value=t.fontFamily;$("fontSize").value=t.fontSizePt??12;
   $("textColor").value=t.textColor||"#3f3d3b";
+  $("highlightColor").value=t.highlightColor||"#fff2a8";
   $("letterSpacing").value=t.letterSpacing;$("letterSpacingOut").textContent=(t.letterSpacing/100)+"em";
   $("lineHeight").value=Math.round(t.lineHeight*100);$("lineHeightOut").textContent=String(t.lineHeight);
   $("paragraphSpacing").value=t.paragraphSpacing;$("paragraphSpacingOut").textContent=t.paragraphSpacing+"px";
@@ -421,6 +458,13 @@ function syncControls(){
   $("solidColor").value=b.solid;$("grad1").value=b.grad1;$("grad2").value=b.grad2;$("gradAngle").value=b.angle;$("gradAngleOut").textContent=b.angle+"°";
   $("bgSize").value=b.size;$("bgBrightness").value=b.brightness;$("bgBrightnessOut").textContent=b.brightness+"%";
   $("effectOpacity").value=b.effectOpacity;$("effectOpacityOut").textContent=b.effectOpacity+"%";
+  $("paperBorderStyle").value=b.paperBorderStyle||"none";
+  $("paperBorderColor").value=b.paperBorderColor||"#d8d2c8";
+  $("paperBorderWidth").value=b.paperBorderWidth??1;$("paperBorderWidthOut").textContent=(b.paperBorderWidth??1)+"px";
+  $("paperInnerInset").value=b.paperInnerInset??0;$("paperInnerInsetOut").textContent=(b.paperInnerInset??0)+"px";
+  $("paperFrameStyle").value=b.paperFrameStyle||"none";
+  $("paperFrameColor").value=b.paperFrameColor||"#bdb5a8";
+  $("paperShadow").value=b.paperShadow??16;$("paperShadowOut").textContent=String(b.paperShadow??16);
   $("dividerSize").value=b.dividerSize??16;$("dividerSizeOut").textContent=(b.dividerSize??16)+"px";
   $("dividerMargin").value=b.dividerMargin??18;$("dividerMarginOut").textContent=(b.dividerMargin??18)+"px";
   document.querySelectorAll(".bg-mode").forEach(x=>x.classList.toggle("active",x.dataset.mode===b.mode));
@@ -433,7 +477,13 @@ document.querySelectorAll('[data-panel="text"] button, [data-panel="text"] selec
   });
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));document.querySelectorAll(".panel-body").forEach(p=>p.classList.toggle("active",p.dataset.panel===t.dataset.tab))});
 
-document.querySelectorAll(".bg-mode").forEach(b=>b.onclick=()=>{current().background.mode=b.dataset.mode;persist();syncControls();applyBackground()});
+function syncBackgroundOptionPanels(){
+  const mode=current().background.mode||"solid";
+  document.querySelectorAll(".bg-options").forEach(p=>p.classList.toggle("active",p.dataset.bgOptions===mode));
+}
+document.querySelectorAll(".bg-mode").forEach(b=>b.onclick=()=>{
+  current().background.mode=b.dataset.mode;persist();syncControls();syncBackgroundOptionPanels();applyBackground();
+});
 ["solidColor","grad1","grad2"].forEach(id=>$(id).oninput=e=>{const map={solidColor:"solid",grad1:"grad1",grad2:"grad2"};current().background[map[id]]=e.target.value;persist();applyBackground()});
 $("gradAngle").oninput=e=>{current().background.angle=Number(e.target.value);persist();syncControls();applyBackground()};
 $("bgSize").onchange=e=>{current().background.size=e.target.value;persist();applyBackground()};
@@ -441,6 +491,15 @@ $("bgBrightness").oninput=e=>{current().background.brightness=Number(e.target.va
 
 document.querySelectorAll(".effect-btn").forEach(b=>b.onclick=()=>{current().background.effect=b.dataset.effect;persist();syncControls();applyBackground()});
 $("effectOpacity").oninput=e=>{current().background.effectOpacity=Number(e.target.value);persist();syncControls();applyBackground()};
+
+$("paperBorderStyle").onchange=e=>{current().background.paperBorderStyle=e.target.value;persist();applyBackground()};
+$("paperBorderColor").oninput=e=>{current().background.paperBorderColor=e.target.value;persist();applyBackground()};
+$("paperBorderWidth").oninput=e=>{current().background.paperBorderWidth=Number(e.target.value);$("paperBorderWidthOut").textContent=e.target.value+"px";persist();applyBackground()};
+$("paperInnerInset").oninput=e=>{current().background.paperInnerInset=Number(e.target.value);$("paperInnerInsetOut").textContent=e.target.value+"px";persist();applyBackground()};
+$("paperFrameStyle").onchange=e=>{current().background.paperFrameStyle=e.target.value;persist();applyBackground()};
+$("paperFrameColor").oninput=e=>{current().background.paperFrameColor=e.target.value;persist();applyBackground()};
+$("paperShadow").oninput=e=>{current().background.paperShadow=Number(e.target.value);$("paperShadowOut").textContent=e.target.value;persist();applyBackground()};
+
 $("dividerSize").oninput=e=>{current().background.dividerSize=Number(e.target.value);persist();syncControls()};
 $("dividerMargin").oninput=e=>{current().background.dividerMargin=Number(e.target.value);persist();syncControls()};
 
@@ -451,13 +510,21 @@ function applyBackground(){
   if(b.mode==="gradient")p.style.backgroundImage=`linear-gradient(${b.angle}deg,${b.grad1},${b.grad2})`;
   if(b.mode==="image"&&b.imageId)getAsset(BG_STORE,b.imageId).then(a=>{if(a?.file){activeBgUrl=URL.createObjectURL(a.file);p.style.backgroundImage=`url("${activeBgUrl}")`}});
   fx.className="paper-effect"+(b.effect!=="none"?" effect-"+b.effect:"");fx.style.opacity=String(b.effectOpacity/100);
+
+  p.style.borderStyle=b.paperBorderStyle||"none";
+  p.style.borderColor=b.paperBorderColor||"#d8d2c8";
+  p.style.borderWidth=(b.paperBorderStyle==="none"?0:(b.paperBorderWidth??1))+"px";
+  p.style.boxShadow=`0 ${Math.max(4,(b.paperShadow??16)/2)}px ${Math.max(0,(b.paperShadow??16)*2.8)}px rgba(40,35,30,${Math.min(.28,(b.paperShadow??16)/120)})`;
+  p.style.setProperty("--paper-frame-inset",(b.paperInnerInset??0)+"px");
+  p.style.setProperty("--paper-frame-color",b.paperFrameColor||"#bdb5a8");
+  p.classList.remove("frame-simple","frame-double","frame-corner");
+  if(b.paperFrameStyle&&b.paperFrameStyle!=="none")p.classList.add("frame-"+b.paperFrameStyle);
+
   renderDecorations();
 }
 function renderDecorations(){
   const layer=$("symbolLayer");layer.innerHTML="";
-  for(const d of current().background.decorations||[]){
-    const el=document.createElement("div");el.className="paper-deco deco-"+d;layer.appendChild(el)
-  }
+
   for(const d of currentPage().pageDecorations||[]){
     if(d.type==="text"){
       const el=document.createElement("div");
@@ -549,45 +616,6 @@ $("insertCustomDividerBtn").onclick=()=>{
 };
 document.querySelectorAll("[data-deco]").forEach(b=>b.onclick=()=>{const d=b.dataset.deco,arr=current().background.decorations||(current().background.decorations=[]);if(!arr.includes(d))arr.push(d);persist();renderDecorations()});
 
-let pendingDecoImageDataUrl=null;
-$("customDecoSize").oninput=e=>{
-  $("customDecoSizeOut").textContent=Number(e.target.value)+"px";
-};
-
-function addCustomTextDecoration(position){
-  const text=$("customDecoText").value.trim();
-  if(!text)return;
-  const arr=currentPage().pageDecorations||(currentPage().pageDecorations=[]);
-  arr.push({type:"text",position,text,size:Number($("customDecoSize").value)||80});
-  persist();renderDecorations();
-}
-
-$("addCustomTopTextBtn").onclick=()=>addCustomTextDecoration("top");
-$("addCustomBottomTextBtn").onclick=()=>addCustomTextDecoration("bottom");
-
-$("customDecoImageInput").onchange=e=>{
-  const f=e.target.files?.[0];
-  if(!f)return;
-  const reader=new FileReader();
-  reader.onload=()=>{pendingDecoImageDataUrl=reader.result;};
-  reader.readAsDataURL(f);
-};
-
-function addCustomImageDecoration(position){
-  if(!pendingDecoImageDataUrl)return alert("먼저 장식 이미지 파일을 추가해주세요.");
-  const arr=currentPage().pageDecorations||(currentPage().pageDecorations=[]);
-  arr.push({type:"image",position,dataUrl:pendingDecoImageDataUrl,size:Number($("customDecoSize").value)||80});
-  persist();renderDecorations();
-}
-$("placeImageTopBtn").onclick=()=>addCustomImageDecoration("top");
-$("placeImageBottomBtn").onclick=()=>addCustomImageDecoration("bottom");
-
-$("clearDecoBtn").onclick=()=>{
-  current().background.decorations=[];
-  currentPage().pageDecorations=[];
-  persist();renderDecorations()
-};
-
 function openDB(){return new Promise((res,rej)=>{const q=indexedDB.open(DB,DBV);q.onupgradeneeded=()=>{const db=q.result;if(!db.objectStoreNames.contains(FONT_STORE))db.createObjectStore(FONT_STORE,{keyPath:"id"});if(!db.objectStoreNames.contains(BG_STORE))db.createObjectStore(BG_STORE,{keyPath:"id"})};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
 async function putAsset(store,a){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,"readwrite");tx.objectStore(store).put(a);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
 async function getAsset(store,id){if(!id)return null;const db=await openDB();return new Promise((res,rej)=>{const q=db.transaction(store).objectStore(store).get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error)})}
@@ -595,13 +623,28 @@ async function getAll(store){const db=await openDB();return new Promise((res,rej
 async function delAsset(store,id){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,"readwrite");tx.objectStore(store).delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
 
 $("bgUpload").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;const id="bg-"+Date.now();await putAsset(BG_STORE,{id,file:f,name:f.name});current().background.imageId=id;current().background.mode="image";persist();syncControls();applyBackground();e.target.value=""};
-$("fontUpload").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;const id="font-"+Date.now(),name=f.name.replace(/\.[^.]+$/,"");await putAsset(FONT_STORE,{id,file:f,name});await loadFonts();e.target.value=""};
+$("fontUpload").onchange=async e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  const id="font-"+Date.now(),name=f.name.replace(/\.[^.]+$/,"");
+  await putAsset(FONT_STORE,{id,file:f,name});
+  await loadFonts();
+  const family="user-"+id;
+  $("fontFamily").value=family;
+  if(editScope==="all"){
+    currentPage().pageTypography.fontFamily=family;
+    applyTypography();persist();
+  }
+  e.target.value="";
+};
 async function loadFonts(){
   const list=await getAll(FONT_STORE),sel=$("fontFamily");sel.querySelectorAll("[data-custom]").forEach(o=>o.remove());$("customFontList").innerHTML="";
   for(const a of list){const family="user-"+a.id,url=URL.createObjectURL(a.file);try{const face=new FontFace(family,`url(${url})`);await face.load();document.fonts.add(face)}catch{}
     const o=document.createElement("option");o.value=family;o.textContent=a.name;o.dataset.custom="1";sel.appendChild(o);
     const row=document.createElement("div");row.className="asset-row";row.innerHTML=`<span>${esc(a.name)}</span><button>삭제</button>`;row.querySelector("button").onclick=async()=>{await delAsset(FONT_STORE,a.id);await loadFonts()};$("customFontList").appendChild(row)
   }
+  const family=effectiveTypography().fontFamily;
+  if([...sel.options].some(o=>o.value===family)) sel.value=family;
+  applyTypography();
 }
 
 function clonePaper(){
@@ -757,4 +800,4 @@ function download(blob,name){const u=URL.createObjectURL(blob),a=document.create
 $("exportBackupBtn").onclick=()=>download(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),"my-editor-backup.json");
 $("importBackupInput").onchange=e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.slots?.length)throw 0;state=d;currentSlotId=d.currentSlotId||d.slots[0].id;persist();renderAll()}catch{alert("올바른 백업 파일이 아닙니다.")}};r.readAsText(f)};
 
-loadFonts();renderAll();
+loadFonts();renderAll();syncBackgroundOptionPanels();
