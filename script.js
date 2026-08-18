@@ -6,7 +6,7 @@ let savedRange=null, slotMenuTarget=null, activeBgUrl=null, editScope="all";
 let state=loadState();
 let currentSlotId=state.currentSlotId;
 
-function defaultTypography(){return{fontFamily:"Pretendard",fontSize:16,letterSpacing:0,lineHeight:1.78,paragraphSpacing:0,widthScale:100}}
+function defaultTypography(){return{fontFamily:"Pretendard",fontSizePt:12,textColor:"#3f3d3b",letterSpacing:0,lineHeight:1.45,paragraphSpacing:0,breakSpacing:0,widthScale:100}}
 function defaultBackground(){return{mode:"solid",solid:"#ffffff",grad1:"#ffffff",grad2:"#e8e2da",angle:135,imageId:null,size:"cover",brightness:100,effect:"none",effectOpacity:18,decorations:[],dividerSize:16,dividerMargin:18}}
 function newPage(n){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),title:"",subtitle:"",content:"",pagePrefix:"—",pageNumber:String(n).padStart(2,"0"),pageSuffix:"—",pageTypography:{},pageDecorations:[]}}
 function newSlot(i){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:`새 문서 ${String(i).padStart(2,"0")}`,pages:[newPage(1)],currentPageIndex:0,typography:defaultTypography(),background:defaultBackground(),updatedAt:null}}
@@ -116,23 +116,50 @@ $("nextPageBtn").onclick=()=>goPage(1);
 $("deletePageBtn").onclick=deletePage;
 
 function openSlotMenu(e,id){
-  e.stopPropagation();slotMenuTarget=id;
-  const m=$("slotMenu");m.hidden=false;
-  const r=e.currentTarget.getBoundingClientRect();m.style.left=`${Math.min(r.right+4,innerWidth-150)}px`;m.style.top=`${Math.min(r.top,innerHeight-190)}px`;
+  e.stopPropagation();
+  slotMenuTarget=id;
+  saveCurrent(false);
+  const idx=state.slots.findIndex(s=>s.id===id);
+  const s=state.slots[idx];
+  $("slotModalBadge").textContent=String(idx+1).padStart(2,"0");
+  $("slotModalLabel").textContent=`SLOT ${String(idx+1).padStart(2,"0")}`;
+  $("slotModalPages").textContent=`${s.pages?.length||1} PAGE${(s.pages?.length||1)>1?"S":""}`;
+  $("slotModalName").value=s.name||"";
+  $("slotEditorModal").hidden=false;
 }
-document.addEventListener("click",()=>{$("slotMenu").hidden=true});
-$("slotMenu").onclick=e=>e.stopPropagation();
-$("slotMenu").querySelectorAll("[data-slot-action]").forEach(b=>b.onclick=()=>{
-  const action=b.dataset.slotAction, id=slotMenuTarget; $("slotMenu").hidden=true;
-  const idx=state.slots.findIndex(s=>s.id===id); if(idx<0)return;
-  if(id!==currentSlotId){saveCurrent(false);currentSlotId=id;state.currentSlotId=id;renderAll()}
-  if(action==="save"){saveCurrent();return}
-  if(action==="rename"){const n=prompt("슬롯 이름",current().name);if(n!==null){current().name=n.trim()||"이름 없음";persist();renderSlots()}return}
-  if(action==="duplicate"){saveCurrent(false);const c=structuredClone(current());c.id=crypto.randomUUID?.()||String(Date.now()+Math.random());c.name+=" 복사본";state.slots.splice(idx+1,0,c);currentSlotId=c.id;state.currentSlotId=c.id;persist();renderAll();return}
-  if(action==="up"&&idx>0){[state.slots[idx-1],state.slots[idx]]=[state.slots[idx],state.slots[idx-1]];persist();renderSlots();return}
-  if(action==="down"&&idx<state.slots.length-1){[state.slots[idx+1],state.slots[idx]]=[state.slots[idx],state.slots[idx+1]];persist();renderSlots();return}
-  if(action==="delete"){if(state.slots.length===1)return alert("슬롯은 하나 이상 필요합니다.");if(confirm("현재 슬롯을 삭제할까요?")){state.slots.splice(idx,1);currentSlotId=state.slots[Math.max(0,idx-1)].id;state.currentSlotId=currentSlotId;persist();renderAll()}}
-});
+function closeSlotEditor(){$("slotEditorModal").hidden=true}
+document.querySelectorAll("[data-close-slot-editor]").forEach(x=>x.onclick=closeSlotEditor);
+$("slotModalSaveBtn").onclick=()=>{
+  if(slotMenuTarget!==currentSlotId){currentSlotId=slotMenuTarget;state.currentSlotId=slotMenuTarget;renderAll()}
+  saveCurrent();closeSlotEditor();
+};
+$("slotModalRenameBtn").onclick=()=>{
+  const s=state.slots.find(x=>x.id===slotMenuTarget);if(!s)return;
+  s.name=$("slotModalName").value.trim()||"이름 없음";persist();renderSlots();closeSlotEditor();
+};
+$("slotModalDuplicateBtn").onclick=()=>{
+  const idx=state.slots.findIndex(s=>s.id===slotMenuTarget);if(idx<0)return;
+  const c=structuredClone(state.slots[idx]);
+  c.id=crypto.randomUUID?.()||String(Date.now()+Math.random());c.name+=" 복사본";
+  c.pages=c.pages.map((p,i)=>({...p,id:crypto.randomUUID?.()||String(Date.now()+Math.random())}));
+  state.slots.splice(idx+1,0,c);currentSlotId=c.id;state.currentSlotId=c.id;persist();closeSlotEditor();renderAll();
+};
+$("slotModalUpBtn").onclick=()=>{
+  const idx=state.slots.findIndex(s=>s.id===slotMenuTarget);if(idx>0){[state.slots[idx-1],state.slots[idx]]=[state.slots[idx],state.slots[idx-1]];persist();renderSlots()}closeSlotEditor();
+};
+$("slotModalDownBtn").onclick=()=>{
+  const idx=state.slots.findIndex(s=>s.id===slotMenuTarget);if(idx>=0&&idx<state.slots.length-1){[state.slots[idx+1],state.slots[idx]]=[state.slots[idx],state.slots[idx+1]];persist();renderSlots()}closeSlotEditor();
+};
+$("slotModalDeleteBtn").onclick=()=>{
+  const idx=state.slots.findIndex(s=>s.id===slotMenuTarget);if(idx<0)return;
+  if(state.slots.length<=1)return alert("슬롯은 하나 이상 필요합니다.");
+  if(confirm("이 슬롯을 삭제할까요?")){
+    state.slots.splice(idx,1);
+    if(currentSlotId===slotMenuTarget){currentSlotId=state.slots[Math.max(0,idx-1)].id;state.currentSlotId=currentSlotId}
+    persist();closeSlotEditor();renderAll();
+  }
+};
+
 
 $("addSlotBtn").onclick=()=>{saveCurrent(false);const s=newSlot(state.slots.length+1);state.slots.push(s);currentSlotId=s.id;state.currentSlotId=s.id;persist();renderAll()};
 
@@ -149,6 +176,12 @@ document.querySelectorAll(".scope-btn").forEach(btn=>{
   };
 });
 
+document.addEventListener("selectionchange",()=>{
+  const sel=getSelection();
+  if(!sel?.rangeCount)return;
+  const r=sel.getRangeAt(0);
+  if($("editor").contains(r.commonAncestorContainer)) savedRange=r.cloneRange();
+});
 function rememberSelection(){const sel=getSelection();if(sel?.rangeCount){const r=sel.getRangeAt(0);if($("editor").contains(r.commonAncestorContainer))savedRange=r.cloneRange()}}
 $("editor").addEventListener("mouseup",rememberSelection);$("editor").addEventListener("keyup",rememberSelection);$("editor").addEventListener("input",rememberSelection);
 function restoreSelection(){if(!savedRange)return false;const s=getSelection();s.removeAllRanges();s.addRange(savedRange);return true}
@@ -158,20 +191,27 @@ document.querySelectorAll("[data-cmd]").forEach(b=>{
   b.onclick=()=>{
     const cmd=b.dataset.cmd;
     if(editScope==="selection"){
-      if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
+      if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 드래그해 선택해주세요.");
       exec(cmd);
+      return;
+    }
+    const p=currentPage().pageTypography;
+    if(cmd==="bold"){p.fontWeight=(effectiveTypography().fontWeight==="700"?"400":"700");applyTypography();persist();}
+    else if(cmd==="italic"){p.fontStyle=(effectiveTypography().fontStyle==="italic"?"normal":"italic");applyTypography();persist();}
+    else if(cmd==="underline"){
+      const d=effectiveTypography().textDecoration||"";
+      p.textDecoration=d.includes("underline")?d.replace("underline","").trim():(d+" underline").trim();applyTypography();persist();
+    }
+    else if(cmd==="strikeThrough"){
+      const d=effectiveTypography().textDecoration||"";
+      p.textDecoration=d.includes("line-through")?d.replace("line-through","").trim():(d+" line-through").trim();applyTypography();persist();
+    }
+    else if(["justifyLeft","justifyCenter","justifyRight","justifyFull"].includes(cmd)){
+      const map={justifyLeft:"left",justifyCenter:"center",justifyRight:"right",justifyFull:"justify"};
+      p.textAlign=map[cmd];applyTypography();persist();
     }else{
-      const ed=$("editor");
-      if(cmd==="bold") toggleWholeStyle("fontWeight","700","400");
-      else if(cmd==="italic") toggleWholeStyle("fontStyle","italic","normal");
-      else if(cmd==="underline") toggleWholeTextDecoration("underline");
-      else if(cmd==="strikeThrough") toggleWholeTextDecoration("line-through");
-      else if(["justifyLeft","justifyCenter","justifyRight","justifyFull"].includes(cmd)){
-        const map={justifyLeft:"left",justifyCenter:"center",justifyRight:"right",justifyFull:"justify"};
-        ed.style.textAlign=map[cmd]; currentPage().pageTypography.textAlign=map[cmd]; persist();
-      } else if(cmd==="insertUnorderedList"||cmd==="insertOrderedList"||cmd==="indent"||cmd==="outdent"||cmd==="undo"||cmd==="redo"){
-        exec(cmd);
-      }
+      // Structural commands still act on current caret/selection
+      exec(cmd);
     }
   }
 });
@@ -186,37 +226,108 @@ $("fontFamily").onchange=e=>{
   }
 };
 $("fontSize").onchange=e=>{
-  const px=Math.max(8,Math.min(72,Number(e.target.value)||16));
+  const pt=Math.max(6,Math.min(54,Number(e.target.value)||12));
   if(editScope==="selection"){
     if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
-    applySelectionStyle("fontSize",px+"px");
+    applySelectionStyle("fontSize",pt+"pt");
   }else{
-    currentPage().pageTypography.fontSize=px;applyTypography();persist();
+    currentPage().pageTypography.fontSizePt=pt;applyTypography();persist();syncControls();
   }
 };
-$("textColor").oninput=e=>{
+
+
+$("applyTextColorBtn").onclick=()=>{
+  const color=$("textColor").value;
   if(editScope==="selection"){
-    if(!hasSelection()) return;
-    exec("foreColor",e.target.value);
+    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
+    exec("foreColor",color);
   }else{
-    $("editor").style.color=e.target.value;
-    currentPage().pageTypography.textColor=e.target.value;
-    persist();
+    currentPage().pageTypography.textColor=color;
+    applyTypography();persist();syncControls();
   }
 };
-$("highlightColor").oninput=e=>{
+
+$("applyHighlightBtn").onclick=()=>{
+  const color=$("highlightColor").value;
   if(editScope==="selection"){
-    if(!hasSelection()) return;
-    exec("hiliteColor",e.target.value);
+    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
+    exec("hiliteColor",color);
   }else{
-    current().typography.highlightColor=e.target.value;
-    $("editor").style.backgroundColor=e.target.value==="transparent"?"transparent":"";
-    persist();
+    applyStyleToAllText("backgroundColor",color);
   }
 };
+
+$("removeHighlightBtn").onclick=()=>{
+  if(editScope==="selection"){
+    if(!hasSelection()) return alert("일부 수정 모드에서는 먼저 글자를 선택해주세요.");
+    exec("hiliteColor","transparent");
+  }else{
+    clearStyleFromAllText("backgroundColor");
+  }
+};
+
+function resetPageFormatting(){
+  const ed=$("editor");
+  // unwrap FONT/SPAN wrappers while keeping semantic paragraphs/headings/lists/dividers
+  [...ed.querySelectorAll("font,span")].forEach(el=>{
+    const parent=el.parentNode;
+    while(el.firstChild) parent.insertBefore(el.firstChild,el);
+    el.remove();
+  });
+  [...ed.querySelectorAll("*")].forEach(el=>{
+    if(el.classList?.contains("paragraph-divider")) return;
+    el.removeAttribute("style");
+    el.removeAttribute("color");
+    el.removeAttribute("face");
+    el.removeAttribute("size");
+  });
+  currentPage().pageTypography={
+    fontFamily:"Pretendard",
+    fontSizePt:12,
+    textColor:"#3f3d3b",
+    letterSpacing:0,
+    lineHeight:1.45,
+    paragraphSpacing:0,
+    breakSpacing:0,
+    widthScale:100,
+    fontWeight:"400",
+    fontStyle:"normal",
+    textDecoration:"",
+    textAlign:"left"
+  };
+  applyTypography();syncControls();scheduleSave();
+}
+$("resetFormatBtn").onclick=resetPageFormatting;
+
+function textNodesUnder(root){
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);return nodes;
+}
+function applyStyleToAllText(prop,value){
+  const nodes=textNodesUnder($("editor"));
+  nodes.forEach(node=>{
+    if(node.parentElement?.classList.contains("paragraph-divider")) return;
+    const span=document.createElement("span");
+    span.style[prop]=value;
+    node.parentNode.insertBefore(span,node);span.appendChild(node);
+  });
+  scheduleSave();
+}
+function clearStyleFromAllText(prop){
+  $("editor").querySelectorAll("[style]").forEach(el=>{
+    if(el.classList.contains("paragraph-divider")) return;
+    el.style[prop]="";
+    if(!el.getAttribute("style")?.trim()) el.removeAttribute("style");
+  });
+  scheduleSave();
+}
+
 $("blockStyle").onchange=e=>exec("formatBlock",e.target.value);
 $("linkBtn").onclick=()=>{const u=prompt("링크 주소","https://");if(u)exec("createLink",u)};
-$("clearFormatBtn").onclick=()=>exec("removeFormat");
+$("clearFormatBtn").onclick=()=>{
+  if(!hasSelection()) return alert("서식을 지울 글자를 먼저 선택해주세요. 페이지 전체를 초기화하려면 ‘기본 서식으로’를 사용해주세요.");
+  exec("removeFormat");
+};
 
 
 function toggleWholeStyle(prop,onValue,offValue){
@@ -252,24 +363,29 @@ function applySelectionWidthScale(percent){
   rememberSelection();scheduleSave();return true;
 }
 function effectiveTypography(){
-  return {...current().typography,...(currentPage().pageTypography||{})};
+  const merged={...defaultTypography(),...current().typography,...(currentPage().pageTypography||{})};
+  if(merged.fontSizePt==null && merged.fontSize!=null) merged.fontSizePt=Math.round((Number(merged.fontSize)*0.75)*2)/2;
+  return merged;
 }
 function applyTypography(){
   const t=effectiveTypography();
-  $("editor").style.setProperty("--editor-font",`"${t.fontFamily}"`);
-  $("editor").style.setProperty("--editor-size",t.fontSize+"px");
-  $("editor").style.setProperty("--editor-letter",(t.letterSpacing/100)+"em");
-  $("editor").style.setProperty("--editor-line",String(t.lineHeight));
-  $("editor").style.setProperty("--editor-para",t.paragraphSpacing+"px");
-  $("editor").style.color=t.textColor||"";
-  $("editor").style.fontWeight=t.fontWeight||"";
-  $("editor").style.fontStyle=t.fontStyle||"";
-  $("editor").style.textDecoration=t.textDecoration||"";
-  $("editor").style.textAlign=t.textAlign||"";
+  const ed=$("editor");
+  ed.style.setProperty("--editor-font",`"${t.fontFamily}"`);
+  ed.style.setProperty("--editor-size",(t.fontSizePt??12)+"pt");
+  ed.style.setProperty("--editor-letter",(t.letterSpacing/100)+"em");
+  ed.style.setProperty("--editor-line",String(t.lineHeight??1.45));
+  ed.style.setProperty("--editor-para",(t.paragraphSpacing??0)+"px");
+  ed.style.setProperty("--editor-break",(t.breakSpacing??0)+"px");
+  ed.style.setProperty("--editor-color",t.textColor||"#3f3d3b");
+  ed.style.color=t.textColor||"#3f3d3b";
+  ed.style.fontWeight=t.fontWeight||"400";
+  ed.style.fontStyle=t.fontStyle||"normal";
+  ed.style.textDecoration=t.textDecoration||"";
+  ed.style.textAlign=t.textAlign||"left";
   const scale=(t.widthScale??100)/100;
-  $("editor").style.transform=`scaleX(${scale})`;
-  $("editor").style.transformOrigin="left top";
-  $("editor").style.width=`${100/scale}%`;
+  ed.style.transform=`scaleX(${scale})`;
+  ed.style.transformOrigin="left top";
+  ed.style.width=`${100/scale}%`;
 }
 function bindRange(id,key,format){
   $(id).oninput=e=>{
@@ -280,6 +396,7 @@ function bindRange(id,key,format){
       if(key==="letterSpacing") applySelectionStyle("letterSpacing",(value/100)+"em");
       else if(key==="lineHeight") applySelectionStyle("lineHeight",String(value));
       else if(key==="paragraphSpacing") applySelectionStyle("marginBottom",value+"px");
+      else if(key==="breakSpacing") applySelectionStyle("paddingBottom",value+"px");
       else if(key==="widthScale") applySelectionWidthScale(value);
     }else{
       currentPage().pageTypography[key]=value;applyTypography();persist();syncControls();
@@ -289,14 +406,17 @@ function bindRange(id,key,format){
 bindRange("letterSpacing","letterSpacing",v=>v);
 bindRange("lineHeight","lineHeight",v=>v/100);
 bindRange("paragraphSpacing","paragraphSpacing",v=>v);
+bindRange("breakSpacing","breakSpacing",v=>v);
 bindRange("widthScale","widthScale",v=>v);
 
 function syncControls(){
   const t=effectiveTypography(),b=current().background;
-  $("fontFamily").value=t.fontFamily;$("fontSize").value=t.fontSize;
+  $("fontFamily").value=t.fontFamily;$("fontSize").value=t.fontSizePt??12;
+  $("textColor").value=t.textColor||"#3f3d3b";
   $("letterSpacing").value=t.letterSpacing;$("letterSpacingOut").textContent=(t.letterSpacing/100)+"em";
   $("lineHeight").value=Math.round(t.lineHeight*100);$("lineHeightOut").textContent=String(t.lineHeight);
   $("paragraphSpacing").value=t.paragraphSpacing;$("paragraphSpacingOut").textContent=t.paragraphSpacing+"px";
+  $("breakSpacing").value=t.breakSpacing??0;$("breakSpacingOut").textContent=(t.breakSpacing??0)+"px";
   $("widthScale").value=t.widthScale??100;$("widthScaleOut").textContent=(t.widthScale??100)+"%";
   $("solidColor").value=b.solid;$("grad1").value=b.grad1;$("grad2").value=b.grad2;$("gradAngle").value=b.angle;$("gradAngleOut").textContent=b.angle+"°";
   $("bgSize").value=b.size;$("bgBrightness").value=b.brightness;$("bgBrightnessOut").textContent=b.brightness+"%";
@@ -307,6 +427,10 @@ function syncControls(){
   document.querySelectorAll(".effect-btn").forEach(x=>x.classList.toggle("active",x.dataset.effect===b.effect));
 }
 
+document.querySelectorAll('[data-panel="text"] button, [data-panel="text"] select, [data-panel="text"] input')
+  .forEach(el=>{
+    el.addEventListener("pointerdown",()=>rememberSelection(),true);
+  });
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));document.querySelectorAll(".panel-body").forEach(p=>p.classList.toggle("active",p.dataset.panel===t.dataset.tab))});
 
 document.querySelectorAll(".bg-mode").forEach(b=>b.onclick=()=>{current().background.mode=b.dataset.mode;persist();syncControls();applyBackground()});
@@ -486,9 +610,89 @@ function clonePaper(){
   const ed=clone.querySelector(".editor");ed.removeAttribute("contenteditable");ed.style.overflow="visible";ed.style.height="auto";
   return clone
 }
-$("previewBtn").onclick=()=>{const h=$("previewHost");h.innerHTML="";h.appendChild(clonePaper());$("previewModal").hidden=false};
+let previewPageIndex=0;
+
+function applyTypographyToClone(clone,page){
+  const t={...defaultTypography(),...current().typography,...(page.pageTypography||{})};
+  const ed=clone.querySelector(".editor");
+  ed.style.fontFamily=`"${t.fontFamily}"`;
+  ed.style.fontSize=(t.fontSizePt??12)+"pt";
+  ed.style.letterSpacing=(t.letterSpacing/100)+"em";
+  ed.style.lineHeight=String(t.lineHeight??1.45);
+  ed.style.color=t.textColor||"#3f3d3b";
+  ed.style.fontWeight=t.fontWeight||"400";
+  ed.style.fontStyle=t.fontStyle||"normal";
+  ed.style.textDecoration=t.textDecoration||"";
+  ed.style.textAlign=t.textAlign||"left";
+  ed.style.setProperty("--editor-para",(t.paragraphSpacing??0)+"px");
+  ed.style.setProperty("--editor-break",(t.breakSpacing??0)+"px");
+  const scale=(t.widthScale??100)/100;
+  ed.style.transform=`scaleX(${scale})`;
+  ed.style.transformOrigin="left top";
+  ed.style.width=`${100/scale}%`;
+}
+
+function clonePageForIndex(pageIndex,{forExport=false}={}){
+  const s=current(),page=s.pages[pageIndex];
+  const clone=$("paper").cloneNode(true);
+  clone.removeAttribute("id");
+  clone.querySelectorAll("[id]").forEach(x=>x.removeAttribute("id"));
+
+  const titleInput=clone.querySelector(".title-input");
+  const subtitleInput=clone.querySelector(".subtitle-input");
+  if(forExport){
+    const title=document.createElement("div");title.className="export-title";title.textContent=page.title||"";
+    const subtitle=document.createElement("div");subtitle.className="export-subtitle";subtitle.textContent=page.subtitle||"";
+    titleInput.replaceWith(title);subtitleInput.replaceWith(subtitle);
+  }else{
+    titleInput.value=page.title||"";titleInput.setAttribute("value",page.title||"");titleInput.readOnly=true;
+    subtitleInput.value=page.subtitle||"";subtitleInput.setAttribute("value",page.subtitle||"");subtitleInput.readOnly=true;
+  }
+
+  const ed=clone.querySelector(".editor");
+  ed.innerHTML=page.content||"";
+  ed.removeAttribute("contenteditable");
+  ed.style.overflow="visible";
+  ed.style.height="auto";
+  ed.style.minHeight="820px";
+  applyTypographyToClone(clone,page);
+
+  const footer=clone.querySelector(".paper-footer span");
+  if(footer) footer.textContent=[page.pagePrefix,page.pageNumber,page.pageSuffix].filter(Boolean).join(" ");
+
+  // page-specific custom decorations
+  const layer=clone.querySelector(".symbol-layer");
+  if(layer){
+    layer.querySelectorAll(".custom-page-deco").forEach(x=>x.remove());
+    for(const d of page.pageDecorations||[]){
+      if(d.type==="text"){
+        const el=document.createElement("div");el.className=`custom-page-deco text ${d.position}`;
+        el.textContent=d.text;el.style.fontSize=(d.size||24)+"px";layer.appendChild(el);
+      }else if(d.type==="image"&&d.dataUrl){
+        const el=document.createElement("div");el.className=`custom-page-deco image ${d.position}`;
+        el.style.width=(d.size||80)+"px";const img=document.createElement("img");img.src=d.dataUrl;el.appendChild(img);layer.appendChild(el);
+      }
+    }
+  }
+  return clone;
+}
+function renderPreviewPage(){
+  const s=current();
+  previewPageIndex=Math.max(0,Math.min(s.pages.length-1,previewPageIndex));
+  const h=$("previewHost");h.innerHTML="";h.appendChild(clonePageForIndex(previewPageIndex));
+  $("previewPageLabel").textContent=`${String(previewPageIndex+1).padStart(2,"0")} / ${String(s.pages.length).padStart(2,"0")}`;
+  $("previewPrevBtn").disabled=previewPageIndex===0;
+  $("previewNextBtn").disabled=previewPageIndex===s.pages.length-1;
+}
+$("previewBtn").onclick=()=>{saveCurrent(false);previewPageIndex=current().currentPageIndex||0;renderPreviewPage();$("previewModal").hidden=false};
+$("previewPrevBtn").onclick=()=>{previewPageIndex--;renderPreviewPage()};
+$("previewNextBtn").onclick=()=>{previewPageIndex++;renderPreviewPage()};
+
 document.querySelectorAll("[data-close-preview]").forEach(x=>x.onclick=()=>{$("previewModal").hidden=true});
-$("previewCopyBtn").onclick=()=>copyCurrent();
+$("previewCopyBtn").onclick=async()=>{
+  const p=current().pages[previewPageIndex];
+  await navigator.clipboard.writeText([p.title,p.subtitle,strip(p.content)].filter(Boolean).join("\n\n"));
+};
 $("previewSaveBtn").onclick=()=>{$("previewModal").hidden=true;$("saveMenu").classList.add("open")};
 
 async function copyCurrent(){saveCurrent(false);const s=current(),txt=[s.title,s.subtitle,strip(s.content)].filter(Boolean).join("\n\n");await navigator.clipboard.writeText(txt);$("saveStatus").textContent="복사됨 ✓";setTimeout(()=>$("saveStatus").textContent="자동 저장됨",800)}
@@ -497,16 +701,56 @@ $("saveMenuBtn").onclick=e=>{e.stopPropagation();$("saveMenu").classList.toggle(
 document.addEventListener("click",()=>{$("saveMenu").classList.remove("open")});$("saveMenu").onclick=e=>e.stopPropagation();
 document.querySelectorAll("[data-export]").forEach(b=>b.onclick=()=>exportFile(b.dataset.export));
 
-async function capture(){
-  saveCurrent(false);await document.fonts.ready;const host=document.createElement("div");host.className="export-host";const clone=clonePaper();host.appendChild(clone);document.body.appendChild(host);
-  try{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const ed=clone.querySelector(".editor");ed.style.minHeight=Math.max(820,ed.scrollHeight+40)+"px";clone.style.minHeight=Math.max(1123,clone.scrollHeight+10)+"px";await new Promise(r=>requestAnimationFrame(r));return await html2canvas(clone,{scale:2,useCORS:true,backgroundColor:null,width:clone.scrollWidth,height:clone.scrollHeight,windowWidth:1200,windowHeight:Math.max(1400,clone.scrollHeight+100)})}finally{host.remove()}
+async function capture(pageIndex=current().currentPageIndex||0){
+  saveCurrent(false);
+  await document.fonts.ready;
+  const host=document.createElement("div");host.className="export-host";
+  const clone=clonePageForIndex(pageIndex,{forExport:true});
+  host.appendChild(clone);document.body.appendChild(host);
+  try{
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const ed=clone.querySelector(".editor");
+    ed.style.minHeight=Math.max(820,ed.scrollHeight+60)+"px";
+    ed.style.height=ed.style.minHeight;
+    clone.style.height="auto";
+    clone.style.minHeight=Math.max(1123,clone.scrollHeight+24)+"px";
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const width=Math.ceil(clone.scrollWidth);
+    const height=Math.ceil(clone.scrollHeight+12);
+    return await html2canvas(clone,{
+      scale:2,useCORS:true,backgroundColor:null,
+      width,height,windowWidth:1200,windowHeight:Math.max(1500,height+120),
+      scrollX:0,scrollY:0
+    });
+  }finally{host.remove()}
 }
 async function exportFile(type){
-  $("saveMenu").classList.remove("open");if(type==="txt"){const s=current();download(new Blob(["\ufeff"+[s.title,s.subtitle,strip(s.content)].filter(Boolean).join("\n\n")],{type:"text/plain"}),safe(s.title||s.name)+".txt");return}
-  const c=await capture(),name=safe(current().title||current().name);
-  if(type==="png")return c.toBlob(b=>download(b,name+".png"),"image/png");
-  if(type==="jpg")return c.toBlob(b=>download(b,name+".jpg"),"image/jpeg",.94);
-  if(type==="pdf"){const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:"mm",format:"a4"}),img=c.toDataURL("image/jpeg",.95),h=c.height*210/c.width;pdf.addImage(img,"JPEG",0,0,210,h);pdf.save(name+".pdf")}
+  $("saveMenu").classList.remove("open");
+  const s=current(),p=currentPage(),name=safe(p.title||s.name);
+
+  if(type==="txt"){
+    download(new Blob(["\ufeff"+[p.title,p.subtitle,strip(p.content)].filter(Boolean).join("\n\n")],{type:"text/plain"}),name+".txt");
+    return;
+  }
+  if(type==="png"||type==="jpg"){
+    const c=await capture(s.currentPageIndex||0);
+    return c.toBlob(b=>download(b,name+"."+type),type==="png"?"image/png":"image/jpeg",.96);
+  }
+  if(type==="pdf"){
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"});
+    for(let i=0;i<s.pages.length;i++){
+      const c=await capture(i);
+      const img=c.toDataURL("image/jpeg",.96);
+      if(i>0) pdf.addPage("a4","portrait");
+      const ratio=c.height/c.width;
+      let w=210,h=210*ratio;
+      if(h>297){h=297;w=297/ratio}
+      const x=(210-w)/2,y=(297-h)/2;
+      pdf.addImage(img,"JPEG",x,y,w,h,undefined,"FAST");
+    }
+    pdf.save(safe(s.name)+".pdf");
+  }
 }
 function download(blob,name){const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 

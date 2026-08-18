@@ -360,3 +360,132 @@ button{cursor:pointer}
   width:100%;
   height:auto;
 }
+
+
+/* ===== V15 editing reliability / slot modal / preview / export fixes ===== */
+.visually-hidden-status{
+  display:none !important;
+}
+
+/* Default text is intentionally compact: Pretendard 12pt */
+.editor{
+  font-size:var(--editor-size,12pt);
+  color:var(--editor-color,#3f3d3b);
+}
+.editor br{
+  display:block;
+  content:"";
+  margin-bottom:var(--editor-break,0px);
+}
+
+.scope-btn{
+  font-size:12px;
+  padding:12px 9px;
+}
+.edit-scope-section .hint{
+  font-size:10px;
+  line-height:1.6;
+}
+
+.slot-dialog{
+  position:absolute;
+  width:min(440px,calc(100vw - 36px));
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:16px;
+  overflow:hidden;
+  background:#faf9f6;
+  box-shadow:0 25px 80px rgba(0,0,0,.24);
+}
+.slot-modal-head{
+  height:70px;
+}
+.slot-dialog-body{
+  padding:20px;
+}
+.slot-modal-preview{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:linear-gradient(180deg,#fff,#f7f4ef);
+  margin-bottom:16px;
+}
+.slot-modal-badge{
+  width:48px;height:48px;border-radius:13px;
+  display:grid;place-items:center;
+  background:#2d2b28;color:white;
+  font-weight:800;font-size:13px;
+}
+.slot-modal-label{font-size:11px;font-weight:800;letter-spacing:.1em}
+.slot-modal-pages{font-size:10px;color:#99938b;margin-top:4px}
+.modal-field{display:grid;gap:7px;margin:12px 0}
+.modal-field span{font-size:10px;color:#7c776f}
+.modal-field input{
+  width:100%;border:1px solid var(--line);border-radius:8px;
+  background:white;padding:11px 12px;font-size:12px;outline:none
+}
+.slot-modal-actions-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px
+}
+.slot-modal-actions-grid button{
+  border:1px solid var(--line);border-radius:8px;background:white;
+  padding:11px 8px;font-size:11px;color:#615c55
+}
+.slot-modal-actions-grid button:hover{background:#efede8}
+.slot-modal-actions-grid .danger{color:#a05656}
+
+.preview-page-label{
+  min-width:54px;
+  text-align:center;
+  font-size:10px;
+  color:#77726b;
+}
+.modal-stage{
+  place-items:start center;
+}
+.modal-stage #previewHost{
+  width:min(794px,100%);
+}
+.modal-stage #previewHost .paper{
+  width:100%!important;
+  min-width:0!important;
+}
+.preview-actions{
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+/* Export title/subtitle are divs, not inputs, to avoid html2canvas clipping */
+.export-title{
+  width:100%;
+  font-family:inherit;
+  font-size:32px;
+  line-height:1.25;
+  font-weight:800;
+  color:inherit;
+  margin:0 0 7px;
+  min-height:40px;
+  overflow:visible;
+}
+.export-subtitle{
+  width:100%;
+  font-family:inherit;
+  font-size:14px;
+  line-height:1.5;
+  color:#77726b;
+  padding:0 0 16px;
+  border-bottom:1px solid rgba(120,110,100,.16);
+  min-height:24px;
+  overflow:visible;
+}
+.export-host .paper{
+  padding-top:78px!important;
+}
+.export-host .editor{
+  padding-top:28px!important;
+  padding-bottom:42px!important;
+}
