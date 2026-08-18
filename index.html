@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="47">
+  <meta name="my-editor-version" content="48">
   <title>My Writing Editor</title>
 
   <!-- Link preview / Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="MY EDITOR">
   <meta property="og:title" content="MY EDITOR">
-  <meta property="og:description" content="Writing Space">
   <meta property="og:url" content="https://unfail-human.github.io/my-editor/">
-  <meta property="og:image" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
-  <meta property="og:image:url" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
-  <meta property="og:image:secure_url" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
-  <meta property="og:image:type" content="image/jpeg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image" content="https://unfail-human.github.io/my-editor/my-editor-icon.png">
+  <meta property="og:image:secure_url" content="https://unfail-human.github.io/my-editor/my-editor-icon.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
   <meta property="og:image:alt" content="MY EDITOR">
-  <link rel="image_src" href="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
-  <meta name="twitter:card" content="summary_large_image">
+  <link rel="image_src" href="https://unfail-human.github.io/my-editor/my-editor-icon.png">
+  <link rel="icon" type="image/png" href="my-editor-icon.png">
+  <link rel="apple-touch-icon" href="my-editor-icon.png">
+  <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="MY EDITOR">
-  <meta name="twitter:description" content="Writing Space">
-  <meta name="twitter:image" content="https://unfail-human.github.io/my-editor/og-image-v47.jpg">
+  <meta name="twitter:image" content="https://unfail-human.github.io/my-editor/my-editor-icon.png">
 
-  <link rel="stylesheet" href="style.css?v=47">
+
+
+  <link rel="stylesheet" href="style.css?v=48">
 </head>
 <body>
 
@@ -547,23 +548,22 @@
 </div>
 
 <div id="previewModal" class="modal" hidden>
-  <div class="modal-backdrop" data-close-preview></div>
-  <div class="modal-dialog">
+  <div class="modal-dialog preview-dialog">
     <header class="modal-head">
       <div>
-        <span class="panel-kicker">PREVIEW</span>
+        <div class="eyebrow">PREVIEW</div>
         <h2>미리보기</h2>
       </div>
-      <div class="modal-actions preview-actions">
+
+      <div class="preview-toolbar">
         <button id="previewPrevBtn" class="top-btn">‹ 이전</button>
         <span id="previewPageLabel" class="preview-page-label">01 / 01</span>
         <button id="previewNextBtn" class="top-btn">다음 ›</button>
-        <span class="preview-zoom-group">
-          <button id="previewZoomOutBtn" class="top-btn" title="축소">−</button>
-          <button id="previewZoomResetBtn" class="top-btn preview-zoom-label">맞춤</button>
-          <button id="previewZoomInBtn" class="top-btn" title="확대">＋</button>
-        </span>
+        <button id="previewZoomOutBtn" class="top-btn">−</button>
+        <button id="previewZoomResetBtn" class="top-btn preview-zoom-label">맞춤</button>
+        <button id="previewZoomInBtn" class="top-btn">＋</button>
         <button id="previewCopyBtn" class="top-btn">복사</button>
+
         <div class="save-wrap preview-save-wrap">
           <button id="previewSaveBtn" class="top-btn primary">저장 ▾</button>
           <div id="previewSaveMenu" class="save-menu save-menu-step">
@@ -587,13 +587,16 @@
             </div>
           </div>
         </div>
+
         <button class="close-btn" data-close-preview>×</button>
       </div>
     </header>
-    <div class="modal-stage"><div id="previewHost"></div></div>
+
+    <div class="modal-stage">
+      <div id="previewHost"></div>
+    </div>
   </div>
 </div>
-
 
 <div id="patchNoticeModal" class="patch-notice-modal" hidden>
   <div class="patch-notice-card" role="dialog" aria-modal="true" aria-labelledby="patchNoticeTitle">
@@ -686,7 +689,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=47"></script>
-<script src="script.js?v=47"></script>
+<script src="notice.js?v=48"></script>
+<script src="script.js?v=48"></script>
 </body>
 </html>

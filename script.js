@@ -1652,33 +1652,47 @@ function renderPreviewPage(){
   $("previewNextBtn").disabled=previewPageIndex===s.pages.length-1;
   requestAnimationFrame(()=>requestAnimationFrame(fitPreviewPage));
 }
+
+function closePreviewSaveMenu(){
+  const menu=$("previewSaveMenu");
+  if(menu)menu.classList.remove("open");
+}
+
 $("previewBtn").onclick=()=>{
   saveCurrent(false);
   previewPageIndex=current().currentPageIndex||0;
   previewZoom=1;
   renderPreviewPage();
+  closePreviewSaveMenu();
   $("previewModal").hidden=false;
 };
-$("previewPrevBtn").onclick=()=>{closePreviewSaveMenu();previewPageIndex--;renderPreviewPage()};
-$("previewNextBtn").onclick=()=>{closePreviewSaveMenu();previewPageIndex++;renderPreviewPage()};
+
+$("previewPrevBtn").onclick=()=>{
+  closePreviewSaveMenu();
+  previewPageIndex--;
+  renderPreviewPage();
+};
+
+$("previewNextBtn").onclick=()=>{
+  closePreviewSaveMenu();
+  previewPageIndex++;
+  renderPreviewPage();
+};
 
 $("previewZoomOutBtn").onclick=()=>{
   previewZoom=Math.max(.6,Math.round((previewZoom-.1)*10)/10);
   applyPreviewZoom();
 };
+
 $("previewZoomInBtn").onclick=()=>{
   previewZoom=Math.min(1.8,Math.round((previewZoom+.1)*10)/10);
   applyPreviewZoom();
 };
+
 $("previewZoomResetBtn").onclick=()=>{
   previewZoom=1;
   applyPreviewZoom();
 };
-
-
-function closePreviewSaveMenu(){
-  $("previewSaveMenu")?.classList.remove("open");
-}
 
 async function copyTextReliable(text){
   try{
@@ -1707,7 +1721,7 @@ async function copyTextReliable(text){
 }
 
 function showPreviewActionToast(message){
-  const dialog=$("previewModal").querySelector(".modal-dialog");
+  const dialog=$("previewModal").querySelector(".preview-dialog");
   if(!dialog)return;
 
   dialog.querySelector(".preview-action-toast")?.remove();
@@ -1716,12 +1730,15 @@ function showPreviewActionToast(message){
   toast.className="preview-action-toast";
   toast.textContent=message;
   dialog.appendChild(toast);
+
   setTimeout(()=>toast.remove(),3200);
 }
 
-document.querySelectorAll("[data-close-preview]").forEach(x=>x.onclick=()=>{
-  closePreviewSaveMenu();
-  $("previewModal").hidden=true;
+document.querySelectorAll("[data-close-preview]").forEach(btn=>{
+  btn.onclick=()=>{
+    closePreviewSaveMenu();
+    $("previewModal").hidden=true;
+  };
 });
 
 $("previewCopyBtn").onclick=async e=>{
@@ -1729,11 +1746,15 @@ $("previewCopyBtn").onclick=async e=>{
   e.stopPropagation();
 
   const p=current().pages[previewPageIndex];
-  const text=[p.title,p.subtitle,strip(p.content),"MY EDITOR · unfail-human.github.io/my-editor/"]
-    .filter(Boolean)
-    .join("\n\n");
+  const text=[
+    p.title,
+    p.subtitle,
+    strip(p.content),
+    "MY EDITOR · unfail-human.github.io/my-editor/"
+  ].filter(Boolean).join("\n\n");
 
   const ok=await copyTextReliable(text);
+
   showPreviewActionToast(
     ok
       ?"현재 페이지의 글 내용이 클립보드에 복사되었습니다. Ctrl+V로 붙여넣어 사용할 수 있어요."
@@ -1756,12 +1777,13 @@ $("previewSaveBtn").onclick=e=>{
   const menu=$("previewSaveMenu");
   const opening=!menu.classList.contains("open");
 
-  menu.classList.toggle("open");
-
   if(opening){
     previewSaveScope="current";
     $("previewSaveScopeLabel").textContent="현재 페이지";
     showPreviewSaveStep("scope");
+    menu.classList.add("open");
+  }else{
+    menu.classList.remove("open");
   }
 };
 
