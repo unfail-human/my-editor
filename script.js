@@ -318,36 +318,38 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   paper.dataset.documentTemplate=layout.template;
   paper.dataset.documentOrientation=layout.orientation;
 
-  const showHeading=!layout.coverTitleFirstPage||pageIndex===0;
+  const showHeading=!layout.coverTitleFirstPage || pageIndex===0;
   const columns=layout.writingMode==="vertical"?1:Number(layout.columns||1);
   const compact=["postcard","card","widecard","minicard","ticket"].includes(layout.template);
 
   paper.classList.toggle("layout-no-heading",!showHeading);
-  paper.classList.remove("heading-large-first");
+  paper.classList.remove("heading-large-first","heading-columns");
   paper.dataset.columnCount=String(columns);
 
   if(title)title.style.display=showHeading?"":"none";
   if(subtitle)subtitle.style.display=showHeading?"":"none";
 
-  const hp=headingPreset(ts.headingPosition||layout.headingPosition||"top-left",layout.headingX,layout.headingY);
+  const hp=headingPreset(
+    ts.headingPosition||layout.headingPosition||"top-left",
+    layout.headingX,
+    layout.headingY
+  );
 
-  // One shared left edge: title, subtitle rule and body all start here.
-  // Subtitle rule is the master alignment guide.
-  // Body starts only a tiny step to the right of the rule's left edge.
-  const contentLeft=layout.orientation==="landscape"?4.5:5;
-  const contentRight=layout.orientation==="landscape"?6:7;
-  const bodyLeft=contentLeft+1.2;
-  paper.style.setProperty("--content-left",contentLeft+"%");
-  paper.style.setProperty("--content-right",contentRight+"%");
+  // Shared geometry. Body sits only slightly inside the subtitle rule.
+  const ruleLeft=layout.orientation==="landscape"?4:4.5;
+  const ruleRight=layout.orientation==="landscape"?6:6.5;
+  const bodyLeft=ruleLeft+.9;
+  const bodyRight=ruleRight+.7;
+
+  paper.style.setProperty("--rule-left",ruleLeft+"%");
+  paper.style.setProperty("--rule-right",ruleRight+"%");
   paper.style.setProperty("--body-left",bodyLeft+"%");
-  paper.style.setProperty("--body-right",contentRight+"%");
-  paper.style.setProperty("--heading-left",contentLeft+"%");
-  paper.style.setProperty("--heading-right",contentRight+"%");
+  paper.style.setProperty("--body-right",bodyRight+"%");
 
   [title,subtitle].forEach(el=>{
     if(!el)return;
-    el.style.left=contentLeft+"%";
-    el.style.right=contentRight+"%";
+    el.style.left=ruleLeft+"%";
+    el.style.right=ruleRight+"%";
     el.style.width="auto";
     el.style.transform="none";
     el.style.textAlign=hp.align;
@@ -355,45 +357,66 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
   if(title)title.style.setProperty("font-size",titleSize+"px","important");
-  if(subtitle)subtitle.style.setProperty("font-size",Math.max(10,Math.round(titleSize*.38))+"px","important");
+  if(subtitle)subtitle.style.setProperty(
+    "font-size",
+    Math.max(10,Math.round(titleSize*.38))+"px",
+    "important"
+  );
 
-  // Position blocks: top is high, middle is genuinely centered, bottom sits decisively low.
-  let titleTop=6;
-  let bodyTopPx=Math.max(76,Number(ts.headingGap||150));
-
-  if(hp.y>=30 && hp.y<65){
-    titleTop=compact?40:43;
-    // Body begins below the middle title/subtitle block, not above it.
-    bodyTopPx=compact?Math.max(180,Number(ts.headingGap||150)+72):Math.max(260,Number(ts.headingGap||150)+112);
-  }else if(hp.y>=65){
-    titleTop=compact?76:81;
-    // Bottom heading stays low; body occupies the upper area and stops before it.
-    bodyTopPx=28;
+  // Explicit vertical zones.
+  // Center is deliberately high enough that body can start below it.
+  let titleTop;
+  if(hp.y<30){
+    titleTop=compact?5:5.5;
+  }else if(hp.y<65){
+    titleTop=compact?31:34;
+  }else{
+    titleTop=compact?76:80;
   }
 
   if(showHeading){
     title.style.top=titleTop+"%";
-    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.3)}px)`;
+    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.32)}px)`;
   }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
-  if(showHeading){
-    if(hp.y<30)paper.classList.add("body-clear-top");
-    else if(hp.y<65)paper.classList.add("body-clear-center");
-    else paper.classList.add("body-clear-bottom");
-  }
 
-  const gap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
-  paper.style.setProperty("--heading-clear-top",gap+"px");
-  paper.style.setProperty("--heading-clear-center",bodyTopPx+"px");
-  paper.style.setProperty("--heading-clear-bottom",(compact?150:205)+"px");
+  const configuredGap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
+
+  if(showHeading){
+    if(hp.y<30){
+      paper.classList.add("body-clear-top");
+      paper.style.setProperty(
+        "--heading-safe-top",
+        Math.max(configuredGap, compact?110:145)+"px"
+      );
+    }else if(hp.y<65){
+      paper.classList.add("body-clear-center");
+
+      // Middle title/subtitle must own the whole upper-middle block.
+      // Body starts after the subtitle rule + a small breathing space.
+      const centerSafe=compact
+        ? Math.max(205,configuredGap+95)
+        : Math.max(300,configuredGap+135);
+
+      paper.style.setProperty("--heading-safe-center",centerSafe+"px");
+    }else{
+      paper.classList.add("body-clear-bottom");
+      paper.style.setProperty(
+        "--heading-safe-bottom",
+        (compact?150:215)+"px"
+      );
+    }
+  }
 
   const vertical=layout.writingMode==="vertical";
   editor.classList.toggle("writing-vertical",vertical);
   editor.classList.toggle("writing-horizontal",!vertical);
   editor.classList.toggle("layout-columns",!vertical&&columns>1);
 
-  editor.style.writingMode=vertical?((layout.verticalFlow||"rtl")==="ltr"?"vertical-lr":"vertical-rl"):"horizontal-tb";
+  editor.style.writingMode=vertical
+    ? ((layout.verticalFlow||"rtl")==="ltr"?"vertical-lr":"vertical-rl")
+    : "horizontal-tb";
   editor.style.textOrientation=vertical?"mixed":"initial";
   editor.style.columnCount=vertical?1:columns;
   editor.style.columnGap=(layout.columnGap??28)+"px";
@@ -1664,7 +1687,10 @@ $("templateHeadingPosition").onchange=e=>{
   layout.headingPosition=e.target.value;
   persist();
   renderAll();
-  requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  requestAnimationFrame(()=>{
+    applyDocumentLayout();
+    requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  });
 };
 
 $("writingMode").onchange=e=>{updateLayoutSetting("writingMode",e.target.value);syncControls();};
