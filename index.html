@@ -55,110 +55,15 @@
           <input id="titleInput" class="title-input" type="text" placeholder="제목을 입력하세요">
           <input id="subtitleInput" class="subtitle-input" type="text" placeholder="소제목을 입력하세요">
 
-          <div class="toolbar" role="toolbar" aria-label="편집 도구">
-            <select id="blockSelect" title="문단 종류">
-              <option value="p">본문</option>
-              <option value="h1">제목 1</option>
-              <option value="h2">제목 2</option>
-              <option value="h3">제목 3</option>
-              <option value="blockquote">인용문</option>
-            </select>
-
-            <select id="fontSelect" title="글꼴">
-              <option value="Pretendard">Pretendard</option>
-              <option value="Noto Sans KR">Noto Sans KR</option>
-              <option value="KoPubWorld Batang">KoPubWorld 바탕</option>
-              <option value="KoPubWorld Dotum">KoPubWorld 돋움</option>
-              <option value="">시스템 기본</option>
-              <option value="Arial">Arial</option>
-              <option value="Georgia">Georgia</option>
-              <option value="Times New Roman">Times New Roman</option>
-              <option value="Courier New">Courier New</option>
-              <option value="serif">명조 계열</option>
-              <option value="sans-serif">고딕 계열</option>
-            </select>
-
-            <select id="fontSizeSelect" title="글자 크기">
-              <option value="">크기</option>
-              <option value="1">10px</option>
-              <option value="2">13px</option>
-              <option value="3">16px</option>
-              <option value="4">18px</option>
-              <option value="5">24px</option>
-              <option value="6">32px</option>
-              <option value="7">48px</option>
-            </select>
-            <select id="letterSpacingSelect" title="자간">
-              <option value="">자간</option>
-              <option value="-0.08em">-0.08em</option>
-              <option value="-0.04em">-0.04em</option>
-              <option value="0em">0</option>
-              <option value="0.02em">0.02em</option>
-              <option value="0.05em">0.05em</option>
-              <option value="0.08em">0.08em</option>
-              <option value="0.12em">0.12em</option>
-              <option value="0.18em">0.18em</option>
-            </select>
-
-            <select id="lineHeightSelect" title="행간">
-              <option value="">행간</option>
-              <option value="1.2">1.2</option>
-              <option value="1.4">1.4</option>
-              <option value="1.6">1.6</option>
-              <option value="1.8">1.8</option>
-              <option value="2">2.0</option>
-              <option value="2.2">2.2</option>
-              <option value="2.5">2.5</option>
-            </select>
-
-            <select id="paragraphSpacingSelect" title="문단 간격">
-              <option value="">문단 간격</option>
-              <option value="0px">0px</option>
-              <option value="4px">4px</option>
-              <option value="8px">8px</option>
-              <option value="12px">12px</option>
-              <option value="16px">16px</option>
-              <option value="24px">24px</option>
-              <option value="32px">32px</option>
-            </select>
-
+          <div class="toolbar compact-toolbar" role="toolbar" aria-label="빠른 편집 도구">
+            <button data-command="undo" title="실행 취소">↶</button>
+            <button data-command="redo" title="다시 실행">↷</button>
             <span class="divider"></span>
-
-            <button data-command="bold" title="굵게"><strong>B</strong></button>
-            <button data-command="italic" title="기울임"><em>I</em></button>
-            <button data-command="underline" title="밑줄"><u>U</u></button>
-            <button data-command="strikeThrough" title="취소선"><s>S</s></button>
-
-            <label class="color-tool" title="글자색">
-              A
-              <input id="textColor" type="color" value="#292826">
-            </label>
-            <label class="color-tool marker" title="형광펜">
-              ▰
-              <input id="highlightColor" type="color" value="#fff0a8">
-            </label>
-
-            <span class="divider"></span>
-
-            <button data-command="justifyLeft" title="왼쪽 정렬">⇤</button>
-            <button data-command="justifyCenter" title="가운데 정렬">≡</button>
-            <button data-command="justifyRight" title="오른쪽 정렬">⇥</button>
-            <button data-command="justifyFull" title="양쪽 정렬">☰</button>
-            <button data-command="outdent" title="내어쓰기">⇠</button>
-            <button data-command="indent" title="들여쓰기">⇢</button>
-
-            <span class="divider"></span>
-
             <button data-command="insertUnorderedList" title="글머리 목록">• 목록</button>
             <button data-command="insertOrderedList" title="번호 목록">1. 목록</button>
             <button id="hrBtn" title="구분선">―</button>
             <button id="linkBtn" title="링크">🔗</button>
             <button id="imageBtn" title="본문 이미지">🖼</button>
-
-            <span class="divider"></span>
-
-            <button data-command="undo" title="실행 취소">↶</button>
-            <button data-command="redo" title="다시 실행">↷</button>
             <button id="clearFormatBtn" title="서식 지우기">Tx</button>
           </div>
 
@@ -177,151 +82,207 @@
       </footer>
     </main>
 
-    <aside class="info-panel" id="infoPanel">
-      <div class="info-title">DOCUMENT</div>
-
-      <div class="info-card">
-        <div class="info-label">슬롯 이름</div>
-        <input id="slotNameInput" class="panel-input" type="text">
-      </div>
-
-      <div class="info-card">
-        <div class="info-label">쪽번호</div>
-        <div class="page-number-grid">
-          <input id="pagePrefixInput" class="panel-input small" type="text" placeholder="앞" maxlength="8">
-          <input id="pageNumberInput" class="panel-input small center" type="text" placeholder="01" maxlength="12">
-          <input id="pageSuffixInput" class="panel-input small" type="text" placeholder="뒤" maxlength="8">
-        </div>
-        <div class="hint">예: — / 01 / — 또는 PAGE / 3 /</div>
-      </div>
-
-      <div class="info-card">
-        <div class="info-label">최근 수정</div>
-        <div id="updatedAt" class="info-value">-</div>
-      </div>
-
-      <div class="info-card">
-        <div class="info-label">문서 정보</div>
-        <div class="info-value" id="docInfo">0자</div>
-      </div>
-
-      <button class="outline-btn" id="renameBtn">슬롯 이름 변경</button>
-      <button class="outline-btn delete" id="deleteSlotBtn">현재 슬롯 삭제</button>
-    </aside>
   </div>
 
   <div class="drawer-backdrop open" id="drawerBackdrop"></div>
   <aside class="settings-drawer open" id="settingsDrawer">
     <div class="drawer-head">
       <div>
-        <div class="drawer-kicker">APPEARANCE</div>
-        <h2>꾸미기</h2>
+        <div class="drawer-kicker">EDITOR PANEL</div>
+        <h2>편집 설정</h2>
       </div>
       <button class="drawer-close" id="closeSettingsBtn">×</button>
     </div>
 
-    <section class="setting-section">
-      <h3>사용자 폰트</h3>
-      <p>TTF, OTF, WOFF, WOFF2 파일을 추가하면 글꼴 메뉴에서 사용할 수 있어요.</p>
-      <label class="upload-btn" for="fontFileInput">＋ 폰트 파일 추가</label>
-      <input id="fontFileInput" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
-      <div id="customFontList" class="asset-list"></div>
-    </section>
+    <div class="settings-tabs" role="tablist">
+      <button class="settings-tab active" data-tab="text">글씨 편집</button>
+      <button class="settings-tab" data-tab="background">문서 배경</button>
+      <button class="settings-tab" data-tab="document">문서 설정</button>
+    </div>
 
-    <section class="setting-section">
-      <h3>문서 배경</h3>
-      <div class="segmented">
-        <button class="bg-mode active" data-mode="solid">단색</button>
-        <button class="bg-mode" data-mode="gradient">그라데이션</button>
-        <button class="bg-mode" data-mode="image">이미지</button>
-      </div>
+    <div class="tab-panel active" data-panel="text">
+      <section class="setting-section first-section">
+        <h3>글꼴 · 크기</h3>
+        <div class="stack-field">
+          <label>글꼴</label>
+          <select id="fontSelect">
+            <option value="Pretendard">Pretendard</option>
+            <option value="Noto Sans KR">Noto Sans KR</option>
+            <option value="KoPubWorld Batang">KoPubWorld 바탕</option>
+            <option value="KoPubWorld Dotum">KoPubWorld 돋움</option>
+            <option value="">시스템 기본</option>
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+          </select>
+        </div>
 
-      <div class="setting-row">
-        <label>단색</label>
-        <input id="solidColorInput" type="color" value="#f5f4f1">
-      </div>
+        <div class="stack-field">
+          <label>글자 크기</label>
+          <select id="fontSizeSelect">
+            <option value="">선택</option>
+            <option value="1">10px</option>
+            <option value="2">13px</option>
+            <option value="3">16px</option>
+            <option value="4">18px</option>
+            <option value="5">24px</option>
+            <option value="6">32px</option>
+            <option value="7">48px</option>
+          </select>
+        </div>
 
-      <div class="setting-row">
-        <label>그라데이션 1</label>
-        <input id="gradientColor1" type="color" value="#f5f4f1">
-      </div>
-      <div class="setting-row">
-        <label>그라데이션 2</label>
-        <input id="gradientColor2" type="color" value="#d9d8e8">
-      </div>
-      <div class="setting-row">
-        <label>각도</label>
-        <input id="gradientAngle" type="range" min="0" max="360" value="135">
-        <span id="gradientAngleValue">135°</span>
-      </div>
+        <div class="format-grid">
+          <button data-command="bold"><strong>B</strong></button>
+          <button data-command="italic"><em>I</em></button>
+          <button data-command="underline"><u>U</u></button>
+          <button data-command="strikeThrough"><s>S</s></button>
+        </div>
 
-      <label class="upload-btn" for="backgroundFileInput">＋ 배경 이미지 추가</label>
-      <input id="backgroundFileInput" type="file" accept="image/*" hidden>
-      <div class="setting-row">
-        <label>맞춤</label>
-        <select id="backgroundSizeSelect">
-          <option value="cover">화면 채우기</option>
-          <option value="contain">전체 보이기</option>
-          <option value="auto">원본 크기</option>
-        </select>
-      </div>
-      <div class="setting-row">
-        <label>반복</label>
-        <select id="backgroundRepeatSelect">
-          <option value="no-repeat">반복 안 함</option>
-          <option value="repeat">반복</option>
-          <option value="repeat-x">가로 반복</option>
-          <option value="repeat-y">세로 반복</option>
-        </select>
-      </div>
-      <div class="setting-row">
-        <label>배경 흐림</label>
-        <input id="backgroundBlur" type="range" min="0" max="20" value="0">
-        <span id="backgroundBlurValue">0px</span>
-      </div>
-      <div class="setting-row">
-        <label>배경 밝기</label>
-        <input id="backgroundBrightness" type="range" min="40" max="140" value="100">
-        <span id="backgroundBrightnessValue">100%</span>
-      </div>
-    </section>
+        <div class="color-grid">
+          <label class="color-card"><span>글자색</span><input id="textColor" type="color" value="#292826"></label>
+          <label class="color-card"><span>형광펜</span><input id="highlightColor" type="color" value="#fff0a8"></label>
+        </div>
+      </section>
 
-    <section class="setting-section">
-      <h3>문서 배경 조정</h3>
-      <div class="setting-row">
-        <label>배경 밝기</label>
-        <input id="paperOpacity" type="range" min="35" max="100" value="100">
-        <span id="paperOpacityValue">100%</span>
-      </div>
-      <div class="setting-row">
-        <label>글 영역 색</label>
-        <input id="paperColorInput" type="color" value="#ffffff">
-      </div>
-      <p>이미지나 그라데이션 위에서 글이 잘 안 보일 때 글 영역 색과 밝기를 조절할 수 있어요.</p>
-    </section>
+      <section class="setting-section">
+        <h3>문단 스타일</h3>
+        <div class="stack-field">
+          <label>문단 종류</label>
+          <select id="blockSelect">
+            <option value="p">본문</option>
+            <option value="h1">제목 1</option>
+            <option value="h2">제목 2</option>
+            <option value="h3">제목 3</option>
+            <option value="blockquote">인용문</option>
+          </select>
+        </div>
 
+        <div class="format-grid align-grid">
+          <button data-command="justifyLeft">⇤</button>
+          <button data-command="justifyCenter">≡</button>
+          <button data-command="justifyRight">⇥</button>
+          <button data-command="justifyFull">☰</button>
+          <button data-command="outdent">⇠</button>
+          <button data-command="indent">⇢</button>
+        </div>
+      </section>
 
-    <section class="setting-section">
-      <h3>본문 간격</h3>
-      <div class="setting-row">
-        <label>기본 자간</label>
-        <input id="globalLetterSpacing" type="range" min="-8" max="20" value="0">
-        <span id="globalLetterSpacingValue">0</span>
-      </div>
-      <div class="setting-row">
-        <label>기본 행간</label>
-        <input id="globalLineHeight" type="range" min="120" max="260" value="178">
-        <span id="globalLineHeightValue">1.78</span>
-      </div>
-      <div class="setting-row">
-        <label>문단 간격</label>
-        <input id="globalParagraphSpacing" type="range" min="0" max="40" value="0">
-        <span id="globalParagraphSpacingValue">0px</span>
-      </div>
-      <p>선택 영역이 없을 때 적용되는 슬롯 전체 본문 기본값이에요.</p>
-    </section>
+      <section class="setting-section">
+        <h3>자간 · 행간 · 문단</h3>
+        <div class="setting-row">
+          <label>자간</label>
+          <input id="globalLetterSpacing" type="range" min="-8" max="20" value="0">
+          <span id="globalLetterSpacingValue">0em</span>
+        </div>
+        <div class="setting-row">
+          <label>행간</label>
+          <input id="globalLineHeight" type="range" min="120" max="260" value="178">
+          <span id="globalLineHeightValue">1.78</span>
+        </div>
+        <div class="setting-row">
+          <label>문단 간격</label>
+          <input id="globalParagraphSpacing" type="range" min="0" max="40" value="0">
+          <span id="globalParagraphSpacingValue">0px</span>
+        </div>
+      </section>
 
-    <button class="reset-appearance" id="resetAppearanceBtn">꾸미기 설정 초기화</button>
+      <section class="setting-section">
+        <h3>사용자 폰트</h3>
+        <p>TTF, OTF, WOFF, WOFF2 파일을 추가할 수 있어요.</p>
+        <label class="upload-btn" for="fontFileInput">＋ 폰트 파일 추가</label>
+        <input id="fontFileInput" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
+        <div id="customFontList" class="asset-list"></div>
+      </section>
+    </div>
+
+    <div class="tab-panel" data-panel="background">
+      <section class="setting-section first-section">
+        <h3>문서 배경 방식</h3>
+        <div class="segmented">
+          <button class="bg-mode active" data-mode="solid">단색</button>
+          <button class="bg-mode" data-mode="gradient">그라데이션</button>
+          <button class="bg-mode" data-mode="image">이미지</button>
+        </div>
+        <div class="setting-row"><label>단색</label><input id="solidColorInput" type="color" value="#ffffff"></div>
+        <div class="setting-row"><label>그라데이션 1</label><input id="gradientColor1" type="color" value="#f5f4f1"></div>
+        <div class="setting-row"><label>그라데이션 2</label><input id="gradientColor2" type="color" value="#d9d8e8"></div>
+        <div class="setting-row">
+          <label>각도</label>
+          <input id="gradientAngle" type="range" min="0" max="360" value="135">
+          <span id="gradientAngleValue">135°</span>
+        </div>
+      </section>
+
+      <section class="setting-section">
+        <h3>배경 이미지</h3>
+        <label class="upload-btn" for="backgroundFileInput">＋ 이미지 파일 추가</label>
+        <input id="backgroundFileInput" type="file" accept="image/*" hidden>
+        <div class="setting-row">
+          <label>맞춤</label>
+          <select id="backgroundSizeSelect">
+            <option value="cover">화면 채우기</option>
+            <option value="contain">전체 보이기</option>
+            <option value="auto">원본 크기</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>반복</label>
+          <select id="backgroundRepeatSelect">
+            <option value="no-repeat">반복 안 함</option>
+            <option value="repeat">반복</option>
+            <option value="repeat-x">가로 반복</option>
+            <option value="repeat-y">세로 반복</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>밝기</label>
+          <input id="backgroundBrightness" type="range" min="40" max="140" value="100">
+          <span id="backgroundBrightnessValue">100%</span>
+        </div>
+        <input id="backgroundBlur" type="range" min="0" max="0" value="0" hidden>
+        <span id="backgroundBlurValue" hidden>0px</span>
+      </section>
+
+      <section class="setting-section">
+        <h3>글 영역</h3>
+        <div class="setting-row"><label>색</label><input id="paperColorInput" type="color" value="#ffffff"></div>
+        <div class="setting-row">
+          <label>투명도</label>
+          <input id="paperOpacity" type="range" min="35" max="100" value="100">
+          <span id="paperOpacityValue">100%</span>
+        </div>
+      </section>
+
+      <button class="reset-appearance" id="resetAppearanceBtn">배경 설정 초기화</button>
+    </div>
+
+    <div class="tab-panel" data-panel="document">
+      <section class="setting-section first-section">
+        <h3>슬롯</h3>
+        <div class="stack-field">
+          <label>슬롯 이름</label>
+          <input id="slotNameInput" class="panel-text-input" type="text">
+        </div>
+        <button class="outline-btn" id="renameBtn">슬롯 이름 변경</button>
+        <button class="outline-btn delete" id="deleteSlotBtn">현재 슬롯 삭제</button>
+      </section>
+
+      <section class="setting-section">
+        <h3>쪽번호</h3>
+        <div class="page-number-grid">
+          <input id="pagePrefixInput" class="panel-text-input small" type="text" placeholder="앞" maxlength="8">
+          <input id="pageNumberInput" class="panel-text-input small center" type="text" placeholder="01" maxlength="12">
+          <input id="pageSuffixInput" class="panel-text-input small" type="text" placeholder="뒤" maxlength="8">
+        </div>
+      </section>
+
+      <section class="setting-section">
+        <h3>문서 정보</h3>
+        <div class="document-meta-row"><span>최근 수정</span><strong id="updatedAt">-</strong></div>
+        <div class="document-meta-row"><span>글자 수</span><strong id="docInfo">0자</strong></div>
+      </section>
+    </div>
   </aside>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

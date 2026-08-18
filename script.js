@@ -241,6 +241,7 @@ function setGlobalTypography(key, value) {
 }
 
 function applyStyleToSelection(styleProperty, value) {
+  restoreEditorSelection();
   editor.focus();
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false;
@@ -266,6 +267,7 @@ function applyStyleToSelection(styleProperty, value) {
 }
 
 function applyParagraphSpacingToSelection(value) {
+  restoreEditorSelection();
   editor.focus();
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false;
@@ -395,12 +397,14 @@ function copyCurrent() {
 }
 
 function exec(command, value = null) {
+  restoreEditorSelection();
   editor.focus();
   document.execCommand(command, false, value);
+  rememberEditorSelection();
   scheduleSave();
 }
 
-document.querySelectorAll(".toolbar button[data-command]").forEach(btn => {
+document.querySelectorAll("button[data-command]").forEach(btn => {
   btn.addEventListener("mousedown", e => e.preventDefault());
   btn.addEventListener("click", () => exec(btn.dataset.command, btn.dataset.value || null));
 });
@@ -605,6 +609,44 @@ async function loadCustomFonts() {
   }
 }
 
+
+/* ---------- selection memory ---------- */
+let savedEditorRange = null;
+
+function rememberEditorSelection() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (editor.contains(range.commonAncestorContainer)) {
+    savedEditorRange = range.cloneRange();
+  }
+}
+function restoreEditorSelection() {
+  if (!savedEditorRange) return false;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(savedEditorRange);
+  return true;
+}
+editor.addEventListener("mouseup", rememberEditorSelection);
+editor.addEventListener("keyup", rememberEditorSelection);
+editor.addEventListener("input", rememberEditorSelection);
+
+document.querySelectorAll('[data-panel="text"] button, [data-panel="text"] select, [data-panel="text"] input')
+  .forEach(el => {
+    el.addEventListener("mousedown", () => rememberEditorSelection(), true);
+  });
+
+/* ---------- settings tabs ---------- */
+document.querySelectorAll(".settings-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".settings-tab").forEach(t => t.classList.toggle("active", t === tab));
+    document.querySelectorAll(".tab-panel").forEach(panel => {
+      panel.classList.toggle("active", panel.dataset.panel === tab.dataset.tab);
+    });
+  });
+});
+
 /* ---------- Appearance ---------- */
 const settingsDrawer = $("settingsDrawer");
 const drawerBackdrop = $("drawerBackdrop");
@@ -774,46 +816,73 @@ async function captureDocumentCanvas() {
     throw new Error("html2canvas unavailable");
   }
 
-  const page = $("documentPage");
-  document.body.classList.add("exporting");
   saveStatus.textContent = "파일 만드는 중…";
+  await document.fonts.ready;
 
-  // capture용으로 현재 스크롤 위치와 높이를 잠시 보존
-  const oldEditorOverflow = editor.style.overflow;
-  const oldEditorHeight = editor.style.height;
-  const oldPageHeight = page.style.height;
-  const oldPageMinHeight = page.style.minHeight;
+  const sourcePage = $("documentPage");
+  const host = document.createElement("div");
+  host.className = "export-capture-host";
+
+  const clone = sourcePage.cloneNode(true);
+  clone.removeAttribute("id");
+
+  // input의 현재 값을 속성으로도 반영
+  const originalInputs = sourcePage.querySelectorAll("input");
+  const clonedInputs = clone.querySelectorAll("input");
+  originalInputs.forEach((input, i) => {
+    if (clonedInputs[i]) {
+      clonedInputs[i].value = input.value;
+      clonedInputs[i].setAttribute("value", input.value);
+    }
+  });
+
+  const clonedToolbar = clone.querySelector(".toolbar");
+  if (clonedToolbar) clonedToolbar.remove();
+
+  const clonedEditor = clone.querySelector(".editor");
+  if (clonedEditor) {
+    clonedEditor.removeAttribute("contenteditable");
+    clonedEditor.style.overflow = "visible";
+    clonedEditor.style.height = "auto";
+  }
+
+  host.appendChild(clone);
+  document.body.appendChild(host);
 
   try {
-    editor.style.overflow = "visible";
-    editor.style.height = "auto";
-
-    // 본문이 길면 내보내기 시 잘리지 않도록 문서를 필요한 만큼 확장
-    const contentExtra = Math.max(0, editor.scrollHeight - editor.clientHeight);
-    if (contentExtra > 0) {
-      const baseHeight = page.getBoundingClientRect().height;
-      page.style.height = `${baseHeight + contentExtra}px`;
-      page.style.minHeight = `${baseHeight + contentExtra}px`;
-    }
-
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     await document.fonts.ready;
 
-    const canvas = await html2canvas(page, {
+    if (clonedEditor) {
+      const needed = Math.max(820, clonedEditor.scrollHeight + 36);
+      clonedEditor.style.minHeight = `${needed}px`;
+      clonedEditor.style.height = `${needed}px`;
+    }
+
+    clone.style.height = "auto";
+    clone.style.minHeight = `${Math.max(1123, clone.scrollHeight + 4)}px`;
+
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const width = Math.ceil(clone.getBoundingClientRect().width);
+    const height = Math.ceil(clone.scrollHeight + 6);
+
+    return await html2canvas(clone, {
       scale: 2,
       useCORS: true,
       allowTaint: false,
       backgroundColor: null,
       logging: false,
-      imageTimeout: 15000
+      imageTimeout: 15000,
+      width,
+      height,
+      windowWidth: 1200,
+      windowHeight: Math.max(1400, height + 100),
+      scrollX: 0,
+      scrollY: 0
     });
-
-    return canvas;
   } finally {
-    editor.style.overflow = oldEditorOverflow;
-    editor.style.height = oldEditorHeight;
-    page.style.height = oldPageHeight;
-    page.style.minHeight = oldPageMinHeight;
-    document.body.classList.remove("exporting");
+    host.remove();
     saveStatus.textContent = "자동 저장됨";
   }
 }
