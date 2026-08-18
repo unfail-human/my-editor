@@ -1826,42 +1826,120 @@ loadFonts();renderAll();syncBackgroundOptionPanels();
 window.addEventListener("resize",()=>{if(!$("previewModal").hidden)fitPreviewPage();});
 
 
-/* ===== V36 patch notice controller =====
-   To announce a future patch:
-   1) set PATCH_STATUS to "patching" while uploading files;
-   2) after all files are uploaded, set it to "complete";
-   3) bump PATCH_NOTICE_VERSION each time you want everyone to see a new notice.
-*/
-const PATCH_NOTICE_VERSION="36";
-const PATCH_STATUS="complete"; // "patching" | "complete" | "off"
 
-function showPatchNotice(){
-  if(PATCH_STATUS==="off")return;
+/* ===== V37 developer notice system ===== */
+function noticeSeenKey(id){
+  return `my-editor-notice-seen:${id}`;
+}
 
+function showSiteNotice(notice){
   const modal=document.getElementById("patchNoticeModal");
+  const title=document.getElementById("patchNoticeTitle");
   const text=document.getElementById("patchNoticeText");
   const confirm=document.getElementById("patchNoticeConfirm");
-  if(!modal || !text || !confirm)return;
+  if(!modal||!title||!text||!confirm||!notice)return;
 
-  const seenKey=`my-editor-patch-${PATCH_NOTICE_VERSION}-${PATCH_STATUS}`;
-  if(localStorage.getItem(seenKey)==="seen")return;
+  if(localStorage.getItem(noticeSeenKey(notice.id))==="1")return;
 
-  if(PATCH_STATUS==="patching"){
-    text.textContent="현재 사이트 패치가 진행 중입니다.\n일부 기능이 일시적으로 정상 작동하지 않을 수 있어요.\n패치 완료 안내가 뜰 때까지 잠시만 기다려 주세요.";
-  }else{
-    text.textContent="사이트 패치가 완료되었습니다.\n최신 파일을 확실하게 불러오기 위해\nCtrl + F5로 강력 새로고침해 주세요.";
-  }
+  title.textContent=notice.title||"MY EDITOR 공지";
+  text.textContent=notice.message||"";
+  confirm.textContent=notice.button||"확인";
 
   modal.hidden=false;
-
   confirm.onclick=()=>{
-    localStorage.setItem(seenKey,"seen");
+    localStorage.setItem(noticeSeenKey(notice.id),"1");
     modal.hidden=true;
   };
 }
 
+function bootSiteNotice(){
+  const cfg=window.MY_EDITOR_NOTICE;
+  if(!cfg?.enabled||!cfg.current?.id)return;
+  showSiteNotice(cfg.current);
+}
+
+function developerNoticeTypeLabel(type){
+  if(type==="maintenance")return "점검";
+  if(type==="update")return "업데이트";
+  return "일반";
+}
+
+function renderDeveloperNoticeHistory(){
+  const cfg=window.MY_EDITOR_NOTICE||{};
+  const list=document.getElementById("developerNoticeList");
+  if(!list)return;
+
+  const items=[];
+  if(cfg.current)items.push({...cfg.current,_current:true});
+  if(Array.isArray(cfg.history))items.push(...cfg.history);
+
+  list.innerHTML="";
+  if(!items.length){
+    list.innerHTML='<div class="developer-notice-empty">저장된 공지가 없습니다.</div>';
+    return;
+  }
+
+  items.forEach(item=>{
+    const card=document.createElement("article");
+    card.className="developer-notice-item";
+    card.innerHTML=`
+      <div class="developer-notice-item-meta">
+        <span>${developerNoticeTypeLabel(item.type)}</span>
+        ${item._current?'<span class="developer-notice-current">CURRENT</span>':""}
+        <time>${item.date||""}</time>
+      </div>
+      <h3></h3>
+      <p></p>
+    `;
+    card.querySelector("h3").textContent=item.title||"제목 없음";
+    card.querySelector("p").textContent=item.message||"";
+    list.appendChild(card);
+  });
+}
+
+function openDeveloperNoticeHistory(){
+  const cfg=window.MY_EDITOR_NOTICE||{};
+  const expected=String(cfg.developerKey||"");
+  if(!expected)return;
+
+  const saved=sessionStorage.getItem("my-editor-developer-unlocked");
+  if(saved!==expected){
+    const key=prompt("개발자 키를 입력하세요.");
+    if(key!==expected){
+      if(key!==null)alert("개발자 키가 올바르지 않습니다.");
+      return;
+    }
+    sessionStorage.setItem("my-editor-developer-unlocked",expected);
+  }
+
+  renderDeveloperNoticeHistory();
+  const modal=document.getElementById("developerNoticeModal");
+  if(modal)modal.hidden=false;
+}
+
+function bootDeveloperNoticeMode(){
+  const params=new URLSearchParams(location.search);
+  if(params.get("developer")==="notice"){
+    // Remove the query from the visible URL after opening.
+    openDeveloperNoticeHistory();
+    try{
+      const clean=location.pathname+location.hash;
+      history.replaceState(null,"",clean);
+    }catch{}
+  }
+
+  document.getElementById("developerNoticeClose")?.addEventListener("click",()=>{
+    document.getElementById("developerNoticeModal").hidden=true;
+  });
+}
+
+function bootNoticeSystem(){
+  bootSiteNotice();
+  bootDeveloperNoticeMode();
+}
+
 if(document.readyState==="loading"){
-  document.addEventListener("DOMContentLoaded",showPatchNotice,{once:true});
+  document.addEventListener("DOMContentLoaded",bootNoticeSystem,{once:true});
 }else{
-  showPatchNotice();
+  bootNoticeSystem();
 }

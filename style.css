@@ -1025,3 +1025,96 @@ button{cursor:pointer}
 .patch-notice-actions button{
   min-width:90px;
 }
+
+
+/* ===== V37 developer notice archive ===== */
+.developer-notice-modal{
+  position:fixed;
+  inset:0;
+  z-index:125000;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(35,32,29,.28);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.developer-notice-modal[hidden]{display:none!important}
+
+.developer-notice-card{
+  width:min(560px,calc(100vw - 40px));
+  max-height:min(720px,calc(100vh - 48px));
+  overflow:hidden;
+  border:1px solid rgba(80,74,67,.13);
+  border-radius:14px;
+  background:#fbfaf7;
+  box-shadow:0 22px 70px rgba(36,31,27,.20);
+  font-family:Pretendard,system-ui,sans-serif;
+}
+
+.developer-notice-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  padding:19px 20px 14px;
+  border-bottom:1px solid rgba(80,74,67,.09);
+}
+.developer-notice-head h2{
+  margin:2px 0 0;
+  font-size:16px;
+  color:#3f3b37;
+}
+.developer-notice-kicker{
+  font-size:8px;
+  letter-spacing:.16em;
+  font-weight:800;
+  color:#9a948d;
+}
+
+.developer-notice-list{
+  max-height:600px;
+  overflow:auto;
+  padding:12px;
+}
+.developer-notice-item{
+  padding:14px 15px;
+  border:1px solid rgba(80,74,67,.09);
+  border-radius:10px;
+  background:#fff;
+}
+.developer-notice-item+.developer-notice-item{margin-top:8px}
+.developer-notice-item-meta{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:7px;
+  color:#9a948d;
+  font-size:8px;
+}
+.developer-notice-item-meta time{margin-left:auto}
+.developer-notice-current{
+  padding:2px 5px;
+  border-radius:999px;
+  background:#eeece7;
+  color:#665f58;
+  font-weight:800;
+}
+.developer-notice-item h3{
+  margin:0 0 6px;
+  font-size:12px;
+  color:#48433e;
+}
+.developer-notice-item p{
+  margin:0;
+  white-space:pre-line;
+  font-size:10px;
+  line-height:1.65;
+  color:#77716a;
+}
+.developer-notice-empty{
+  padding:40px 12px;
+  text-align:center;
+  color:#99938b;
+  font-size:10px;
+}
