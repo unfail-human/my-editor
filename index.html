@@ -173,11 +173,7 @@
           <input id="paragraphSpacing" type="range" min="-12" max="40" value="0">
           <output id="paragraphSpacingOut">0px</output>
         </label>
-        <label class="range-field">
-          <span>줄바꿈 간격</span>
-          <input id="breakSpacing" type="range" min="-10" max="24" value="0">
-          <output id="breakSpacingOut">0px</output>
-        </label>
+        
         <label class="range-field">
           <span>장평</span>
           <input id="widthScale" type="range" min="70" max="140" value="100">
@@ -251,8 +247,8 @@
 
 
       <section class="panel-section">
-              <h3>지면 효과</h3>
-              <p class="hint">배경 위에 종이결·줄지·모눈 등의 질감을 덧입힐 수 있어요.</p>
+              <h3>효과</h3>
+              <p class="hint">배경 위에 종이결·줄지·모눈 등의 효과를 덧입힐 수 있어요.</p>
               <div class="paper-presets">
                 <button class="effect-btn active" data-effect="none">없음</button>
                 <button class="effect-btn" data-effect="grain">종이결</button>
@@ -265,6 +261,10 @@
                 <span>효과 농도</span>
                 <input id="effectOpacity" type="range" min="0" max="100" value="18">
                 <output id="effectOpacityOut">18%</output>
+              </label>
+              <label class="color-field effect-color-field">
+                <span>효과 색상</span>
+                <input id="effectColor" type="color" value="#8f887f">
               </label>
             </section>
 
@@ -405,7 +405,20 @@
           <input id="paperShadow" type="range" min="0" max="40" value="16">
           <output id="paperShadowOut">16</output>
         </label>
-      </section>
+      
+        <div class="decoration-opacity-grid">
+          <label class="range-field">
+            <span>테두리 투명도</span>
+            <input id="borderOpacity" type="range" min="0" max="100" value="100">
+            <output id="borderOpacityOut">100%</output>
+          </label>
+          <label class="range-field">
+            <span>내부 프레임 투명도</span>
+            <input id="innerFrameOpacity" type="range" min="0" max="100" value="100">
+            <output id="innerFrameOpacityOut">100%</output>
+          </label>
+        </div>
+</section>
     </div>
   </aside>
 </div>
