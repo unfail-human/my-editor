@@ -1,10 +1,9 @@
-MY EDITOR V71
-
-- 문서 템플릿 맨 아래 문서 여백 설정 버튼
-- 여백 팝업: 좁게 / 보통 / 넓게
-- 상세 위/아래/왼쪽/오른쪽 mm 직접 입력
-- 템플릿별 여백 저장
-- 기호 정렬 UI 삭제, 무조건 중앙 고정
-- 새 반짝이 아이콘을 OG 공유 이미지 + favicon + apple touch icon에 적용
-- 새 파일명 my-editor-icon-v71.png으로 외부 캐시 갱신
-- 자동 업데이트 공지 v71
+MY EDITOR V72
+- DearLog와 동일한 favicon.png 방식으로 파비콘 구성
+- favicon.png: 1254x1254 RGBA
+- 링크 공유 이미지는 별도 og-image.png: 1200x630
+- favicon / shortcut icon / apple-touch-icon 모두 favicon.png 사용
+- OG / Twitter 공유 이미지는 og-image.png 사용
+- 캐시 갱신용 ?v=72 적용
+- 기존 my-editor-icon-v71.png 제거
+- v71 문서 여백 코드의 중복 shiftX 선언 오류도 함께 정리
