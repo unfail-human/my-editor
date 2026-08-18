@@ -141,6 +141,7 @@ function renderEditor() {
   if (!slot) return;
   const index = state.slots.findIndex(s => s.id === slot.id) + 1;
   currentSlotLabel.textContent = `SLOT ${String(index).padStart(2, "0")}`;
+  if ($("slotIndexInfo")) $("slotIndexInfo").textContent = String(index).padStart(2, "0");
   titleInput.value = slot.title || "";
   subtitleInput.value = slot.subtitle || "";
   editor.innerHTML = slot.content || "";
@@ -311,6 +312,39 @@ function addSlot() {
   titleInput.focus();
 }
 
+
+function duplicateCurrentSlot() {
+  saveCurrent(false);
+  const slot = currentSlot();
+  if (!slot) return;
+
+  const clone = JSON.parse(JSON.stringify(slot));
+  clone.id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+  clone.name = `${slot.name || "새 문서"} 복사본`;
+  clone.updatedAt = new Date().toISOString();
+
+  const index = state.slots.findIndex(s => s.id === currentSlotId);
+  state.slots.splice(index + 1, 0, clone);
+  currentSlotId = clone.id;
+  state.currentSlotId = clone.id;
+  persist();
+  renderEditor();
+}
+
+function moveCurrentSlot(direction) {
+  saveCurrent(false);
+  const index = state.slots.findIndex(s => s.id === currentSlotId);
+  if (index < 0) return;
+
+  const target = direction === "up" ? index - 1 : index + 1;
+  if (target < 0 || target >= state.slots.length) return;
+
+  const [slot] = state.slots.splice(index, 1);
+  state.slots.splice(target, 0, slot);
+  persist();
+  renderEditor();
+}
+
 function deleteCurrentSlot() {
   if (state.slots.length <= 1) {
     alert("슬롯은 최소 1개가 필요합니다.");
@@ -469,6 +503,9 @@ $("imageBtn").addEventListener("click", () => {
 $("newSlotBtn").addEventListener("click", addSlot);
 $("deleteSlotBtn").addEventListener("click", deleteCurrentSlot);
 $("renameBtn").addEventListener("click", renameSlot);
+$("duplicateSlotBtn")?.addEventListener("click", duplicateCurrentSlot);
+$("moveSlotUpBtn")?.addEventListener("click", () => moveCurrentSlot("up"));
+$("moveSlotDownBtn")?.addEventListener("click", () => moveCurrentSlot("down"));
 $("copyBtn").addEventListener("click", copyCurrent);
 
 $("exportAllBtn").addEventListener("click", exportAll);
@@ -637,6 +674,43 @@ document.querySelectorAll('[data-panel="text"] button, [data-panel="text"] selec
     el.addEventListener("mousedown", () => rememberEditorSelection(), true);
   });
 
+
+/* ---------- preview ---------- */
+function buildPreview() {
+  saveCurrent(false);
+
+  const previewPage = $("previewPage");
+  if (!previewPage) return;
+
+  const source = $("documentPage");
+  const clone = source.cloneNode(true);
+  clone.removeAttribute("id");
+
+  const toolbar = clone.querySelector(".toolbar");
+  if (toolbar) toolbar.remove();
+
+  const cloneEditor = clone.querySelector(".editor");
+  if (cloneEditor) {
+    cloneEditor.removeAttribute("contenteditable");
+    cloneEditor.style.overflow = "visible";
+    cloneEditor.style.height = "auto";
+  }
+
+  clone.querySelectorAll("input").forEach((input, i) => {
+    const original = source.querySelectorAll("input")[i];
+    if (original) {
+      input.value = original.value;
+      input.setAttribute("value", original.value);
+      input.readOnly = true;
+    }
+  });
+
+  previewPage.innerHTML = "";
+  previewPage.appendChild(clone);
+}
+
+$("refreshPreviewBtn")?.addEventListener("click", buildPreview);
+
 /* ---------- settings tabs ---------- */
 document.querySelectorAll(".settings-tab").forEach(tab => {
   tab.addEventListener("click", () => {
@@ -644,6 +718,7 @@ document.querySelectorAll(".settings-tab").forEach(tab => {
     document.querySelectorAll(".tab-panel").forEach(panel => {
       panel.classList.toggle("active", panel.dataset.panel === tab.dataset.tab);
     });
+    if (tab.dataset.tab === "preview") buildPreview();
   });
 });
 
