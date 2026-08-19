@@ -2430,3 +2430,61 @@ button{cursor:pointer}
 .paper[data-document-template="ticket"] .subtitle-input{
   max-width:92% !important;
 }
+
+
+/* ===== V83 compact template unified frame ===== */
+.paper[data-document-template="postcard"],
+.paper[data-document-template="card"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="square"],
+.paper[data-document-template="ticket"]{
+  --compact-frame-left:6%;
+  --compact-frame-right:6%;
+}
+
+/* Title/subtitle/body all share the same frame on compact formats. */
+.paper[data-document-template="postcard"] .title-input,
+.paper[data-document-template="postcard"] .subtitle-input,
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="square"] .title-input,
+.paper[data-document-template="square"] .subtitle-input,
+.paper[data-document-template="ticket"] .title-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  max-width:none !important;
+  box-sizing:border-box !important;
+}
+
+/* Remove any legacy centering/translation drift. */
+.paper[data-document-template="postcard"] .title-input,
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="square"] .title-input,
+.paper[data-document-template="ticket"] .title-input{
+  transform:none !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+/* Body cannot protrude outside the compact content frame. */
+.paper[data-document-template="postcard"] .editor.writing-horizontal,
+.paper[data-document-template="card"] .editor.writing-horizontal,
+.paper[data-document-template="widecard"] .editor.writing-horizontal,
+.paper[data-document-template="minicard"] .editor.writing-horizontal,
+.paper[data-document-template="square"] .editor.writing-horizontal,
+.paper[data-document-template="ticket"] .editor.writing-horizontal,
+.paper[data-document-template="postcard"] .editor.layout-columns,
+.paper[data-document-template="card"] .editor.layout-columns,
+.paper[data-document-template="widecard"] .editor.layout-columns,
+.paper[data-document-template="minicard"] .editor.layout-columns,
+.paper[data-document-template="square"] .editor.layout-columns,
+.paper[data-document-template="ticket"] .editor.layout-columns{
+  padding-left:var(--body-frame-left) !important;
+  padding-right:var(--body-frame-right) !important;
+}

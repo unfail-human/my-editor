@@ -33,12 +33,12 @@ const DISTRIBUTION_LAYOUT={
   templateSettings:{
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    postcard:{orientation:"portrait",titleSize:24,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    card:{orientation:"landscape",titleSize:23,headingGap:72,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    widecard:{orientation:"landscape",titleSize:24,headingGap:66,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    minicard:{orientation:"landscape",titleSize:22,headingGap:70,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    square:{orientation:"portrait",titleSize:25,headingGap:88,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    ticket:{orientation:"landscape",titleSize:20,headingGap:58,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
+    postcard:{orientation:"portrait",titleSize:23,headingGap:76,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:22,headingGap:66,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:23,headingGap:60,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:21,headingGap:64,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    square:{orientation:"portrait",titleSize:24,headingGap:80,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    ticket:{orientation:"landscape",titleSize:19,headingGap:54,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -152,28 +152,22 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
   if(!layout?.templateSettings)return;
 
   const updates={
-    postcard:{oldSizes:[25,26],oldGaps:[96,104,116],size:24,gap:82},
-    card:{oldSizes:[25,27],oldGaps:[88,102,112],size:23,gap:72},
-    widecard:{oldSizes:[26,28],oldGaps:[80,96,106],size:24,gap:66},
-    minicard:{oldSizes:[24,26],oldGaps:[84,100,110],size:22,gap:70},
-    square:{oldSizes:[27,29],oldGaps:[104,118,128],size:25,gap:88},
-    ticket:{oldSizes:[22,24],oldGaps:[70,88,96],size:20,gap:58}
+    postcard:{oldSizes:[24,25,26],oldGaps:[82,96,104,116],size:23,gap:76},
+    card:{oldSizes:[23,25,27],oldGaps:[72,88,102,112],size:22,gap:66},
+    widecard:{oldSizes:[24,26,28],oldGaps:[66,80,96,106],size:23,gap:60},
+    minicard:{oldSizes:[22,24,26],oldGaps:[70,84,100,110],size:21,gap:64},
+    square:{oldSizes:[25,27,29],oldGaps:[88,104,118,128],size:24,gap:80},
+    ticket:{oldSizes:[20,22,24],oldGaps:[58,70,88,96],size:19,gap:54}
   };
 
   Object.entries(updates).forEach(([key,u])=>{
     const t=layout.templateSettings[key];
     if(!t)return;
-
     if(u.oldSizes.includes(t.titleSize))t.titleSize=u.size;
     if(u.oldGaps.includes(t.headingGap))t.headingGap=u.gap;
-
-    // Generated defaults should always return to a predictable top-left layout.
-    if(!t.headingPosition || ["top-left"].includes(t.headingPosition)){
-      t.headingPosition="top-left";
-    }
+    if(!t.headingPosition)t.headingPosition="top-left";
   });
 }
-
 
 function currentLayout(){
   const s=current();
@@ -439,34 +433,51 @@ function resolvedTemplateHeadingLayout(layout=currentLayout()){
       landscape:{top:5.0,subGap:1.24,inset:4.0,topSafe:94,centerSafe:225,bottomSafe:164}
     },
     postcard:{
-      portrait:{top:4.8,subGap:1.18,inset:3.0,topSafe:70,centerSafe:172,bottomSafe:122},
-      landscape:{top:4.2,subGap:1.14,inset:2.8,topSafe:62,centerSafe:142,bottomSafe:102}
+      portrait:{top:5.0,subGap:1.16,inset:2.2,topSafe:74,centerSafe:172,bottomSafe:122},
+      landscape:{top:4.5,subGap:1.12,inset:2.0,topSafe:64,centerSafe:142,bottomSafe:102}
     },
     card:{
-      portrait:{top:4.8,subGap:1.16,inset:2.8,topSafe:66,centerSafe:156,bottomSafe:110},
-      landscape:{top:3.8,subGap:1.10,inset:2.5,topSafe:56,centerSafe:126,bottomSafe:92}
+      portrait:{top:5.0,subGap:1.14,inset:2.2,topSafe:70,centerSafe:156,bottomSafe:110},
+      landscape:{top:4.2,subGap:1.10,inset:2.0,topSafe:60,centerSafe:126,bottomSafe:92}
     },
     widecard:{
-      portrait:{top:4.6,subGap:1.14,inset:2.7,topSafe:62,centerSafe:146,bottomSafe:104},
-      landscape:{top:3.5,subGap:1.08,inset:2.3,topSafe:50,centerSafe:112,bottomSafe:82}
+      portrait:{top:4.8,subGap:1.12,inset:2.1,topSafe:66,centerSafe:146,bottomSafe:104},
+      landscape:{top:3.8,subGap:1.08,inset:1.8,topSafe:54,centerSafe:112,bottomSafe:82}
     },
     minicard:{
-      portrait:{top:4.8,subGap:1.16,inset:2.8,topSafe:64,centerSafe:150,bottomSafe:106},
-      landscape:{top:3.8,subGap:1.10,inset:2.5,topSafe:54,centerSafe:120,bottomSafe:88}
+      portrait:{top:5.0,subGap:1.14,inset:2.2,topSafe:68,centerSafe:150,bottomSafe:106},
+      landscape:{top:4.2,subGap:1.10,inset:2.0,topSafe:58,centerSafe:120,bottomSafe:88}
     },
     square:{
-      portrait:{top:4.8,subGap:1.20,inset:3.2,topSafe:76,centerSafe:190,bottomSafe:138},
-      landscape:{top:4.2,subGap:1.16,inset:3.0,topSafe:68,centerSafe:166,bottomSafe:122}
+      portrait:{top:5.0,subGap:1.16,inset:2.2,topSafe:80,centerSafe:190,bottomSafe:138},
+      landscape:{top:4.5,subGap:1.12,inset:2.0,topSafe:72,centerSafe:166,bottomSafe:122}
     },
     ticket:{
-      portrait:{top:4.6,subGap:1.12,inset:2.5,topSafe:58,centerSafe:132,bottomSafe:94},
-      landscape:{top:3.2,subGap:1.06,inset:2.1,topSafe:46,centerSafe:96,bottomSafe:72}
+      portrait:{top:4.8,subGap:1.10,inset:2.0,topSafe:62,centerSafe:132,bottomSafe:94},
+      landscape:{top:3.5,subGap:1.06,inset:1.8,topSafe:50,centerSafe:96,bottomSafe:72}
     }
   };
 
   return (presets[template]||presets.a4)[landscape?"landscape":"portrait"];
 }
 
+function compactTemplateContentFrame(layout=currentLayout(),marginCfg=null){
+  const compactTemplates=["postcard","card","widecard","minicard","square","ticket"];
+  if(!compactTemplates.includes(layout.template))return null;
+
+  const cfg=marginCfg||effectiveDocumentMargins(layout);
+  const landscape=layout.orientation==="landscape";
+
+  // Small formats need a slightly safer visual frame than the raw negative body margins.
+  // The title, subtitle rule and body all share this same frame.
+  const minLeft=landscape?5.5:6.5;
+  const minRight=landscape?5.5:6.5;
+
+  const left=Math.max(minLeft,cfg.page.left);
+  const right=Math.max(minRight,cfg.page.right);
+
+  return {left,right};
+}
 
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
@@ -495,22 +506,31 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     layout.headingY
   );
 
-  // Page margin controls the title/subtitle rule frame.
-  // Body margin is an additional inner margin inside that page frame.
+  // Compact formats must not inherit stale free-position offsets.
+  // Keep only the intended left/center/right alignment and vertical zone.
+  const compactTemplates=["postcard","card","widecard","minicard","square","ticket"];
+  const isCompactTemplate=compactTemplates.includes(layout.template);
+  if(isCompactTemplate && hp.y<30){
+    hp.y=8;
+  }
+
+
+  // Page margin controls the general frame.
+  // For compact templates, title/subtitle/body use ONE shared content frame.
   const marginCfg=effectiveDocumentMargins(layout);
-  const shiftX=0;
+  const compactFrame=compactTemplateContentFrame(layout,marginCfg);
 
-  const ruleLeft=Math.max(-4,marginCfg.page.left);
-  const ruleRight=Math.max(-4,marginCfg.page.right);
+  let ruleLeft=Math.max(-4,marginCfg.page.left);
+  let ruleRight=Math.max(-4,marginCfg.page.right);
+  let bodyLeft=Math.max(-4,marginCfg.page.left + marginCfg.body.left);
+  let bodyRight=Math.max(-4,marginCfg.page.right + marginCfg.body.right);
 
-  const bodyLeft=Math.max(
-    -4,
-    marginCfg.page.left + marginCfg.body.left + shiftX
-  );
-  const bodyRight=Math.max(
-    -4,
-    marginCfg.page.right + marginCfg.body.right - shiftX
-  );
+  if(compactFrame){
+    ruleLeft=compactFrame.left;
+    ruleRight=compactFrame.right;
+    bodyLeft=compactFrame.left;
+    bodyRight=compactFrame.right;
+  }
 
   paper.style.setProperty("--rule-left",ruleLeft+"%");
   paper.style.setProperty("--rule-right",ruleRight+"%");
@@ -536,7 +556,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   if(subtitle){
     const templateHeading=resolvedTemplateHeadingLayout(layout);
-    const subtitleInset=templateHeading.inset;
+    const subtitleInset=isCompactTemplate?Math.min(templateHeading.inset,2.2):templateHeading.inset;
     subtitle.style.width="auto";
     subtitle.style.transform="none";
     subtitle.style.textAlign=hp.align;
