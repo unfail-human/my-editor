@@ -1875,6 +1875,17 @@ $("coverTitleFirstPage").onchange=e=>{
 
 
 let documentMarginDraft=null;
+let documentMarginOriginal=null;
+let marginLivePreviewTimer=null;
+
+function cloneMarginState(ts){
+  return {
+    preset:ts.marginPreset||"normal",
+    page:{...ts.pageMargins},
+    headerFooter:{...ts.headerFooterMargins},
+    body:{...ts.bodyMargins}
+  };
+}
 
 function syncDocumentMarginSummary(){
   const ts=ensureMarginSettings(currentLayout());
@@ -1884,6 +1895,7 @@ function syncDocumentMarginSummary(){
 
 function fillDocumentMarginDraftInputs(){
   if(!documentMarginDraft)return;
+
   $("pageMarginTop").value=documentMarginDraft.page.top;
   $("pageMarginBottom").value=documentMarginDraft.page.bottom;
   $("pageMarginLeft").value=documentMarginDraft.page.left;
@@ -1898,14 +1910,41 @@ function fillDocumentMarginDraftInputs(){
   $("bodyMarginRight").value=documentMarginDraft.body.right;
 }
 
+function applyMarginStateToTemplate(state,{persistState=false,reflow=true}={}){
+  if(!state)return;
+
+  const ts=ensureMarginSettings(currentLayout());
+  ts.marginPreset=state.preset;
+  ts.pageMargins={...state.page};
+  ts.headerFooterMargins={...state.headerFooter};
+  ts.bodyMargins={...state.body};
+
+  if(persistState)persist();
+
+  syncDocumentMarginSummary();
+  applyDocumentLayout();
+
+  if(reflow){
+    clearTimeout(marginLivePreviewTimer);
+    marginLivePreviewTimer=setTimeout(()=>{
+      renderAll();
+      requestAnimationFrame(()=>{
+        applyDocumentLayout();
+        requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+      });
+    },90);
+  }
+}
+
+function previewDocumentMarginDraft(){
+  applyMarginStateToTemplate(documentMarginDraft,{persistState:false,reflow:true});
+}
+
 function fillDocumentMarginModal(){
   const ts=ensureMarginSettings(currentLayout());
-  documentMarginDraft={
-    preset:ts.marginPreset||"normal",
-    page:{...ts.pageMargins},
-    headerFooter:{...ts.headerFooterMargins},
-    body:{...ts.bodyMargins}
-  };
+
+  documentMarginOriginal=cloneMarginState(ts);
+  documentMarginDraft=cloneMarginState(ts);
 
   fillDocumentMarginDraftInputs();
 
@@ -1916,6 +1955,7 @@ function fillDocumentMarginModal(){
 
 function setDocumentMarginPreset(preset){
   const p=DOCUMENT_MARGIN_PRESETS[preset];
+
   documentMarginDraft={
     preset,
     page:{...p.page},
@@ -1928,6 +1968,8 @@ function setDocumentMarginPreset(preset){
   document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
     btn.classList.toggle("active",btn.dataset.marginPreset===preset);
   });
+
+  previewDocumentMarginDraft();
 }
 
 function updateDocumentMarginDraft(){
@@ -1956,6 +1998,26 @@ function updateDocumentMarginDraft(){
   document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
     btn.classList.remove("active");
   });
+
+  previewDocumentMarginDraft();
+}
+
+function cancelDocumentMarginEditing(){
+  clearTimeout(marginLivePreviewTimer);
+
+  if(documentMarginOriginal){
+    applyMarginStateToTemplate(documentMarginOriginal,{persistState:false,reflow:false});
+  }
+
+  documentMarginDraft=null;
+  documentMarginOriginal=null;
+  $("documentMarginModal").hidden=true;
+
+  renderAll();
+  requestAnimationFrame(()=>{
+    applyDocumentLayout();
+    requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  });
 }
 
 $("openDocumentMarginBtn").onclick=()=>{
@@ -1964,12 +2026,10 @@ $("openDocumentMarginBtn").onclick=()=>{
 };
 
 document.querySelectorAll("[data-close-document-margin]").forEach(btn=>{
-  btn.onclick=()=>{$("documentMarginModal").hidden=true};
+  btn.onclick=cancelDocumentMarginEditing;
 });
 
-$("cancelDocumentMarginBtn").onclick=()=>{
-  $("documentMarginModal").hidden=true;
-};
+$("cancelDocumentMarginBtn").onclick=cancelDocumentMarginEditing;
 
 document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
   btn.onclick=()=>setDocumentMarginPreset(btn.dataset.marginPreset);
@@ -1981,6 +2041,7 @@ document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
   "bodyMarginTop","bodyMarginBottom","bodyMarginLeft","bodyMarginRight"
 ].forEach(id=>{
   $(id).oninput=updateDocumentMarginDraft;
+  $(id).onchange=updateDocumentMarginDraft;
 });
 
 $("resetDocumentMarginBtn").onclick=()=>{
@@ -1990,17 +2051,18 @@ $("resetDocumentMarginBtn").onclick=()=>{
 $("applyDocumentMarginBtn").onclick=()=>{
   if(!documentMarginDraft)return;
 
-  const ts=ensureMarginSettings(currentLayout());
-  ts.marginPreset=documentMarginDraft.preset;
-  ts.pageMargins={...documentMarginDraft.page};
-  ts.headerFooterMargins={...documentMarginDraft.headerFooter};
-  ts.bodyMargins={...documentMarginDraft.body};
+  clearTimeout(marginLivePreviewTimer);
 
-  persist();
+  applyMarginStateToTemplate(documentMarginDraft,{
+    persistState:true,
+    reflow:false
+  });
+
+  documentMarginOriginal=null;
+  documentMarginDraft=null;
   $("documentMarginModal").hidden=true;
-  syncDocumentMarginSummary();
-  renderAll();
 
+  renderAll();
   requestAnimationFrame(()=>{
     applyDocumentLayout();
     requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);

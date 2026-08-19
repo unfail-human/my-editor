@@ -2307,3 +2307,58 @@ button{cursor:pointer}
 .paper.layout-enabled .editor > .paragraph-divider.with-line::after{
   flex:1 1 auto !important;
 }
+
+
+/* ===== V75 margin live preview / modal separation ===== */
+#documentMarginModal .margin-dialog{
+  border:1px solid rgba(91,82,74,.42) !important;
+  border-radius:12px !important;
+  background:#fbfaf7 !important;
+  box-shadow:
+    0 22px 60px rgba(43,37,32,.22),
+    0 0 0 1px rgba(255,255,255,.72) inset !important;
+  overflow:hidden;
+}
+
+#documentMarginModal .modal-head{
+  border-bottom:1px solid rgba(110,100,90,.18) !important;
+  background:rgba(255,255,255,.66);
+}
+
+#documentMarginModal .margin-modal-body{
+  background:#fbfaf7;
+}
+
+#documentMarginModal .margin-preset-section,
+#documentMarginModal .margin-detail-section{
+  position:relative;
+}
+
+#documentMarginModal .margin-detail-section{
+  border-top:1px solid rgba(118,108,98,.20) !important;
+}
+
+#documentMarginModal .body-margin-section{
+  border-top:1px solid rgba(108,98,89,.28) !important;
+  border-bottom:1px solid rgba(118,108,98,.14);
+  background:rgba(244,241,237,.72) !important;
+}
+
+#documentMarginModal .margin-modal-actions{
+  margin-top:2px;
+  border-top:1px solid rgba(108,98,89,.25) !important;
+}
+
+#documentMarginModal .number-field input:focus{
+  outline:none;
+  border-color:#8d8379;
+  box-shadow:0 0 0 2px rgba(141,131,121,.12);
+}
+
+#documentMarginModal .margin-preset-btn{
+  transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+}
+
+#documentMarginModal .margin-preset-btn:hover{
+  background:#f8f6f2;
+}
