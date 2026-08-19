@@ -495,23 +495,23 @@ function compactTemplateContentFrame(layout=currentLayout(),marginCfg=null){
       landscape:{left:7.5,right:7.5}
     },
     card:{
-      portrait:{left:8.5,right:8.5},
-      landscape:{left:6.5,right:6.5}
+      portrait:{left:8.0,right:8.0},
+      landscape:{left:6.2,right:6.2}
     },
     widecard:{
-      portrait:{left:8.0,right:8.0},
-      landscape:{left:5.8,right:5.8}
+      portrait:{left:7.5,right:7.5},
+      landscape:{left:5.5,right:5.5}
     },
     minicard:{
-      portrait:{left:8.5,right:8.5},
-      landscape:{left:6.5,right:6.5}
+      portrait:{left:8.0,right:8.0},
+      landscape:{left:6.2,right:6.2}
     },
     square:{
       portrait:{left:8.5,right:8.5},
       landscape:{left:8.0,right:8.0}
     },
     ticket:{
-      portrait:{left:9.5,right:9.5},
+      portrait:{left:9.0,right:9.0},
       landscape:{left:6.0,right:6.0}
     }
   };
@@ -538,6 +538,61 @@ function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
   };
 }
 
+
+
+const SIDE_SUBTITLE_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
+
+function headingTextWidth(el,text,fallbackSize=24){
+  if(!el)return 0;
+  const canvas=headingTextWidth._canvas||(headingTextWidth._canvas=document.createElement("canvas"));
+  const ctx=canvas.getContext("2d");
+  const cs=getComputedStyle(el);
+  ctx.font=`${cs.fontStyle||"normal"} ${cs.fontWeight||"400"} ${cs.fontSize||fallbackSize+"px"} ${cs.fontFamily||"sans-serif"}`;
+  return Math.ceil(ctx.measureText(text||"").width);
+}
+
+function applySideSubtitleHeading(title,subtitle,layout,hp,titleTop,titleSize,leftInset,rightInset){
+  if(!SIDE_SUBTITLE_TEMPLATES.has(layout.template) || !title || !subtitle)return false;
+
+  const titleText=title.value||"";
+  const subtitleText=subtitle.value||"";
+  const subtitleSize=Math.max(10,Math.round(titleSize*.38));
+
+  const titleW=Math.max(34,headingTextWidth(title,titleText,titleSize)+8);
+  const subtitleW=Math.max(24,headingTextWidth(subtitle,subtitleText,subtitleSize)+6);
+  const gap=10;
+  const totalW=titleW+gap+subtitleW;
+
+  const imp=(el,p,v)=>el.style.setProperty(p,v,"important");
+
+  // Same row, subtitle slightly lower for optical alignment.
+  imp(title,"top",titleTop+"%");
+  imp(subtitle,"top",`calc(${titleTop}% + ${Math.max(4,Math.round(titleSize*.18))}px)`);
+
+  [title,subtitle].forEach(el=>{
+    imp(el,"right","auto");
+    imp(el,"transform","none");
+    imp(el,"max-width","none");
+    imp(el,"text-align","left");
+    imp(el,"margin","0");
+  });
+
+  imp(title,"width",titleW+"px");
+  imp(subtitle,"width",subtitleW+"px");
+
+  if(hp.align==="center"){
+    imp(title,"left",`calc(50% - ${Math.round(totalW/2)}px)`);
+    imp(subtitle,"left",`calc(50% - ${Math.round(totalW/2)}px + ${titleW+gap}px)`);
+  }else if(hp.align==="right"){
+    imp(title,"left",`calc(100% - ${rightInset}% - ${totalW}px)`);
+    imp(subtitle,"left",`calc(100% - ${rightInset}% - ${subtitleW}px)`);
+  }else{
+    imp(title,"left",leftInset+"%");
+    imp(subtitle,"left",`calc(${leftInset}% + ${titleW+gap}px)`);
+  }
+
+  return true;
+}
 
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
@@ -676,15 +731,21 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(showHeading){
-    title.style.top=titleTop+"%";
+    const sideHeading=applySideSubtitleHeading(
+      title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight
+    );
 
-    // Subtitle is ALWAYS below the title, never beside it.
-    const subtitleGapPx=Math.max(5,Math.round(titleSize*0.18));
-    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.02)}px + ${subtitleGapPx}px)`;
+    if(sideHeading){
+      const headingRowHeight=Math.max(30,Math.round(titleSize*1.22));
+      paper.style.setProperty("--card-heading-rule-top",`calc(${titleTop}% + ${headingRowHeight}px)`);
+    }else{
+      title.style.top=titleTop+"%";
+      const subtitleGapPx=Math.max(5,Math.round(titleSize*0.18));
+      subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.02)}px + ${subtitleGapPx}px)`;
 
-    // One shared underline below subtitle.
-    const headingBlockHeight=Math.round(titleSize*1.02)+subtitleGapPx+Math.max(18,Math.round(titleSize*.42));
-    paper.style.setProperty("--stacked-heading-rule-top",`calc(${titleTop}% + ${headingBlockHeight}px)`);
+      const headingBlockHeight=Math.round(titleSize*1.02)+subtitleGapPx+Math.max(18,Math.round(titleSize*.42));
+      paper.style.setProperty("--stacked-heading-rule-top",`calc(${titleTop}% + ${headingBlockHeight}px)`);
+    }
   }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
@@ -786,6 +847,28 @@ function updateTemplateMiniPreview(){
   }
 }
 
+
+function forceCenteredPageNumber(root=document){
+  if(!root)return;
+  const candidates=[
+    root.querySelector?.("#pageNumberPreview"),
+    root.querySelector?.(".page-number"),
+    root.querySelector?.(".page-number-preview"),
+    root.querySelector?.("[data-page-number]")
+  ].filter(Boolean);
+
+  candidates.forEach(el=>{
+    el.style.setProperty("position","absolute","important");
+    el.style.setProperty("left","50%","important");
+    el.style.setProperty("right","auto","important");
+    el.style.setProperty("transform","translateX(-50%)","important");
+    el.style.setProperty("text-align","center","important");
+    el.style.setProperty("margin-left","0","important");
+    el.style.setProperty("margin-right","0","important");
+    el.style.setProperty("width","auto","important");
+  });
+}
+
 function renderAll(){
   const s=current(); if(!s)return;
   const p=currentPage();
@@ -797,6 +880,7 @@ function renderAll(){
   $("subtitleInput").value=p.subtitle||"";
   $("editor").innerHTML=p.content||"";
   $("pageNumberPreview").textContent=[p.pagePrefix,p.pageNumber,p.pageSuffix].filter(Boolean).join(" ");
+  forceCenteredPageNumber(document);
   applyTypography();
   applyDocumentLayout();
   syncControls();
