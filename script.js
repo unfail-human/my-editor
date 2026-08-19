@@ -33,12 +33,12 @@ const DISTRIBUTION_LAYOUT={
   templateSettings:{
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    postcard:{orientation:"portrait",titleSize:25,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    card:{orientation:"landscape",titleSize:25,headingGap:88,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    widecard:{orientation:"landscape",titleSize:26,headingGap:80,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    minicard:{orientation:"landscape",titleSize:24,headingGap:84,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    square:{orientation:"portrait",titleSize:27,headingGap:104,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    ticket:{orientation:"landscape",titleSize:22,headingGap:70,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
+    postcard:{orientation:"portrait",titleSize:24,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:23,headingGap:72,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:24,headingGap:66,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:22,headingGap:70,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    square:{orientation:"portrait",titleSize:25,headingGap:88,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    ticket:{orientation:"landscape",titleSize:20,headingGap:58,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -150,22 +150,30 @@ async function loadSlotThumbnail(slotId,card){
 
 function normalizeGeneratedTemplateHeadingDefaults(layout){
   if(!layout?.templateSettings)return;
+
   const updates={
-    postcard:{oldSizes:[26],oldGaps:[104,116],size:25,gap:96},
-    card:{oldSizes:[27],oldGaps:[102,112],size:25,gap:88},
-    widecard:{oldSizes:[28],oldGaps:[96,106],size:26,gap:80},
-    minicard:{oldSizes:[26],oldGaps:[100,110],size:24,gap:84},
-    square:{oldSizes:[29],oldGaps:[118,128],size:27,gap:104},
-    ticket:{oldSizes:[24],oldGaps:[88,96],size:22,gap:70}
+    postcard:{oldSizes:[25,26],oldGaps:[96,104,116],size:24,gap:82},
+    card:{oldSizes:[25,27],oldGaps:[88,102,112],size:23,gap:72},
+    widecard:{oldSizes:[26,28],oldGaps:[80,96,106],size:24,gap:66},
+    minicard:{oldSizes:[24,26],oldGaps:[84,100,110],size:22,gap:70},
+    square:{oldSizes:[27,29],oldGaps:[104,118,128],size:25,gap:88},
+    ticket:{oldSizes:[22,24],oldGaps:[70,88,96],size:20,gap:58}
   };
+
   Object.entries(updates).forEach(([key,u])=>{
     const t=layout.templateSettings[key];
     if(!t)return;
+
     if(u.oldSizes.includes(t.titleSize))t.titleSize=u.size;
     if(u.oldGaps.includes(t.headingGap))t.headingGap=u.gap;
-    if(!t.headingPosition)t.headingPosition="top-left";
+
+    // Generated defaults should always return to a predictable top-left layout.
+    if(!t.headingPosition || ["top-left"].includes(t.headingPosition)){
+      t.headingPosition="top-left";
+    }
   });
 }
+
 
 function currentLayout(){
   const s=current();
@@ -420,18 +428,45 @@ function setHeadingPosition(el,pos){
 function resolvedTemplateHeadingLayout(layout=currentLayout()){
   const template=layout.template||"a4";
   const landscape=layout.orientation==="landscape";
+
   const presets={
-    a4:{portrait:{top:5.5,subGap:1.32,inset:4.5},landscape:{top:5.0,subGap:1.25,inset:4.0}},
-    letter:{portrait:{top:5.5,subGap:1.30,inset:4.5},landscape:{top:5.0,subGap:1.24,inset:4.0}},
-    postcard:{portrait:{top:6.0,subGap:1.24,inset:3.4},landscape:{top:5.0,subGap:1.18,inset:3.0}},
-    card:{portrait:{top:6.0,subGap:1.20,inset:3.0},landscape:{top:5.0,subGap:1.14,inset:2.8}},
-    widecard:{portrait:{top:5.5,subGap:1.18,inset:3.0},landscape:{top:4.5,subGap:1.10,inset:2.6}},
-    minicard:{portrait:{top:6.0,subGap:1.20,inset:3.0},landscape:{top:5.0,subGap:1.14,inset:2.8}},
-    square:{portrait:{top:5.5,subGap:1.24,inset:3.5},landscape:{top:5.0,subGap:1.18,inset:3.2}},
-    ticket:{portrait:{top:5.5,subGap:1.14,inset:2.8},landscape:{top:4.2,subGap:1.08,inset:2.5}}
+    a4:{
+      portrait:{top:5.5,subGap:1.32,inset:4.5,topSafe:104,centerSafe:285,bottomSafe:205},
+      landscape:{top:5.0,subGap:1.25,inset:4.0,topSafe:96,centerSafe:230,bottomSafe:168}
+    },
+    letter:{
+      portrait:{top:5.5,subGap:1.30,inset:4.5,topSafe:102,centerSafe:280,bottomSafe:200},
+      landscape:{top:5.0,subGap:1.24,inset:4.0,topSafe:94,centerSafe:225,bottomSafe:164}
+    },
+    postcard:{
+      portrait:{top:4.8,subGap:1.18,inset:3.0,topSafe:70,centerSafe:172,bottomSafe:122},
+      landscape:{top:4.2,subGap:1.14,inset:2.8,topSafe:62,centerSafe:142,bottomSafe:102}
+    },
+    card:{
+      portrait:{top:4.8,subGap:1.16,inset:2.8,topSafe:66,centerSafe:156,bottomSafe:110},
+      landscape:{top:3.8,subGap:1.10,inset:2.5,topSafe:56,centerSafe:126,bottomSafe:92}
+    },
+    widecard:{
+      portrait:{top:4.6,subGap:1.14,inset:2.7,topSafe:62,centerSafe:146,bottomSafe:104},
+      landscape:{top:3.5,subGap:1.08,inset:2.3,topSafe:50,centerSafe:112,bottomSafe:82}
+    },
+    minicard:{
+      portrait:{top:4.8,subGap:1.16,inset:2.8,topSafe:64,centerSafe:150,bottomSafe:106},
+      landscape:{top:3.8,subGap:1.10,inset:2.5,topSafe:54,centerSafe:120,bottomSafe:88}
+    },
+    square:{
+      portrait:{top:4.8,subGap:1.20,inset:3.2,topSafe:76,centerSafe:190,bottomSafe:138},
+      landscape:{top:4.2,subGap:1.16,inset:3.0,topSafe:68,centerSafe:166,bottomSafe:122}
+    },
+    ticket:{
+      portrait:{top:4.6,subGap:1.12,inset:2.5,topSafe:58,centerSafe:132,bottomSafe:94},
+      landscape:{top:3.2,subGap:1.06,inset:2.1,topSafe:46,centerSafe:96,bottomSafe:72}
+    }
   };
+
   return (presets[template]||presets.a4)[landscape?"landscape":"portrait"];
 }
+
 
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
@@ -540,9 +575,25 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   if(hp.y<30){
     titleTop=templateHeading.top;
   }else if(hp.y<65){
-    titleTop=compact?32:36;
+    const centerTop={
+      postcard:34,
+      card:31,
+      widecard:29,
+      minicard:31,
+      square:35,
+      ticket:28
+    }[layout.template];
+    titleTop=centerTop ?? (compact?32:36);
   }else{
-    titleTop=compact?74:79;
+    const bottomTop={
+      postcard:72,
+      card:69,
+      widecard:66,
+      minicard:68,
+      square:73,
+      ticket:64
+    }[layout.template];
+    titleTop=bottomTop ?? (compact?74:79);
   }
 
   if(showHeading){
@@ -560,59 +611,29 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
       // Compact automatic rhythm:
       // title -> subtitle/rule -> small breathing space -> body
-      const templateBase={
-        a4:layout.orientation==="landscape"?96:104,
-        letter:layout.orientation==="landscape"?94:102,
-        postcard:layout.orientation==="landscape"?70:78,
-        card:layout.orientation==="landscape"?66:76,
-        widecard:layout.orientation==="landscape"?60:72,
-        minicard:layout.orientation==="landscape"?64:74,
-        square:layout.orientation==="landscape"?76:86,
-        ticket:layout.orientation==="landscape"?54:66
-      }[layout.template]||100;
-
-      const sizeAdjust=(titleSize-34)*1.05;
-      const gapAdjust=(configuredGap-150)*.18;
-      const topSafe=Math.max(62,templateBase+sizeAdjust+gapAdjust);
+      const templateBase=templateHeading.topSafe;
+      const sizeAdjust=(titleSize-34)*.72;
+      const gapAdjust=(configuredGap-150)*.12;
+      const topSafe=Math.max(44,templateBase+sizeAdjust+gapAdjust);
 
       paper.style.setProperty("--heading-safe-top",Math.round(topSafe)+"px");
     }else if(hp.y<65){
       paper.classList.add("body-clear-center");
 
       // Center title owns a clean visual block; body begins safely below.
-      const centerBase={
-        a4:layout.orientation==="landscape"?230:285,
-        letter:layout.orientation==="landscape"?225:280,
-        postcard:layout.orientation==="landscape"?150:185,
-        card:layout.orientation==="landscape"?142:178,
-        widecard:layout.orientation==="landscape"?132:166,
-        minicard:layout.orientation==="landscape"?138:174,
-        square:layout.orientation==="landscape"?182:220,
-        ticket:layout.orientation==="landscape"?118:150
-      }[layout.template]||270;
-
+      const centerBase=templateHeading.centerSafe;
       const centerSafe=Math.max(
-        145,
-        centerBase+(titleSize-34)*1.15+(configuredGap-150)*.28
+        90,
+        centerBase+(titleSize-34)*.82+(configuredGap-150)*.18
       );
       paper.style.setProperty("--heading-safe-center",Math.round(centerSafe)+"px");
     }else{
       paper.classList.add("body-clear-bottom");
 
-      const bottomBase={
-        a4:layout.orientation==="landscape"?168:205,
-        letter:layout.orientation==="landscape"?164:200,
-        postcard:layout.orientation==="landscape"?110:132,
-        card:layout.orientation==="landscape"?104:128,
-        widecard:layout.orientation==="landscape"?96:120,
-        minicard:layout.orientation==="landscape"?102:126,
-        square:layout.orientation==="landscape"?134:160,
-        ticket:layout.orientation==="landscape"?88:112
-      }[layout.template]||190;
-
+      const bottomBase=templateHeading.bottomSafe;
       const bottomSafe=Math.max(
-        105,
-        bottomBase+(titleSize-34)*.8+(configuredGap-150)*.16
+        70,
+        bottomBase+(titleSize-34)*.55+(configuredGap-150)*.12
       );
       paper.style.setProperty("--heading-safe-bottom",Math.round(bottomSafe)+"px");
     }

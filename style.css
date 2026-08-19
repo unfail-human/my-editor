@@ -2395,3 +2395,38 @@ button{cursor:pointer}
   line-height:1.28 !important;
   padding-bottom:6px !important;
 }
+
+
+/* ===== V82 compact template heading reset ===== */
+.paper[data-document-template="postcard"] .title-input,
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="square"] .title-input,
+.paper[data-document-template="ticket"] .title-input{
+  line-height:1.06 !important;
+  letter-spacing:-.02em !important;
+}
+
+.paper[data-document-template="postcard"] .subtitle-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="square"] .subtitle-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  line-height:1.22 !important;
+  padding-top:0 !important;
+  padding-bottom:5px !important;
+}
+
+/* Keep title/subtitle visually inside the page for small formats. */
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="ticket"] .title-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  max-width:92% !important;
+}
