@@ -3283,3 +3283,30 @@ button{cursor:pointer}
 .export-host .paper.render-clone{
   transform-origin:center center !important;
 }
+
+
+/* ===== V101 export title clipping repair ===== */
+
+/* html2canvas can clip native input glyphs.
+   Export text layers preserve the final preview box but allow overflow. */
+.export-host .export-text-layer{
+  overflow:visible !important;
+  text-overflow:clip !important;
+  -webkit-text-fill-color:currentColor !important;
+  -webkit-font-smoothing:antialiased;
+  font-synthesis:none;
+}
+
+/* Prevent any historical title-input fixed heights from clipping converted layers. */
+.export-host .title-input.export-text-layer,
+.export-host .subtitle-input.export-text-layer{
+  max-height:none !important;
+  overflow:visible !important;
+  clip:auto !important;
+  clip-path:none !important;
+}
+
+/* Keep export paper clipping at document edge only, not at title text box. */
+.export-host .paper.render-clone{
+  overflow:hidden !important;
+}

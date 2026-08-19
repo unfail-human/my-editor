@@ -3194,6 +3194,65 @@ $("saveBackBtn").onclick=()=>{
 document.addEventListener("click",()=>{$("saveMenu").classList.remove("open");closePreviewSaveMenu()});$("saveMenu").onclick=e=>e.stopPropagation();
 document.querySelectorAll("[data-export]").forEach(b=>b.onclick=()=>exportFile(b.dataset.export));
 
+
+function replaceExportInputWithTextLayer(clone,selector,text){
+  const input=clone.querySelector(selector);
+  if(!input)return null;
+
+  const paperRect=clone.getBoundingClientRect();
+  const rect=input.getBoundingClientRect();
+  const cs=getComputedStyle(input);
+
+  const layer=document.createElement("div");
+  layer.className=(input.className||"")+" export-text-layer";
+  layer.textContent=text||"";
+
+  // Preserve the exact final visual rectangle from preview layout.
+  layer.style.setProperty("position","absolute","important");
+  layer.style.setProperty("left",(rect.left-paperRect.left)+"px","important");
+  layer.style.setProperty("top",(rect.top-paperRect.top)+"px","important");
+  layer.style.setProperty("width",rect.width+"px","important");
+
+  // Add vertical safety room so html2canvas cannot clip Korean glyph ascenders/descenders.
+  const safeHeight=Math.max(rect.height,parseFloat(cs.fontSize||"0")*1.45);
+  layer.style.setProperty("height",safeHeight+"px","important");
+  layer.style.setProperty("min-height",safeHeight+"px","important");
+  layer.style.setProperty("overflow","visible","important");
+
+  // Copy typography exactly.
+  layer.style.setProperty("font-family",cs.fontFamily,"important");
+  layer.style.setProperty("font-size",cs.fontSize,"important");
+  layer.style.setProperty("font-weight",cs.fontWeight,"important");
+  layer.style.setProperty("font-style",cs.fontStyle,"important");
+  layer.style.setProperty("font-stretch",cs.fontStretch||"normal","important");
+  layer.style.setProperty("letter-spacing",cs.letterSpacing,"important");
+  layer.style.setProperty("line-height",cs.lineHeight==="normal" ? "1.25" : cs.lineHeight,"important");
+  layer.style.setProperty("color",cs.color,"important");
+  layer.style.setProperty("text-align",cs.textAlign,"important");
+  layer.style.setProperty("text-decoration",cs.textDecorationLine||"none","important");
+  layer.style.setProperty("white-space","pre-wrap","important");
+  layer.style.setProperty("word-break","keep-all","important");
+  layer.style.setProperty("box-sizing","border-box","important");
+  layer.style.setProperty("padding","0","important");
+  layer.style.setProperty("margin","0","important");
+  layer.style.setProperty("border","0","important");
+  layer.style.setProperty("background","transparent","important");
+  layer.style.setProperty("transform","none","important");
+  layer.style.setProperty("z-index",cs.zIndex==="auto" ? "5" : cs.zIndex,"important");
+  layer.style.setProperty("pointer-events","none","important");
+
+  input.replaceWith(layer);
+  return layer;
+}
+
+function prepareCloneForCanvasCapture(clone,page){
+  // Convert only after the clone is mounted and layout is complete.
+  // This avoids html2canvas's native <input> text clipping while preserving preview coordinates.
+  replaceExportInputWithTextLayer(clone,".title-input",page.title||"");
+  replaceExportInputWithTextLayer(clone,".subtitle-input",page.subtitle||"");
+  forceCenteredPageNumber(clone);
+}
+
 async function capture(pageIndex=current().currentPageIndex||0){
   saveCurrent(false);
   await document.fonts.ready;
@@ -3201,24 +3260,26 @@ async function capture(pageIndex=current().currentPageIndex||0){
   const host=document.createElement("div");
   host.className="export-host";
 
-  // This is intentionally the same clone path as preview.
+  // Use the exact same geometry as preview.
   const clone=clonePageForIndex(pageIndex,{forExport:false});
   host.appendChild(clone);
   document.body.appendChild(host);
 
   try{
-    // Let fonts and layout fully settle in the mounted clone.
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
-    // DO NOT resize or recalculate at a different paper size here.
-    // The preview is already correct, so export captures that exact geometry.
+    const page=current().pages[pageIndex];
+
+    // At this point preview geometry is final.
+    // Convert only the native input text to export-safe text layers.
+    prepareCloneForCanvasCapture(clone,page);
+
+    await new Promise(r=>requestAnimationFrame(r));
+
     const rect=clone.getBoundingClientRect();
 
-    // High-resolution output comes from canvas scale only.
-    const outputScale=3;
-
     return await html2canvas(clone,{
-      scale:outputScale,
+      scale:3,
       useCORS:true,
       backgroundColor:null,
       width:Math.round(rect.width),
