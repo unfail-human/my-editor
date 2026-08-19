@@ -1,20 +1,20 @@
-MY EDITOR V99 — 저장 레이아웃 전체 수정
+MY EDITOR V100 — 미리보기와 저장 완전 동일화
 
-원인
-1. 오래된 export-host CSS가 모든 저장본을 A4 794x1123으로 강제
-2. 저장용 clone에서 title/subtitle input을 DIV로 바꿔 실제 편집 화면과 폭 계산이 달라짐
-3. applyDocumentLayout() 실행 후 export 크기를 다시 변경해 좌표/폭이 깨짐
-4. export editor에 16px / 고정 padding을 덮어쓰는 옛 규칙이 남아 있었음
+문제
+- 미리보기는 정상
+- 저장 시 export 전용 큰 픽셀 크기로 문서를 다시 늘리고 레이아웃을 재계산하면서 제목/소제목 좌표가 깨짐
 
 수정
-- 저장본 clone도 편집 화면과 동일한 title/subtitle input 사용
-- 최종 템플릿 크기를 먼저 설정한 뒤 레이아웃 계산
-- PNG/JPG/PDF capture 시 mounted 상태에서 동일 레이아웃 엔진을 한 번 더 적용
-- 오래된 A4 전용 export padding/font-size/width/height 규칙 무력화
-- 미리보기와 저장 모두 clonePageForIndex()의 동일 구조 사용
-- 쪽번호는 저장본에서도 항상 정확히 중앙
-- 출처는 오른쪽에 독립 배치
-- 각 문서 템플릿의 현재 가로/세로/기본형 비율 그대로 저장
-- 기존 슬롯/본문/템플릿 설정은 변경하지 않음
+- 저장도 미리보기와 동일한 clonePageForIndex(..., forExport:false) 경로 사용
+- 저장 직전에 문서 DOM 크기를 절대 변경하지 않음
+- 제목/소제목/본문/기호/푸터 좌표를 다시 계산하지 않음
+- 보이는 미리보기 크기 그대로 html2canvas 캡처
+- 해상도만 canvas scale=3으로 올려 고화질 저장
+- PNG/JPG/PDF 모두 동일 capture() 사용
+- 쪽번호 중앙 / 출처 오른쪽 유지
 
-자동 업데이트 공지 v99
+결과
+- 미리보기에서 정상이라면 저장 결과도 같은 배치로 나와야 함
+- 템플릿 비율과 제목 배치가 저장 과정에서 따로 변하지 않음
+
+자동 업데이트 공지 v100

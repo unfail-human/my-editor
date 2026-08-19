@@ -2855,27 +2855,16 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
 
   const layout=currentLayout();
 
-  // IMPORTANT:
-  // Establish the clone's final dimensions BEFORE calculating layout.
-  // Preview uses the live paper dimensions; export uses the exact template dimensions.
-  if(forExport){
-    const spec=layoutExportSpec(layout);
-    clone.style.setProperty("width",spec.widthPx+"px","important");
-    clone.style.setProperty("height",spec.heightPx+"px","important");
-    clone.style.setProperty("min-width",spec.widthPx+"px","important");
-    clone.style.setProperty("max-width",spec.widthPx+"px","important");
-    clone.style.setProperty("min-height",spec.heightPx+"px","important");
-    clone.style.setProperty("max-height",spec.heightPx+"px","important");
-    clone.style.setProperty("aspect-ratio","auto","important");
-  }else{
-    const liveRect=$("paper").getBoundingClientRect();
-    clone.style.setProperty("width",liveRect.width+"px","important");
-    clone.style.setProperty("height",liveRect.height+"px","important");
-    clone.style.setProperty("min-width",liveRect.width+"px","important");
-    clone.style.setProperty("max-width",liveRect.width+"px","important");
-    clone.style.setProperty("min-height",liveRect.height+"px","important");
-    clone.style.setProperty("max-height",liveRect.height+"px","important");
-  }
+  // V100: Preview and export use the EXACT SAME document geometry.
+  // Export resolution is increased by html2canvas scale only; the DOM is never resized.
+  const liveRect=$("paper").getBoundingClientRect();
+  clone.style.setProperty("width",liveRect.width+"px","important");
+  clone.style.setProperty("height",liveRect.height+"px","important");
+  clone.style.setProperty("min-width",liveRect.width+"px","important");
+  clone.style.setProperty("max-width",liveRect.width+"px","important");
+  clone.style.setProperty("min-height",liveRect.height+"px","important");
+  clone.style.setProperty("max-height",liveRect.height+"px","important");
+  clone.style.setProperty("aspect-ratio","auto","important");
 
   clone.style.setProperty("overflow","hidden","important");
 
@@ -3211,40 +3200,31 @@ async function capture(pageIndex=current().currentPageIndex||0){
 
   const host=document.createElement("div");
   host.className="export-host";
-  const clone=clonePageForIndex(pageIndex,{forExport:true});
+
+  // This is intentionally the same clone path as preview.
+  const clone=clonePageForIndex(pageIndex,{forExport:false});
   host.appendChild(clone);
   document.body.appendChild(host);
 
   try{
-    // Allow computed fonts/layout/pseudo-elements to settle.
+    // Let fonts and layout fully settle in the mounted clone.
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
-    // Re-run once in its mounted, final-size export context.
-    const page=current().pages[pageIndex];
-    applyTypographyToClone(clone,page);
-    applyDocumentLayoutToElement(
-      clone,
-      clone.querySelector(".editor"),
-      clone.querySelector(".title-input"),
-      clone.querySelector(".subtitle-input"),
-      pageIndex,
-      currentLayout()
-    );
-    refreshDividerStyles(clone.querySelector(".editor"));
-    forceCenteredPageNumber(clone);
+    // DO NOT resize or recalculate at a different paper size here.
+    // The preview is already correct, so export captures that exact geometry.
+    const rect=clone.getBoundingClientRect();
 
-    await new Promise(r=>requestAnimationFrame(r));
-
-    const spec=layoutExportSpec(currentLayout());
+    // High-resolution output comes from canvas scale only.
+    const outputScale=3;
 
     return await html2canvas(clone,{
-      scale:2,
+      scale:outputScale,
       useCORS:true,
       backgroundColor:null,
-      width:spec.widthPx,
-      height:spec.heightPx,
-      windowWidth:Math.max(1200,spec.widthPx+200),
-      windowHeight:Math.max(1000,spec.heightPx+200),
+      width:Math.round(rect.width),
+      height:Math.round(rect.height),
+      windowWidth:Math.max(1200,Math.ceil(rect.width)+200),
+      windowHeight:Math.max(1000,Math.ceil(rect.height)+200),
       scrollX:0,
       scrollY:0,
       logging:false
