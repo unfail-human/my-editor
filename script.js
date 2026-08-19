@@ -34,11 +34,11 @@ const DISTRIBUTION_LAYOUT={
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     postcard:{orientation:"portrait",titleSize:24,headingGap:78,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    card:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:28,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:18,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:18,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     square:{orientation:"portrait",titleSize:25,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    ticket:{orientation:"landscape",titleSize:28,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
+    ticket:{orientation:"landscape",titleSize:28,headingGap:18,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -539,69 +539,6 @@ function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
 }
 
 
-const INLINE_CARD_HEADING_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
-
-function measureHeadingTextWidth(el,text,fallbackSize=24){
-  if(!el)return 0;
-  const canvas=measureHeadingTextWidth._canvas||(measureHeadingTextWidth._canvas=document.createElement("canvas"));
-  const ctx=canvas.getContext("2d");
-  const cs=getComputedStyle(el);
-  const fontSize=cs.fontSize||fallbackSize+"px";
-  const fontFamily=cs.fontFamily||"sans-serif";
-  const fontWeight=cs.fontWeight||"400";
-  const fontStyle=cs.fontStyle||"normal";
-  ctx.font=`${fontStyle} ${fontWeight} ${fontSize} ${fontFamily}`;
-  return Math.ceil(ctx.measureText(text||"").width);
-}
-
-function applyInlineCardHeadingLayout(paper,title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight){
-  if(!INLINE_CARD_HEADING_TEMPLATES.has(layout.template) || !title || !subtitle)return false;
-
-  const titleText=title.value||"";
-  const subtitleText=subtitle.value||"";
-
-  const subtitleSize=Math.max(10,Math.round(titleSize*.38));
-  const gapPx=8;
-  const titleW=Math.max(30,measureHeadingTextWidth(title,titleText,titleSize)+6);
-  const subtitleW=Math.max(20,measureHeadingTextWidth(subtitle,subtitleText,subtitleSize)+4);
-  const totalW=titleW+gapPx+subtitleW;
-
-  const setImp=(el,prop,val)=>el.style.setProperty(prop,val,"important");
-
-  // Same baseline row.
-  setImp(title,"top",titleTop+"%");
-  setImp(subtitle,"top",`calc(${titleTop}% + ${Math.max(2,Math.round(titleSize*.10))}px)`);
-
-  setImp(title,"width",titleW+"px");
-  setImp(subtitle,"width",subtitleW+"px");
-  setImp(title,"max-width","none");
-  setImp(subtitle,"max-width","none");
-  setImp(title,"right","auto");
-  setImp(subtitle,"right","auto");
-  setImp(title,"transform","none");
-  setImp(subtitle,"transform","none");
-  setImp(title,"text-align","left");
-  setImp(subtitle,"text-align","left");
-
-  if(hp.align==="center"){
-    setImp(title,"left",`calc(50% - ${Math.round(totalW/2)}px)`);
-    setImp(subtitle,"left",`calc(50% - ${Math.round(totalW/2)}px + ${titleW+gapPx}px)`);
-  }else if(hp.align==="right"){
-    setImp(title,"left",`calc(100% - ${effectiveRuleRight}% - ${totalW}px)`);
-    setImp(subtitle,"left",`calc(100% - ${effectiveRuleRight}% - ${subtitleW}px)`);
-  }else{
-    setImp(title,"left",effectiveRuleLeft+"%");
-    setImp(subtitle,"left",`calc(${effectiveRuleLeft}% + ${titleW+gapPx}px)`);
-  }
-
-  // One underline under the combined row.
-  const ruleOffset=Math.max(28,Math.round(titleSize*1.22));
-  paper.style.setProperty("--inline-heading-rule-top",`calc(${titleTop}% + ${ruleOffset}px)`);
-
-  return true;
-}
-
-
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
 
@@ -675,12 +612,13 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   const effectiveRuleLeft=ruleLeft;
   const effectiveRuleRight=ruleRight;
 
-  // Title + subtitle are one heading block.
-  // Same start/end line, same text alignment, subtitle directly below title.
+  // Title and subtitle share the exact same horizontal frame.
+  // Subtitle sits directly BELOW title.
   if(title){
     title.style.left=effectiveRuleLeft+"%";
     title.style.right=effectiveRuleRight+"%";
     title.style.width="auto";
+    title.style.maxWidth="none";
     title.style.transform="none";
     title.style.textAlign=hp.align;
   }
@@ -689,6 +627,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     subtitle.style.left=effectiveRuleLeft+"%";
     subtitle.style.right=effectiveRuleRight+"%";
     subtitle.style.width="auto";
+    subtitle.style.maxWidth="none";
     subtitle.style.transform="none";
     subtitle.style.textAlign=hp.align;
   }
@@ -737,15 +676,15 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(showHeading){
-    const usedInlineHeading=applyInlineCardHeadingLayout(
-      paper,title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight
-    );
+    title.style.top=titleTop+"%";
 
-    if(!usedInlineHeading){
-      title.style.top=titleTop+"%";
-      const subtitleGapPx=Math.max(4,Math.round(titleSize*0.14));
-      subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*templateHeading.subGap)}px + ${subtitleGapPx}px)`;
-    }
+    // Subtitle is ALWAYS below the title, never beside it.
+    const subtitleGapPx=Math.max(5,Math.round(titleSize*0.18));
+    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.02)}px + ${subtitleGapPx}px)`;
+
+    // One shared underline below subtitle.
+    const headingBlockHeight=Math.round(titleSize*1.02)+subtitleGapPx+Math.max(18,Math.round(titleSize*.42));
+    paper.style.setProperty("--stacked-heading-rule-top",`calc(${titleTop}% + ${headingBlockHeight}px)`);
   }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
@@ -763,13 +702,13 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       const gapAdjust=(configuredGap-150)*.12;
 
       let topSafe;
-      if(INLINE_CARD_HEADING_TEMPLATES.has(layout.template)){
+      if(["card","widecard","minicard","ticket"].includes(layout.template)){
         topSafe={
-          card:74,
-          widecard:68,
-          minicard:70,
-          ticket:66
-        }[layout.template]||70;
+          card:92,
+          widecard:86,
+          minicard:88,
+          ticket:86
+        }[layout.template]||88;
       }else{
         topSafe=Math.max(44,templateBase+sizeAdjust+gapAdjust);
       }

@@ -2575,8 +2575,11 @@ button{cursor:pointer}
 
 
 
-/* ===== V89 reference-card layout (conflict-free) ===== */
 
+
+/* ===== V90 stacked heading + real card shapes ===== */
+
+/* Title / subtitle: same left and right edges, vertical stack */
 .paper[data-document-template="card"] .title-input,
 .paper[data-document-template="card"] .subtitle-input,
 .paper[data-document-template="widecard"] .title-input,
@@ -2585,31 +2588,36 @@ button{cursor:pointer}
 .paper[data-document-template="minicard"] .subtitle-input,
 .paper[data-document-template="ticket"] .title-input,
 .paper[data-document-template="ticket"] .subtitle-input{
-  right:auto !important;
+  left:var(--rule-left) !important;
+  right:var(--rule-right) !important;
+  width:auto !important;
   max-width:none !important;
   margin:0 !important;
-  padding:0 !important;
   transform:none !important;
-  border-bottom:0 !important;
   box-sizing:border-box !important;
+  border-bottom:0 !important;
 }
 
+/* Title looks like the reference */
 .paper[data-document-template="card"] .title-input,
 .paper[data-document-template="widecard"] .title-input,
 .paper[data-document-template="minicard"] .title-input,
 .paper[data-document-template="ticket"] .title-input{
-  line-height:1 !important;
+  line-height:1.02 !important;
+  padding:0 !important;
 }
 
+/* Subtitle sits directly beneath title */
 .paper[data-document-template="card"] .subtitle-input,
 .paper[data-document-template="widecard"] .subtitle-input,
 .paper[data-document-template="minicard"] .subtitle-input,
 .paper[data-document-template="ticket"] .subtitle-input{
-  line-height:1 !important;
-  opacity:.64 !important;
+  line-height:1.08 !important;
+  padding:0 !important;
+  opacity:.68 !important;
 }
 
-/* A single rule belongs to the entire heading row. */
+/* One underline below the whole title/subtitle block */
 .paper[data-document-template="card"]::before,
 .paper[data-document-template="widecard"]::before,
 .paper[data-document-template="minicard"]::before,
@@ -2618,13 +2626,57 @@ button{cursor:pointer}
   position:absolute;
   left:var(--rule-left);
   right:var(--rule-right);
-  top:var(--inline-heading-rule-top);
+  top:var(--stacked-heading-rule-top);
   border-top:1px solid rgba(105,98,90,.22);
   z-index:3;
   pointer-events:none;
 }
 
-/* Body starts directly below the inline heading row. */
+/* Card family shapes */
+.paper[data-document-template="card"]{
+  border-radius:11px !important;
+  overflow:hidden !important;
+}
+
+.paper[data-document-template="widecard"]{
+  border-radius:10px !important;
+  overflow:hidden !important;
+}
+
+.paper[data-document-template="minicard"]{
+  border-radius:10px !important;
+  overflow:hidden !important;
+}
+
+/* Ticket gets real side notches like the reference */
+.paper[data-document-template="ticket"]{
+  position:relative !important;
+  border-radius:8px !important;
+  overflow:visible !important;
+}
+
+/* Ticket body masking: use background cutouts matching workspace color */
+.paper[data-document-template="ticket"]::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:20;
+  background:
+    radial-gradient(circle at 0% 18%, var(--workspace-bg,#d5d1cb) 0 18px, transparent 19px),
+    radial-gradient(circle at 0% 82%, var(--workspace-bg,#d5d1cb) 0 18px, transparent 19px),
+    radial-gradient(circle at 100% 18%, var(--workspace-bg,#d5d1cb) 0 18px, transparent 19px),
+    radial-gradient(circle at 100% 82%, var(--workspace-bg,#d5d1cb) 0 18px, transparent 19px);
+  border-radius:8px;
+}
+
+/* Ensure content stays above ticket cutout overlay */
+.paper[data-document-template="ticket"] > *{
+  position:relative;
+  z-index:2;
+}
+
+/* Card body follows heading frame */
 .paper[data-document-template="card"].body-clear-top .editor.writing-horizontal,
 .paper[data-document-template="widecard"].body-clear-top .editor.writing-horizontal,
 .paper[data-document-template="minicard"].body-clear-top .editor.writing-horizontal,

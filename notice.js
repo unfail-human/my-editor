@@ -39,7 +39,7 @@ window.MY_EDITOR_NOTICE = {
 */
 window.MY_EDITOR_AUTO_UPDATE_NOTICE = {
   enabled: true,
-  version: "89",
+  version: "90",
   title: "업데이트 안내",
   message: "업데이트가 완료되었습니다.\n새로고침 후 다시 사용해주시길 바랍니다.",
   button: "확인"
