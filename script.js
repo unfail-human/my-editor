@@ -34,11 +34,11 @@ const DISTRIBUTION_LAYOUT={
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     postcard:{orientation:"portrait",titleSize:24,headingGap:78,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    card:{orientation:"landscape",titleSize:28,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:18,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:18,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     square:{orientation:"portrait",titleSize:25,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    ticket:{orientation:"landscape",titleSize:28,headingGap:18,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
+    ticket:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -154,25 +154,20 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
   const updates={
     postcard:{oldSizes:[23,24,25,26],oldGaps:[76,78,82,96,104,116],size:24,gap:78},
     card:{oldSizes:[22,23,25,27,28],oldGaps:[20,22,66,68,72,74,88,102,112],size:28,gap:22},
-    widecard:{oldSizes:[23,24,26,28],oldGaps:[20,60,62,66,68,80,96,106],size:28,gap:20},
-    minicard:{oldSizes:[21,22,24,26],oldGaps:[20,64,66,68,70,84,100,110],size:26,gap:20},
+    widecard:{oldSizes:[23,24,26,28],oldGaps:[18,20,22,60,62,66,68,80,96,106],size:28,gap:22},
+    minicard:{oldSizes:[21,22,24,26],oldGaps:[18,20,64,66,68,70,84,100,110],size:26,gap:20},
     square:{oldSizes:[24,25,27,29],oldGaps:[80,82,88,104,118,128],size:25,gap:82},
-    ticket:{oldSizes:[19,20,21,22,24,28],oldGaps:[20,54,58,60,68,70,88,96],size:28,gap:20}
+    ticket:{oldSizes:[19,20,21,22,24,28],oldGaps:[18,20,22,54,58,60,68,70,88,96],size:28,gap:22}
   };
 
   Object.entries(updates).forEach(([key,u])=>{
     const t=layout.templateSettings[key];
     if(!t)return;
-
     const generatedSize=u.oldSizes.includes(t.titleSize);
     const generatedGap=u.oldGaps.includes(t.headingGap);
-
     if(generatedSize)t.titleSize=u.size;
     if(generatedGap)t.headingGap=u.gap;
-
-    if(generatedSize && generatedGap){
-      t.headingPosition="top-left";
-    }
+    if(generatedSize&&generatedGap)t.headingPosition="top-left";
   });
 
   const letter=layout.templateSettings.letter;
@@ -491,41 +486,38 @@ function compactTemplateContentFrame(layout=currentLayout(),marginCfg=null){
 
   const frames={
     postcard:{
-      portrait:{left:8.5,right:8.5},
-      landscape:{left:7.5,right:7.5}
+      portrait:{left:8.0,right:8.0},
+      landscape:{left:7.0,right:7.0}
     },
     card:{
-      portrait:{left:8.0,right:8.0},
-      landscape:{left:6.2,right:6.2}
+      portrait:{left:7.5,right:7.5},
+      landscape:{left:6.3,right:6.3}
     },
     widecard:{
-      portrait:{left:7.5,right:7.5},
-      landscape:{left:5.5,right:5.5}
+      portrait:{left:7.0,right:7.0},
+      landscape:{left:5.8,right:5.8}
     },
     minicard:{
-      portrait:{left:8.0,right:8.0},
-      landscape:{left:6.2,right:6.2}
+      portrait:{left:7.5,right:7.5},
+      landscape:{left:6.5,right:6.5}
     },
     square:{
-      portrait:{left:8.5,right:8.5},
+      portrait:{left:8.0,right:8.0},
       landscape:{left:8.0,right:8.0}
     },
     ticket:{
-      portrait:{left:9.0,right:9.0},
-      landscape:{left:6.0,right:6.0}
+      portrait:{left:10.0,right:10.0},
+      landscape:{left:7.3,right:7.3}
     }
   };
 
   const entry=frames[layout.template];
   if(!entry)return null;
-
   const target=entry[landscape?"landscape":"portrait"];
-  return {
-    left:Math.max(target.left,cfg.page.left),
-    right:Math.max(target.right,cfg.page.right)
-  };
-}
 
+  // Template geometry wins for these design templates.
+  return {left:target.left,right:target.right};
+}
 
 function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
   if(layout.template!=="letter")return null;
@@ -540,56 +532,57 @@ function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
 
 
 
-const SIDE_SUBTITLE_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
 
-function headingTextWidth(el,text,fallbackSize=24){
+const REFERENCE_CARD_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
+
+function _headingTextWidth(el,text,fallbackSize){
   if(!el)return 0;
-  const canvas=headingTextWidth._canvas||(headingTextWidth._canvas=document.createElement("canvas"));
+  const canvas=_headingTextWidth._canvas||(_headingTextWidth._canvas=document.createElement("canvas"));
   const ctx=canvas.getContext("2d");
   const cs=getComputedStyle(el);
   ctx.font=`${cs.fontStyle||"normal"} ${cs.fontWeight||"400"} ${cs.fontSize||fallbackSize+"px"} ${cs.fontFamily||"sans-serif"}`;
   return Math.ceil(ctx.measureText(text||"").width);
 }
 
-function applySideSubtitleHeading(title,subtitle,layout,hp,titleTop,titleSize,leftInset,rightInset){
-  if(!SIDE_SUBTITLE_TEMPLATES.has(layout.template) || !title || !subtitle)return false;
+function applyReferenceCardHeading(paper,title,subtitle,layout,hp,titleTop,titleSize,leftInset,rightInset){
+  if(!REFERENCE_CARD_TEMPLATES.has(layout.template)||!title||!subtitle)return false;
 
-  const titleText=title.value||"";
-  const subtitleText=subtitle.value||"";
-  const subtitleSize=Math.max(10,Math.round(titleSize*.38));
-
-  const titleW=Math.max(34,headingTextWidth(title,titleText,titleSize)+8);
-  const subtitleW=Math.max(24,headingTextWidth(subtitle,subtitleText,subtitleSize)+6);
-  const gap=10;
-  const totalW=titleW+gap+subtitleW;
-
-  const imp=(el,p,v)=>el.style.setProperty(p,v,"important");
-
-  // Same row, subtitle slightly lower for optical alignment.
-  imp(title,"top",titleTop+"%");
-  imp(subtitle,"top",`calc(${titleTop}% + ${Math.max(4,Math.round(titleSize*.18))}px)`);
+  const imp=(el,k,v)=>el.style.setProperty(k,v,"important");
+  const subtitleSize=Math.max(10,Math.round(titleSize*.40));
+  const titleW=Math.max(40,_headingTextWidth(title,title.value||"",titleSize)+8);
+  const subtitleW=Math.max(28,_headingTextWidth(subtitle,subtitle.value||"",subtitleSize)+6);
+  const gap=8;
+  const total=titleW+gap+subtitleW;
 
   [title,subtitle].forEach(el=>{
     imp(el,"right","auto");
-    imp(el,"transform","none");
     imp(el,"max-width","none");
-    imp(el,"text-align","left");
+    imp(el,"transform","none");
     imp(el,"margin","0");
+    imp(el,"padding","0");
+    imp(el,"text-align","left");
   });
 
+  imp(title,"top",titleTop+"%");
+  // Optical baseline: subtitle is slightly lower than the title.
+  imp(subtitle,"top",`calc(${titleTop}% + ${Math.max(4,Math.round(titleSize*.16))}px)`);
   imp(title,"width",titleW+"px");
   imp(subtitle,"width",subtitleW+"px");
 
   if(hp.align==="center"){
-    imp(title,"left",`calc(50% - ${Math.round(totalW/2)}px)`);
-    imp(subtitle,"left",`calc(50% - ${Math.round(totalW/2)}px + ${titleW+gap}px)`);
+    imp(title,"left",`calc(50% - ${Math.round(total/2)}px)`);
+    imp(subtitle,"left",`calc(50% - ${Math.round(total/2)}px + ${titleW+gap}px)`);
   }else if(hp.align==="right"){
-    imp(title,"left",`calc(100% - ${rightInset}% - ${totalW}px)`);
+    imp(title,"left",`calc(100% - ${rightInset}% - ${total}px)`);
     imp(subtitle,"left",`calc(100% - ${rightInset}% - ${subtitleW}px)`);
   }else{
     imp(title,"left",leftInset+"%");
     imp(subtitle,"left",`calc(${leftInset}% + ${titleW+gap}px)`);
   }
+
+  // Reference image: noticeable breathing room before the rule.
+  const ruleOffset=Math.round(titleSize*1.30)+8;
+  paper.style.setProperty("--reference-heading-rule-top",`calc(${titleTop}% + ${ruleOffset}px)`);
 
   return true;
 }
@@ -731,38 +724,28 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(showHeading){
-    const sideHeading=applySideSubtitleHeading(
-      title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight
+    const referenceHeading=applyReferenceCardHeading(
+      paper,title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight
     );
 
-    if(sideHeading){
-      const headingRowHeight=Math.max(30,Math.round(titleSize*1.22));
-      paper.style.setProperty("--card-heading-rule-top",`calc(${titleTop}% + ${headingRowHeight + 10}px)`);
-    }else{
+    if(!referenceHeading){
       title.style.top=titleTop+"%";
-
       const isPostcard=layout.template==="postcard";
       const subtitleGapPx=isPostcard
-        ? Math.max(3,Math.round(titleSize*0.10))
-        : Math.max(5,Math.round(titleSize*0.18));
+        ? Math.max(3,Math.round(titleSize*.10))
+        : Math.max(5,Math.round(titleSize*.18));
 
       subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.02)}px + ${subtitleGapPx}px)`;
+      subtitle.style.setProperty("left",effectiveRuleLeft+"%","important");
+      subtitle.style.setProperty("right",effectiveRuleRight+"%","important");
+      subtitle.style.setProperty("width","auto","important");
+      subtitle.style.setProperty("text-align",hp.align,"important");
+      subtitle.style.setProperty("transform","none","important");
 
-      // Postcard subtitle must use exactly the same horizontal frame and alignment.
-      if(isPostcard){
-        subtitle.style.setProperty("left",effectiveRuleLeft+"%","important");
-        subtitle.style.setProperty("right",effectiveRuleRight+"%","important");
-        subtitle.style.setProperty("width","auto","important");
-        subtitle.style.setProperty("text-align",hp.align,"important");
-        subtitle.style.setProperty("transform","none","important");
-      }
-
-      const headingBlockHeight=Math.round(titleSize*1.02)+subtitleGapPx+Math.max(18,Math.round(titleSize*.42));
-      paper.style.setProperty("--stacked-heading-rule-top",`calc(${titleTop}% + ${headingBlockHeight}px)`);
+      const stackedHeight=Math.round(titleSize*1.02)+subtitleGapPx+Math.max(18,Math.round(titleSize*.42));
+      paper.style.setProperty("--stacked-heading-rule-top",`calc(${titleTop}% + ${stackedHeight}px)`);
     }
   }
-
-  paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
 
   const configuredGap=Math.max(0,Math.min(240,Number(ts.headingGap??150)));
 
@@ -777,28 +760,24 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       const gapAdjust=(configuredGap-150)*.12;
 
       let topSafe;
-      if(["card","widecard","minicard","ticket"].includes(layout.template)){
-        const baseTopSafe={
-          card:84,
-          widecard:78,
-          minicard:80,
-          ticket:80
-        }[layout.template]||80;
+      if(REFERENCE_CARD_TEMPLATES.has(layout.template)){
+        // Reference-card baseline includes title row + underline.
+        const baseline={
+          card:78,
+          widecard:72,
+          minicard:74,
+          ticket:74
+        }[layout.template]||74;
 
-        // Card family now respects the UI "제목 · 본문 간격".
-        // 20px is treated as the visual baseline; moving the slider
-        // increases/decreases the body start point directly.
-        const cardGapBaseline={
-          card:20,
-          widecard:18,
-          minicard:18,
-          ticket:18
-        }[layout.template]||18;
+        const defaultGap={
+          card:22,
+          widecard:22,
+          minicard:20,
+          ticket:22
+        }[layout.template]||22;
 
-        topSafe=Math.max(
-          58,
-          baseTopSafe + (configuredGap-cardGapBaseline)
-        );
+        // UI "제목 · 본문 간격" is applied 1:1.
+        topSafe=Math.max(52,baseline+(configuredGap-defaultGap));
       }else{
         topSafe=Math.max(44,templateBase+sizeAdjust+gapAdjust);
       }
