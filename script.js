@@ -209,17 +209,17 @@ const DOCUMENT_MARGIN_PRESETS={
   narrow:{
     page:{top:12,bottom:12,left:10,right:10},
     headerFooter:{header:6,footer:6},
-    body:{top:-5,bottom:-5,left:-5,right:-5}
+    body:{top:-20,bottom:-20,left:-20,right:-20}
   },
   normal:{
     page:{top:20,bottom:20,left:18,right:18},
     headerFooter:{header:8,footer:8},
-    body:{top:-5,bottom:-5,left:-5,right:-5}
+    body:{top:-20,bottom:-20,left:-20,right:-20}
   },
   wide:{
     page:{top:30,bottom:30,left:28,right:28},
     headerFooter:{header:10,footer:10},
-    body:{top:-1,bottom:-1,left:-1,right:-1}
+    body:{top:-16,bottom:-16,left:-16,right:-16}
   }
 };
 
@@ -239,6 +239,16 @@ function ensureMarginSettings(layout=currentLayout()){
   ts.pageMargins={...DOCUMENT_MARGIN_PRESETS.normal.page,...ts.pageMargins};
   ts.headerFooterMargins={...DOCUMENT_MARGIN_PRESETS.normal.headerFooter,...ts.headerFooterMargins};
   ts.bodyMargins={...DOCUMENT_MARGIN_PRESETS.normal.body,...ts.bodyMargins};
+
+  // V79: migrate the previous preset body-margin defaults to the tighter defaults.
+  const bm=ts.bodyMargins;
+  if(["narrow","normal"].includes(ts.marginPreset) &&
+     bm.top===-5 && bm.bottom===-5 && bm.left===-5 && bm.right===-5){
+    ts.bodyMargins={top:-20,bottom:-20,left:-20,right:-20};
+  }else if(ts.marginPreset==="wide" &&
+           bm.top===-1 && bm.bottom===-1 && bm.left===-1 && bm.right===-1){
+    ts.bodyMargins={top:-16,bottom:-16,left:-16,right:-16};
+  }
 
   return ts;
 }
@@ -413,7 +423,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   // Page margin controls the title/subtitle rule frame.
   // Body margin is an additional inner margin inside that page frame.
   const marginCfg=effectiveDocumentMargins(layout);
-  const shiftX=Math.max(-4,Math.min(5,Number(ts.bodyShiftX??-2)));
+  const shiftX=0;
 
   const ruleLeft=Math.max(-4,marginCfg.page.left);
   const ruleRight=Math.max(-4,marginCfg.page.right);
@@ -450,7 +460,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(subtitle){
-    const subtitleInset=2.4;
+    const subtitleInset=4.5;
     subtitle.style.width="auto";
     subtitle.style.transform="none";
     subtitle.style.textAlign=hp.align;
@@ -1751,8 +1761,6 @@ function syncControls(){
   $("templateHeadingGap").value=ts.headingGap;
   $("templateHeadingGapOut").textContent=ts.headingGap+"px";
   const bodyShiftX=ts.bodyShiftX??-2;
-  $("templateBodyShiftX").value=bodyShiftX;
-  $("templateBodyShiftXOut").textContent=bodyShiftX===0?"기본":(bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(bodyShiftX)+"%";
   $("templateHeadingPosition").value=ts.headingPosition;
   $("writingMode").value=l.writingMode;
   $("columnCount").value=String(l.columns);
@@ -1847,16 +1855,6 @@ $("templateHeadingGap").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFro
 
 
 
-$("templateBodyShiftX").oninput=e=>{
-  const layout=currentLayout();
-  const ts=ensureTemplateSettings(layout);
-  ts.bodyShiftX=Number(e.target.value);
-  $("templateBodyShiftXOut").textContent=ts.bodyShiftX===0?"기본":(ts.bodyShiftX>0?"오른쪽 ":"왼쪽 ")+Math.abs(ts.bodyShiftX)+"%";
-  persist();
-  applyDocumentLayout();
-  scheduleLayoutReflow();
-};
-$("templateBodyShiftX").onchange=()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
 
 $("templateHeadingPosition").onchange=e=>{
   const layout=currentLayout();
