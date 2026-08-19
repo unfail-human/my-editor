@@ -1,7 +1,33 @@
-MY EDITOR V73
-- DearLog ZIP 안의 favicon.png를 가공 없이 byte-for-byte 그대로 사용
-- My Editor용 파일명만 favicon-v73.png로 변경하여 브라우저 favicon 캐시 강제 갱신
-- 기존 favicon/icon link 태그를 모두 제거하고 새 파일만 참조
-- favicon / shortcut icon / apple-touch-icon 모두 같은 favicon-v73.png 사용
-- 링크 공유 이미지는 DearLog ZIP의 og-image.png를 그대로 og-image-v73.png로 사용
-- OG/Twitter 이미지 URL도 v73 새 파일명으로 강제 갱신
+MY EDITOR V74
+
+문서 여백 UI
+- 문서 템플릿 가장 아래
+- 기존 텍스트형 '여백 설정' 버튼을 페이지 모양 아이콘 카드로 변경
+- 현재 프리셋 이름 표시
+- 좁게 / 보통 / 넓게 프리셋
+
+용지 여백
+- 위 / 아래 / 왼쪽 / 오른쪽 mm 상세 조정
+
+머리말 · 바닥글
+- 머리말 영역 / 바닥글 영역 별도 조정
+
+본문 여백
+- 용지 여백 안쪽에서 실제 본문 영역의
+  위 / 아래 / 왼쪽 / 오른쪽 여백 별도 조정
+- 문서 외곽 여백과 본문 내부 여백을 분리 저장
+- 템플릿별로 개별 저장
+
+기호
+- 항상 중앙 고정
+- 문서 여백 / 본문 위치 / 본문 여백과 독립
+- 2/3단에서도 해당 단 중앙 유지
+
+자동 페이지
+- 여백 변경 후 전체 페이지 분량 재계산
+- 넘치는 본문은 다음 페이지로 자동 이동
+
+favicon / 공유 이미지
+- V73 DearLog 동일 방식 유지
+
+자동 업데이트 공지 v74

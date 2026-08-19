@@ -2065,3 +2065,245 @@ button{cursor:pointer}
 .template-margin-launcher{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}.template-margin-launcher .layout-subhead{margin:0 0 3px!important;padding:0!important;border:0!important}.margin-summary{font-size:9px;color:#8a837b}.margin-dialog{width:min(520px,calc(100vw - 28px))}.margin-modal-body{padding:18px}.margin-preset-section,.margin-detail-section{padding:14px 0}.margin-preset-section h3,.margin-detail-section h3{margin:0 0 10px;font-size:11px}.margin-preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.margin-preset-btn{display:grid;gap:3px;text-align:left;padding:12px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#5d5751;cursor:pointer}.margin-preset-btn strong{font-size:11px}.margin-preset-btn span{font-size:8px;color:#9a938b}.margin-preset-btn.active{border-color:#7c756d;box-shadow:inset 0 0 0 1px #7c756d}.margin-detail-section{border-top:1px solid var(--line)}.margin-detail-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.margin-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.number-field{display:grid;gap:5px;font-size:9px}.number-field>div{display:flex;align-items:center;gap:5px}.number-field input{width:100%;min-width:0;padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:#fff;box-sizing:border-box}.number-field div span{font-size:8px;color:#938c84}.margin-modal-actions{display:flex;justify-content:flex-end;gap:7px;padding-top:14px;border-top:1px solid var(--line)}
 /* divider is always geometrically centered, independent of margins/body shift */
 .paper.layout-enabled .editor>.paragraph-divider{position:relative!important;left:0!important;right:0!important;margin-left:0!important;margin-right:0!important;width:100%!important;max-width:100%!important;text-align:center!important;justify-content:center!important;transform:none!important}.paper.layout-enabled .editor>.paragraph-divider.with-line{display:flex!important;align-items:center!important;justify-content:center!important}.paper.layout-enabled .editor>.paragraph-divider.with-line::before,.paper.layout-enabled .editor>.paragraph-divider.with-line::after{flex:1 1 auto!important}
+
+
+/* ===== V74 document margin launcher ===== */
+.template-margin-launcher{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid var(--line);
+}
+.margin-launch-btn{
+  width:100%;
+  display:grid;
+  grid-template-columns:34px 1fr 16px;
+  align-items:center;
+  gap:10px;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:rgba(255,255,255,.58);
+  color:#5f5953;
+  cursor:pointer;
+  text-align:left;
+}
+.margin-launch-btn:hover{
+  background:#fff;
+  border-color:#c4bdb5;
+}
+.margin-launch-icon{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  position:relative;
+}
+.margin-page-outline{
+  position:absolute;
+  width:19px;
+  height:24px;
+  border:1px solid #918980;
+  border-radius:2px;
+  box-sizing:border-box;
+  background:#fff;
+}
+.margin-page-inner{
+  position:absolute;
+  width:11px;
+  height:16px;
+  border:1px dashed #c5bdb4;
+  border-radius:1px;
+  box-sizing:border-box;
+}
+.margin-launch-copy{
+  display:grid;
+  gap:2px;
+}
+.margin-launch-copy strong{
+  font-size:10px;
+  font-weight:700;
+}
+.margin-launch-copy small{
+  font-size:8px;
+  color:#9a928a;
+}
+.margin-launch-chevron{
+  font-size:16px;
+  color:#9e968e;
+}
+
+/* ===== V74 margin modal ===== */
+.margin-dialog{
+  width:min(560px,calc(100vw - 28px));
+  max-height:min(760px,calc(100vh - 40px));
+  overflow:auto;
+}
+.margin-modal-body{
+  padding:4px 18px 18px;
+}
+.margin-preset-section,
+.margin-detail-section{
+  padding:14px 0;
+}
+.margin-detail-section{
+  border-top:1px solid var(--line);
+}
+.margin-section-title h3,
+.margin-detail-head h3{
+  margin:0 0 3px;
+  font-size:11px;
+}
+.margin-section-title p,
+.margin-detail-head p{
+  margin:0;
+  font-size:8px;
+  color:#9a938b;
+  line-height:1.5;
+}
+.margin-preset-grid{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.margin-preset-btn{
+  display:grid;
+  justify-items:center;
+  gap:7px;
+  padding:11px 8px 9px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+  cursor:pointer;
+  color:#5e5852;
+}
+.margin-preset-btn.active{
+  border-color:#827970;
+  box-shadow:inset 0 0 0 1px #827970;
+}
+.margin-preset-preview{
+  width:30px;
+  height:38px;
+  border:1px solid #b8b0a7;
+  border-radius:2px;
+  display:grid;
+  place-items:center;
+  box-sizing:border-box;
+  background:#fff;
+}
+.margin-preset-preview i{
+  display:block;
+  border:1px solid #d0c8bf;
+  box-sizing:border-box;
+}
+.narrow-preview i{width:24px;height:32px}
+.normal-preview i{width:20px;height:28px}
+.wide-preview i{width:14px;height:22px}
+.margin-preset-btn strong{font-size:9px}
+
+.margin-detail-head{margin-bottom:10px}
+.margin-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px 10px;
+}
+.number-field{
+  display:grid;
+  gap:5px;
+  font-size:9px;
+}
+.number-field > div{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.number-field input{
+  width:100%;
+  min-width:0;
+  padding:8px 9px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:#fff;
+  box-sizing:border-box;
+}
+.number-field div span{
+  font-size:8px;
+  color:#938c84;
+}
+.body-margin-section{
+  margin-left:-18px;
+  margin-right:-18px;
+  padding-left:18px;
+  padding-right:18px;
+  background:rgba(249,247,244,.58);
+}
+.margin-modal-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:15px;
+  border-top:1px solid var(--line);
+}
+.margin-modal-action-right{
+  display:flex;
+  gap:7px;
+}
+
+/* ===== V74 page/body margin geometry ===== */
+.paper.layout-enabled{
+  --body-inner-top:0%;
+  --body-inner-bottom:0%;
+  --header-margin:0%;
+  --footer-margin:0%;
+}
+.paper.layout-enabled .editor.writing-horizontal,
+.paper.layout-enabled .editor.layout-columns{
+  padding-left:var(--body-frame-left) !important;
+  padding-right:var(--body-frame-right) !important;
+}
+.paper.layout-enabled.body-clear-top .editor.writing-horizontal,
+.paper.layout-enabled.body-clear-top .editor.layout-columns{
+  padding-top:calc(var(--heading-safe-top) + var(--body-inner-top)) !important;
+  padding-bottom:calc(30px + var(--body-inner-bottom)) !important;
+}
+.paper.layout-enabled.body-clear-center .editor.writing-horizontal,
+.paper.layout-enabled.body-clear-center .editor.layout-columns{
+  padding-top:calc(var(--heading-safe-center) + var(--body-inner-top)) !important;
+  padding-bottom:calc(30px + var(--body-inner-bottom)) !important;
+}
+.paper.layout-enabled.body-clear-bottom .editor.writing-horizontal,
+.paper.layout-enabled.body-clear-bottom .editor.layout-columns{
+  padding-top:calc(24px + var(--body-inner-top)) !important;
+  padding-bottom:calc(var(--heading-safe-bottom) + var(--body-inner-bottom)) !important;
+}
+.paper.layout-enabled.layout-no-heading .editor.writing-horizontal,
+.paper.layout-enabled.layout-no-heading .editor.layout-columns{
+  padding-top:calc(22px + var(--body-inner-top)) !important;
+  padding-bottom:calc(30px + var(--body-inner-bottom)) !important;
+}
+
+/* Divider ornament is always centered and ignores body/page margin movement. */
+.paper.layout-enabled .editor > .paragraph-divider,
+.paper.layout-enabled .editor > .paragraph-divider-spacer{
+  left:0 !important;
+  right:0 !important;
+  transform:none !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+.paper.layout-enabled .editor > .paragraph-divider{
+  width:100% !important;
+  max-width:100% !important;
+  text-align:center !important;
+  justify-content:center !important;
+}
+.paper.layout-enabled .editor > .paragraph-divider.with-line{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+.paper.layout-enabled .editor > .paragraph-divider.with-line::before,
+.paper.layout-enabled .editor > .paragraph-divider.with-line::after{
+  flex:1 1 auto !important;
+}

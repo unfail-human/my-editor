@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="my-editor-version" content="73">
+  <meta name="my-editor-version" content="74">
   <title>My Writing Editor</title>
   <link rel="icon" type="image/png" sizes="1254x1254" href="./favicon-v73.png?v=73">
   <link rel="shortcut icon" type="image/png" href="./favicon-v73.png?v=73">
@@ -30,7 +30,7 @@
 
 
 
-  <link rel="stylesheet" href="style.css?v=73">
+  <link rel="stylesheet" href="style.css?v=74">
 </head>
 <body>
 
@@ -310,11 +310,17 @@
           <p class="hint">이 값은 현재 선택한 템플릿에만 저장됩니다. 다른 템플릿으로 바꾸면 해당 템플릿의 설정을 따로 불러옵니다.</p>
         
         <div class="template-margin-launcher">
-          <div>
-            <div class="layout-subhead">문서 여백</div>
-            <div id="documentMarginSummary" class="margin-summary">보통</div>
-          </div>
-          <button id="openDocumentMarginBtn" class="small-btn" type="button">여백 설정</button>
+          <button id="openDocumentMarginBtn" class="margin-launch-btn" type="button">
+            <span class="margin-launch-icon" aria-hidden="true">
+              <span class="margin-page-outline"></span>
+              <span class="margin-page-inner"></span>
+            </span>
+            <span class="margin-launch-copy">
+              <strong>문서 여백</strong>
+              <small id="documentMarginSummary">보통</small>
+            </span>
+            <span class="margin-launch-chevron">›</span>
+          </button>
         </div>
 </section>
 
@@ -736,29 +742,85 @@
 <div id="documentMarginModal" class="modal" hidden>
   <div class="modal-dialog margin-dialog">
     <header class="modal-head">
-      <div><div class="eyebrow">DOCUMENT MARGIN</div><h2>문서 여백</h2></div>
+      <div>
+        <div class="eyebrow">PAGE SETUP</div>
+        <h2>문서 여백</h2>
+      </div>
       <button class="close-btn" data-close-document-margin>×</button>
     </header>
+
     <div class="margin-modal-body">
       <section class="margin-preset-section">
-        <h3>기본 여백</h3>
+        <div class="margin-section-title">
+          <h3>기본 여백</h3>
+          <p>문서 전체 여백을 빠르게 선택합니다.</p>
+        </div>
         <div class="margin-preset-grid">
-          <button type="button" class="margin-preset-btn" data-margin-preset="narrow"><strong>좁게</strong><span>여백을 작게</span></button>
-          <button type="button" class="margin-preset-btn active" data-margin-preset="normal"><strong>보통</strong><span>기본 문서 여백</span></button>
-          <button type="button" class="margin-preset-btn" data-margin-preset="wide"><strong>넓게</strong><span>여백을 넉넉하게</span></button>
+          <button type="button" class="margin-preset-btn" data-margin-preset="narrow">
+            <span class="margin-preset-preview narrow-preview"><i></i></span>
+            <strong>좁게</strong>
+          </button>
+          <button type="button" class="margin-preset-btn active" data-margin-preset="normal">
+            <span class="margin-preset-preview normal-preview"><i></i></span>
+            <strong>보통</strong>
+          </button>
+          <button type="button" class="margin-preset-btn" data-margin-preset="wide">
+            <span class="margin-preset-preview wide-preview"><i></i></span>
+            <strong>넓게</strong>
+          </button>
         </div>
       </section>
+
       <section class="margin-detail-section">
-        <div class="margin-detail-head"><h3>상세 설정</h3><button id="resetDocumentMarginBtn" class="small-btn" type="button">보통으로 초기화</button></div>
-        <div class="margin-detail-grid">
-          <label class="number-field"><span>위</span><div><input id="marginTopInput" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
-          <label class="number-field"><span>아래</span><div><input id="marginBottomInput" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
-          <label class="number-field"><span>왼쪽</span><div><input id="marginLeftInput" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
-          <label class="number-field"><span>오른쪽</span><div><input id="marginRightInput" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
+        <div class="margin-detail-head">
+          <div>
+            <h3>용지 여백</h3>
+            <p>종이 가장자리부터 문서 내용 영역까지의 여백입니다.</p>
+          </div>
         </div>
-        <p class="hint">상세 값을 직접 바꾸면 사용자 지정 여백으로 저장됩니다.</p>
+        <div class="margin-detail-grid">
+          <label class="number-field"><span>위</span><div><input id="pageMarginTop" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
+          <label class="number-field"><span>아래</span><div><input id="pageMarginBottom" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
+          <label class="number-field"><span>왼쪽</span><div><input id="pageMarginLeft" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
+          <label class="number-field"><span>오른쪽</span><div><input id="pageMarginRight" type="number" min="5" max="80" step="1"><span>mm</span></div></label>
+        </div>
       </section>
-      <div class="margin-modal-actions"><button id="cancelDocumentMarginBtn" class="top-btn" type="button">취소</button><button id="applyDocumentMarginBtn" class="top-btn primary" type="button">적용</button></div>
+
+      <section class="margin-detail-section">
+        <div class="margin-detail-head">
+          <div>
+            <h3>머리말 · 바닥글</h3>
+            <p>위쪽 머리말 영역과 아래쪽 바닥글 영역을 따로 조정합니다.</p>
+          </div>
+        </div>
+        <div class="margin-detail-grid two">
+          <label class="number-field"><span>머리말</span><div><input id="headerMarginInput" type="number" min="0" max="50" step="1"><span>mm</span></div></label>
+          <label class="number-field"><span>바닥글</span><div><input id="footerMarginInput" type="number" min="0" max="50" step="1"><span>mm</span></div></label>
+        </div>
+      </section>
+
+      <section class="margin-detail-section body-margin-section">
+        <div class="margin-detail-head">
+          <div>
+            <h3>본문 여백</h3>
+            <p>용지 여백 안쪽에서 실제 본문 영역의 여백을 다시 조절합니다.</p>
+          </div>
+        </div>
+        <div class="margin-detail-grid">
+          <label class="number-field"><span>위</span><div><input id="bodyMarginTop" type="number" min="0" max="50" step="1"><span>mm</span></div></label>
+          <label class="number-field"><span>아래</span><div><input id="bodyMarginBottom" type="number" min="0" max="50" step="1"><span>mm</span></div></label>
+          <label class="number-field"><span>왼쪽</span><div><input id="bodyMarginLeft" type="number" min="0" max="50" step="1"><span>mm</span></div></label>
+          <label class="number-field"><span>오른쪽</span><div><input id="bodyMarginRight" type="number" min="0" max="50" step="1"><span>mm</span></div></label>
+        </div>
+      </section>
+
+      <div class="margin-modal-actions">
+        <button id="resetDocumentMarginBtn" class="top-btn" type="button">보통으로 초기화</button>
+        <div class="margin-modal-action-right">
+          <button id="cancelDocumentMarginBtn" class="top-btn" type="button">취소</button>
+          <button id="applyDocumentMarginBtn" class="top-btn primary" type="button">적용</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -853,7 +915,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="notice.js?v=73"></script>
-<script src="script.js?v=73"></script>
+<script src="notice.js?v=74"></script>
+<script src="script.js?v=74"></script>
 </body>
 </html>

@@ -206,23 +206,77 @@ function currentTemplateSettings(){
 
 
 const DOCUMENT_MARGIN_PRESETS={
-  narrow:{top:12,bottom:12,left:10,right:10},
-  normal:{top:20,bottom:20,left:18,right:18},
-  wide:{top:30,bottom:30,left:28,right:28}
+  narrow:{
+    page:{top:12,bottom:12,left:10,right:10},
+    headerFooter:{header:6,footer:6},
+    body:{top:0,bottom:0,left:0,right:0}
+  },
+  normal:{
+    page:{top:20,bottom:20,left:18,right:18},
+    headerFooter:{header:8,footer:8},
+    body:{top:0,bottom:0,left:0,right:0}
+  },
+  wide:{
+    page:{top:30,bottom:30,left:28,right:28},
+    headerFooter:{header:10,footer:10},
+    body:{top:4,bottom:4,left:4,right:4}
+  }
 };
-function ensureTemplateMargins(layout=currentLayout()){
+
+function ensureMarginSettings(layout=currentLayout()){
   const ts=ensureTemplateSettings(layout);
+
+  // Migrate V73 legacy single margin object.
+  if(!ts.pageMargins && ts.margins){
+    ts.pageMargins={...ts.margins};
+  }
+
   if(!ts.marginPreset)ts.marginPreset="normal";
-  if(!ts.margins)ts.margins={...DOCUMENT_MARGIN_PRESETS.normal};
-  ts.margins={...DOCUMENT_MARGIN_PRESETS.normal,...ts.margins};
-  return ts.margins;
+  if(!ts.pageMargins)ts.pageMargins={...DOCUMENT_MARGIN_PRESETS.normal.page};
+  if(!ts.headerFooterMargins)ts.headerFooterMargins={...DOCUMENT_MARGIN_PRESETS.normal.headerFooter};
+  if(!ts.bodyMargins)ts.bodyMargins={...DOCUMENT_MARGIN_PRESETS.normal.body};
+
+  ts.pageMargins={...DOCUMENT_MARGIN_PRESETS.normal.page,...ts.pageMargins};
+  ts.headerFooterMargins={...DOCUMENT_MARGIN_PRESETS.normal.headerFooter,...ts.headerFooterMargins};
+  ts.bodyMargins={...DOCUMENT_MARGIN_PRESETS.normal.body,...ts.bodyMargins};
+
+  return ts;
 }
-function marginPresetLabel(p){return p==="narrow"?"좁게":p==="wide"?"넓게":p==="custom"?"사용자 지정":"보통"}
-function mmToPercent(mm,total){return Math.max(.5,Math.min(30,(mm/total)*100))}
-function currentMarginPercentages(layout=currentLayout()){
-  const spec=layoutExportSpec(layout),m=ensureTemplateMargins(layout);
-  return {top:mmToPercent(m.top,spec.heightMm),bottom:mmToPercent(m.bottom,spec.heightMm),left:mmToPercent(m.left,spec.widthMm),right:mmToPercent(m.right,spec.widthMm)};
+
+function marginPresetLabel(preset){
+  return preset==="narrow"?"좁게":
+         preset==="wide"?"넓게":
+         preset==="custom"?"사용자 지정":"보통";
 }
+
+function mmToPercent(mm,totalMm){
+  return Math.max(0,Math.min(35,(Number(mm)||0)/totalMm*100));
+}
+
+function effectiveDocumentMargins(layout=currentLayout()){
+  const ts=ensureMarginSettings(layout);
+  const spec=layoutExportSpec(layout);
+
+  return {
+    page:{
+      top:mmToPercent(ts.pageMargins.top,spec.heightMm),
+      bottom:mmToPercent(ts.pageMargins.bottom,spec.heightMm),
+      left:mmToPercent(ts.pageMargins.left,spec.widthMm),
+      right:mmToPercent(ts.pageMargins.right,spec.widthMm)
+    },
+    headerFooter:{
+      header:mmToPercent(ts.headerFooterMargins.header,spec.heightMm),
+      footer:mmToPercent(ts.headerFooterMargins.footer,spec.heightMm)
+    },
+    body:{
+      top:mmToPercent(ts.bodyMargins.top,spec.heightMm),
+      bottom:mmToPercent(ts.bodyMargins.bottom,spec.heightMm),
+      left:mmToPercent(ts.bodyMargins.left,spec.widthMm),
+      right:mmToPercent(ts.bodyMargins.right,spec.widthMm)
+    }
+  };
+}
+
 function layoutRatio(layout=currentLayout()){
   const base={
     a4:210/297,
@@ -356,24 +410,36 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     layout.headingY
   );
 
-  // Shared geometry. Body sits only slightly inside the subtitle rule.
-  const ruleLeft=layout.orientation==="landscape"?4:4.5;
-  const ruleRight=layout.orientation==="landscape"?6:6.5;
-
-  // Body position is independent of text alignment.
-  // Negative values move the whole body box left, positive values move it right.
+  // Page margin controls the title/subtitle rule frame.
+  // Body margin is an additional inner margin inside that page frame.
+  const marginCfg=effectiveDocumentMargins(layout);
   const shiftX=Math.max(-4,Math.min(5,Number(ts.bodyShiftX??-2)));
-  const marginPct=currentMarginPercentages(layout);
-  const safeLeft=Math.max(.8,marginPct.left+shiftX);
-  const safeRight=Math.max(.8,marginPct.right-shiftX);
-  paper.style.setProperty("--rule-left",marginPct.left+"%");
-  paper.style.setProperty("--rule-right",marginPct.right+"%");
-  paper.style.setProperty("--body-frame-left",safeLeft+"%");
-  paper.style.setProperty("--body-frame-right",safeRight+"%");
-  paper.style.setProperty("--page-margin-top",marginPct.top+"%");
-  paper.style.setProperty("--page-margin-bottom",marginPct.bottom+"%");
-  const effectiveRuleLeft=marginPct.left;
-  const effectiveRuleRight=marginPct.right;
+
+  const ruleLeft=Math.max(.8,marginCfg.page.left);
+  const ruleRight=Math.max(.8,marginCfg.page.right);
+
+  const bodyLeft=Math.max(
+    .8,
+    marginCfg.page.left + marginCfg.body.left + shiftX
+  );
+  const bodyRight=Math.max(
+    .8,
+    marginCfg.page.right + marginCfg.body.right - shiftX
+  );
+
+  paper.style.setProperty("--rule-left",ruleLeft+"%");
+  paper.style.setProperty("--rule-right",ruleRight+"%");
+  paper.style.setProperty("--body-frame-left",bodyLeft+"%");
+  paper.style.setProperty("--body-frame-right",bodyRight+"%");
+  paper.style.setProperty("--page-margin-top",marginCfg.page.top+"%");
+  paper.style.setProperty("--page-margin-bottom",marginCfg.page.bottom+"%");
+  paper.style.setProperty("--body-inner-top",marginCfg.body.top+"%");
+  paper.style.setProperty("--body-inner-bottom",marginCfg.body.bottom+"%");
+  paper.style.setProperty("--header-margin",marginCfg.headerFooter.header+"%");
+  paper.style.setProperty("--footer-margin",marginCfg.headerFooter.footer+"%");
+
+  const effectiveRuleLeft=ruleLeft;
+  const effectiveRuleRight=ruleRight;
 
   [title,subtitle].forEach(el=>{
     if(!el)return;
@@ -1808,28 +1874,139 @@ $("coverTitleFirstPage").onchange=e=>{
 
 
 
-let marginDraft=null;
+let documentMarginDraft=null;
+
 function syncDocumentMarginSummary(){
-  const ts=ensureTemplateSettings(currentLayout());
-  const m=ensureTemplateMargins(currentLayout());
+  const ts=ensureMarginSettings(currentLayout());
   const el=$("documentMarginSummary");
-  if(el)el.textContent=(ts.marginPreset||"normal")==="custom"?`사용자 지정 · ${m.top}/${m.bottom}/${m.left}/${m.right}mm`:marginPresetLabel(ts.marginPreset||"normal");
+  if(el)el.textContent=marginPresetLabel(ts.marginPreset||"normal");
 }
-function fillMarginModal(){
-  const ts=ensureTemplateSettings(currentLayout()),m=ensureTemplateMargins(currentLayout());
-  marginDraft={preset:ts.marginPreset||"normal",margins:{...m}};
-  $("marginTopInput").value=m.top;$("marginBottomInput").value=m.bottom;$("marginLeftInput").value=m.left;$("marginRightInput").value=m.right;
-  document.querySelectorAll("[data-margin-preset]").forEach(b=>b.classList.toggle("active",b.dataset.marginPreset===marginDraft.preset));
+
+function fillDocumentMarginDraftInputs(){
+  if(!documentMarginDraft)return;
+  $("pageMarginTop").value=documentMarginDraft.page.top;
+  $("pageMarginBottom").value=documentMarginDraft.page.bottom;
+  $("pageMarginLeft").value=documentMarginDraft.page.left;
+  $("pageMarginRight").value=documentMarginDraft.page.right;
+
+  $("headerMarginInput").value=documentMarginDraft.headerFooter.header;
+  $("footerMarginInput").value=documentMarginDraft.headerFooter.footer;
+
+  $("bodyMarginTop").value=documentMarginDraft.body.top;
+  $("bodyMarginBottom").value=documentMarginDraft.body.bottom;
+  $("bodyMarginLeft").value=documentMarginDraft.body.left;
+  $("bodyMarginRight").value=documentMarginDraft.body.right;
 }
-function setMarginDraftPreset(p){marginDraft={preset:p,margins:{...DOCUMENT_MARGIN_PRESETS[p]}};$("marginTopInput").value=marginDraft.margins.top;$("marginBottomInput").value=marginDraft.margins.bottom;$("marginLeftInput").value=marginDraft.margins.left;$("marginRightInput").value=marginDraft.margins.right;document.querySelectorAll("[data-margin-preset]").forEach(b=>b.classList.toggle("active",b.dataset.marginPreset===p));}
-function updateMarginDraftFromInputs(){if(!marginDraft)return;marginDraft.preset="custom";marginDraft.margins={top:Math.max(5,Math.min(80,Number($("marginTopInput").value)||20)),bottom:Math.max(5,Math.min(80,Number($("marginBottomInput").value)||20)),left:Math.max(5,Math.min(80,Number($("marginLeftInput").value)||18)),right:Math.max(5,Math.min(80,Number($("marginRightInput").value)||18))};document.querySelectorAll("[data-margin-preset]").forEach(b=>b.classList.remove("active"));}
-$("openDocumentMarginBtn").onclick=()=>{fillMarginModal();$("documentMarginModal").hidden=false};
-document.querySelectorAll("[data-close-document-margin]").forEach(b=>b.onclick=()=>{$("documentMarginModal").hidden=true});
-$("cancelDocumentMarginBtn").onclick=()=>{$("documentMarginModal").hidden=true};
-document.querySelectorAll("[data-margin-preset]").forEach(b=>b.onclick=()=>setMarginDraftPreset(b.dataset.marginPreset));
-["marginTopInput","marginBottomInput","marginLeftInput","marginRightInput"].forEach(id=>$(id).oninput=updateMarginDraftFromInputs);
-$("resetDocumentMarginBtn").onclick=()=>setMarginDraftPreset("normal");
-$("applyDocumentMarginBtn").onclick=()=>{if(!marginDraft)return;const ts=ensureTemplateSettings(currentLayout());ts.marginPreset=marginDraft.preset;ts.margins={...marginDraft.margins};persist();$("documentMarginModal").hidden=true;renderAll();syncDocumentMarginSummary();requestAnimationFrame(()=>requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot));};
+
+function fillDocumentMarginModal(){
+  const ts=ensureMarginSettings(currentLayout());
+  documentMarginDraft={
+    preset:ts.marginPreset||"normal",
+    page:{...ts.pageMargins},
+    headerFooter:{...ts.headerFooterMargins},
+    body:{...ts.bodyMargins}
+  };
+
+  fillDocumentMarginDraftInputs();
+
+  document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.marginPreset===documentMarginDraft.preset);
+  });
+}
+
+function setDocumentMarginPreset(preset){
+  const p=DOCUMENT_MARGIN_PRESETS[preset];
+  documentMarginDraft={
+    preset,
+    page:{...p.page},
+    headerFooter:{...p.headerFooter},
+    body:{...p.body}
+  };
+
+  fillDocumentMarginDraftInputs();
+
+  document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.marginPreset===preset);
+  });
+}
+
+function updateDocumentMarginDraft(){
+  if(!documentMarginDraft)return;
+
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,Number(v)||0));
+
+  documentMarginDraft.preset="custom";
+  documentMarginDraft.page={
+    top:clamp($("pageMarginTop").value,5,80),
+    bottom:clamp($("pageMarginBottom").value,5,80),
+    left:clamp($("pageMarginLeft").value,5,80),
+    right:clamp($("pageMarginRight").value,5,80)
+  };
+  documentMarginDraft.headerFooter={
+    header:clamp($("headerMarginInput").value,0,50),
+    footer:clamp($("footerMarginInput").value,0,50)
+  };
+  documentMarginDraft.body={
+    top:clamp($("bodyMarginTop").value,0,50),
+    bottom:clamp($("bodyMarginBottom").value,0,50),
+    left:clamp($("bodyMarginLeft").value,0,50),
+    right:clamp($("bodyMarginRight").value,0,50)
+  };
+
+  document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+}
+
+$("openDocumentMarginBtn").onclick=()=>{
+  fillDocumentMarginModal();
+  $("documentMarginModal").hidden=false;
+};
+
+document.querySelectorAll("[data-close-document-margin]").forEach(btn=>{
+  btn.onclick=()=>{$("documentMarginModal").hidden=true};
+});
+
+$("cancelDocumentMarginBtn").onclick=()=>{
+  $("documentMarginModal").hidden=true;
+};
+
+document.querySelectorAll("[data-margin-preset]").forEach(btn=>{
+  btn.onclick=()=>setDocumentMarginPreset(btn.dataset.marginPreset);
+});
+
+[
+  "pageMarginTop","pageMarginBottom","pageMarginLeft","pageMarginRight",
+  "headerMarginInput","footerMarginInput",
+  "bodyMarginTop","bodyMarginBottom","bodyMarginLeft","bodyMarginRight"
+].forEach(id=>{
+  $(id).oninput=updateDocumentMarginDraft;
+});
+
+$("resetDocumentMarginBtn").onclick=()=>{
+  setDocumentMarginPreset("normal");
+};
+
+$("applyDocumentMarginBtn").onclick=()=>{
+  if(!documentMarginDraft)return;
+
+  const ts=ensureMarginSettings(currentLayout());
+  ts.marginPreset=documentMarginDraft.preset;
+  ts.pageMargins={...documentMarginDraft.page};
+  ts.headerFooterMargins={...documentMarginDraft.headerFooter};
+  ts.bodyMargins={...documentMarginDraft.body};
+
+  persist();
+  $("documentMarginModal").hidden=true;
+  syncDocumentMarginSummary();
+  renderAll();
+
+  requestAnimationFrame(()=>{
+    applyDocumentLayout();
+    requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  });
+};
+
 function syncBackgroundOptionPanels(){
   const mode=current().background.mode||"solid";
   document.querySelectorAll(".bg-options").forEach(p=>p.classList.toggle("active",p.dataset.bgOptions===mode));
