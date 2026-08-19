@@ -450,7 +450,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(subtitle){
-    const subtitleInset=1.15;
+    const subtitleInset=2.4;
     subtitle.style.width="auto";
     subtitle.style.transform="none";
     subtitle.style.textAlign=hp.align;
