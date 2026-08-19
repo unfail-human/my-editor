@@ -219,6 +219,10 @@ function syncOrientationControlForTemplate(){
   }
 }
 function currentLayout(){
+  if(s?.layout?.template==="ticket"){
+    s.layout.template="card";
+  }
+
   const s=current();
   if(!s.layout)s.layout=defaultLayout();
 
@@ -573,7 +577,7 @@ function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
 
 
 
-const REFERENCE_CARD_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
+const REFERENCE_CARD_TEMPLATES=new Set(["card","widecard","minicard"]);
 
 function _headingTextWidth(el,text,fallbackSize){
   if(!el)return 0;
