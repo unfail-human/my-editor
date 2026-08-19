@@ -444,49 +444,49 @@ function resolvedTemplateHeadingLayout(layout=currentLayout()){
 
   const presets={
     a4:{
-      portrait:{top:5.5,subGap:1.32,inset:4.5,topSafe:104,centerSafe:285,bottomSafe:205},
-      landscape:{top:5.0,subGap:1.25,inset:4.0,topSafe:96,centerSafe:230,bottomSafe:168}
+      portrait:{top:5.5,subGap:1.04,inset:1.6,topSafe:104,centerSafe:285,bottomSafe:205},
+      landscape:{top:5.0,subGap:1.07,inset:1.5,topSafe:96,centerSafe:230,bottomSafe:168}
     },
 
     // Letter: A4-like rhythm, slightly more inward.
     letter:{
-      portrait:{top:5.8,subGap:1.30,inset:4.2,topSafe:106,centerSafe:282,bottomSafe:202},
-      landscape:{top:5.2,subGap:1.24,inset:3.8,topSafe:98,centerSafe:232,bottomSafe:168}
+      portrait:{top:5.8,subGap:1.04,inset:1.6,topSafe:106,centerSafe:282,bottomSafe:202},
+      landscape:{top:5.2,subGap:1.07,inset:1.5,topSafe:98,centerSafe:232,bottomSafe:168}
     },
 
     // Postcard: compact but still document-like.
     postcard:{
-      portrait:{top:5.5,subGap:1.18,inset:2.6,topSafe:80,centerSafe:178,bottomSafe:128},
-      landscape:{top:4.8,subGap:1.14,inset:2.4,topSafe:70,centerSafe:150,bottomSafe:108}
+      portrait:{top:5.5,subGap:1.04,inset:1.4,topSafe:80,centerSafe:178,bottomSafe:128},
+      landscape:{top:4.8,subGap:1.05,inset:1.4,topSafe:70,centerSafe:150,bottomSafe:108}
     },
 
     // 3:2 card.
     card:{
-      portrait:{top:5.4,subGap:1.16,inset:2.5,topSafe:76,centerSafe:166,bottomSafe:118},
-      landscape:{top:4.4,subGap:1.10,inset:2.2,topSafe:64,centerSafe:136,bottomSafe:98}
+      portrait:{top:5.4,subGap:1.04,inset:1.4,topSafe:76,centerSafe:166,bottomSafe:118},
+      landscape:{top:4.4,subGap:1.05,inset:1.4,topSafe:64,centerSafe:136,bottomSafe:98}
     },
 
     // 16:9 wide card: very shallow vertically.
     widecard:{
-      portrait:{top:5.2,subGap:1.14,inset:2.4,topSafe:72,centerSafe:156,bottomSafe:110},
-      landscape:{top:4.0,subGap:1.08,inset:2.0,topSafe:56,centerSafe:122,bottomSafe:88}
+      portrait:{top:5.2,subGap:1.05,inset:1.4,topSafe:72,centerSafe:156,bottomSafe:110},
+      landscape:{top:4.0,subGap:1.04,inset:1.4,topSafe:56,centerSafe:122,bottomSafe:88}
     },
 
     // 4:3 mini card.
     minicard:{
-      portrait:{top:5.4,subGap:1.16,inset:2.5,topSafe:74,centerSafe:160,bottomSafe:114},
-      landscape:{top:4.4,subGap:1.10,inset:2.2,topSafe:62,centerSafe:132,bottomSafe:94}
+      portrait:{top:5.4,subGap:1.04,inset:1.4,topSafe:74,centerSafe:160,bottomSafe:114},
+      landscape:{top:4.4,subGap:1.05,inset:1.4,topSafe:62,centerSafe:132,bottomSafe:94}
     },
 
     square:{
-      portrait:{top:5.4,subGap:1.18,inset:2.8,topSafe:84,centerSafe:196,bottomSafe:142},
-      landscape:{top:4.8,subGap:1.14,inset:2.6,topSafe:76,centerSafe:174,bottomSafe:126}
+      portrait:{top:5.4,subGap:1.04,inset:1.4,topSafe:84,centerSafe:196,bottomSafe:142},
+      landscape:{top:4.8,subGap:1.05,inset:1.4,topSafe:76,centerSafe:174,bottomSafe:126}
     },
 
     // Ticket portrait must NOT reuse the extremely shallow landscape rhythm.
     ticket:{
-      portrait:{top:5.8,subGap:1.14,inset:2.6,topSafe:76,centerSafe:170,bottomSafe:120},
-      landscape:{top:3.8,subGap:1.06,inset:1.9,topSafe:52,centerSafe:106,bottomSafe:78}
+      portrait:{top:5.8,subGap:1.05,inset:1.4,topSafe:76,centerSafe:170,bottomSafe:120},
+      landscape:{top:3.8,subGap:1.04,inset:1.3,topSafe:52,centerSafe:106,bottomSafe:78}
     }
   };
 
@@ -631,7 +631,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   if(subtitle){
     const templateHeading=resolvedTemplateHeadingLayout(layout);
-    const subtitleInset=isCompactTemplate?Math.min(templateHeading.inset,2.2):templateHeading.inset;
+    const subtitleInset=templateHeading.inset;
     subtitle.style.width="auto";
     subtitle.style.transform="none";
     subtitle.style.textAlign=hp.align;

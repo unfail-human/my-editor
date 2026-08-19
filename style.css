@@ -2540,3 +2540,34 @@ button{cursor:pointer}
 .paper[data-document-template="letter"] .editor.layout-columns{
   box-sizing:border-box !important;
 }
+
+
+/* ===== V85 title + subtitle unified heading block ===== */
+/* The subtitle is visually part of the title on every document template. */
+.paper.layout-enabled .title-input{
+  margin-bottom:0 !important;
+  padding-bottom:0 !important;
+}
+
+.paper.layout-enabled .subtitle-input{
+  margin-top:0 !important;
+  padding-top:1px !important;
+  line-height:1.15 !important;
+}
+
+/* Keep the title/subtitle rule close to the subtitle rather than floating away. */
+.paper.layout-enabled .subtitle-input{
+  padding-bottom:5px !important;
+}
+
+/* Compact templates need an even tighter heading rhythm. */
+.paper[data-document-template="postcard"] .subtitle-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="square"] .subtitle-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  padding-top:0 !important;
+  padding-bottom:4px !important;
+  line-height:1.12 !important;
+}
