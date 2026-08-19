@@ -33,11 +33,11 @@ const DISTRIBUTION_LAYOUT={
   templateSettings:{
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    postcard:{orientation:"portrait",titleSize:24,headingGap:78,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    postcard:{orientation:"landscape",titleSize:24,headingGap:78,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     card:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     widecard:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     minicard:{orientation:"landscape",titleSize:26,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    square:{orientation:"portrait",titleSize:25,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    square:{orientation:"landscape",titleSize:25,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     ticket:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
@@ -179,6 +179,45 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
   }
 }
 
+
+const FIXED_BASE_ORIENTATION_TEMPLATES=new Set(["postcard","card","widecard","minicard","square"]);
+
+function isFixedBaseOrientationTemplate(layout=currentLayout()){
+  return FIXED_BASE_ORIENTATION_TEMPLATES.has(layout.template);
+}
+
+function normalizeTemplateOrientation(layout=currentLayout()){
+  if(isFixedBaseOrientationTemplate(layout)){
+    layout.orientation="landscape";
+    const ts=ensureTemplateSettings(layout);
+    ts.orientation="landscape";
+  }
+  return layout;
+}
+
+function syncOrientationControlForTemplate(){
+  const layout=currentLayout();
+  const select=$("documentOrientation");
+  if(!select)return;
+
+  if(isFixedBaseOrientationTemplate(layout)){
+    select.innerHTML='<option value="landscape">기본형</option>';
+    select.value="landscape";
+    select.disabled=true;
+    select.setAttribute("aria-label","기본형");
+  }else{
+    select.disabled=false;
+    const desired=[
+      ["portrait","세로형"],
+      ["landscape","가로형"]
+    ];
+    const current=[...select.options].map(o=>[o.value,o.textContent]);
+    if(JSON.stringify(current)!==JSON.stringify(desired)){
+      select.innerHTML='<option value="portrait">세로형</option><option value="landscape">가로형</option>';
+    }
+    select.value=layout.orientation||"portrait";
+  }
+}
 function currentLayout(){
   const s=current();
   if(!s.layout)s.layout=defaultLayout();
@@ -207,6 +246,7 @@ function currentLayout(){
   s.layout=migrated;
   normalizeGeneratedTemplateHeadingDefaults(s.layout);
   ensureTemplateSettings(s.layout);
+  normalizeTemplateOrientation(s.layout);
   return s.layout;
 }
 
@@ -732,7 +772,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       title.style.top=titleTop+"%";
       const isPostcard=layout.template==="postcard";
       const subtitleGapPx=isPostcard
-        ? Math.max(3,Math.round(titleSize*.10))
+        ? Math.max(7,Math.round(titleSize*.24))
         : Math.max(5,Math.round(titleSize*.18));
 
       subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.02)}px + ${subtitleGapPx}px)`;
@@ -2005,6 +2045,7 @@ function syncControls(){
   const l=currentLayout();
   syncDocumentMarginSummary();
   $("documentTemplate").value=l.template;
+  syncOrientationControlForTemplate();
   const ts=ensureTemplateSettings(l);
   $("documentOrientation").value=l.orientation;
   $("templateTitleSize").value=ts.titleSize;
@@ -2066,16 +2107,19 @@ $("documentTemplate").onchange=e=>{
   persist();
   renderAll();
   requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  normalizeTemplateOrientation(currentLayout());
+  syncOrientationControlForTemplate();
 };
 
 $("documentOrientation").onchange=e=>{
   const layout=currentLayout();
-  const ts=ensureTemplateSettings(layout);
-  ts.orientation=e.target.value;
-  layout.orientation=e.target.value;
-  persist();
-  renderAll();
-  requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  if(isFixedBaseOrientationTemplate(layout)){
+    layout.orientation="landscape";
+    ensureTemplateSettings(layout).orientation="landscape";
+    syncOrientationControlForTemplate();
+    return;
+  }
+  updateLayoutSetting("orientation",e.target.value);
 };
 
 $("templateTitleSize").oninput=e=>{

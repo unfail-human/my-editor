@@ -3079,3 +3079,84 @@ button{cursor:pointer}
   margin:0 !important;
   width:auto !important;
 }
+
+
+/* ===== V95 postcard heading spacing ===== */
+.paper[data-document-template="postcard"] .subtitle-input{
+  line-height:1.10 !important;
+  padding-top:1px !important;
+}
+
+
+/* ===== V95 refined ticket shape ===== */
+.paper[data-document-template="ticket"]{
+  position:relative !important;
+  overflow:hidden !important;
+  border-radius:8px !important;
+
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%201000%20500'%3E%0A%3Cpath%20fill%3D'white'%20d%3D'%0AM18%200%0AH982%0AQ1000%200%201000%2018%0AV210%0AA40%2040%200%200%200%201000%20290%0AV482%0AQ1000%20500%20982%20500%0AH18%0AQ0%20500%200%20482%0AV290%0AA40%2040%200%200%200%200%20210%0AV18%0AQ0%200%2018%200%0AZ'%2F%3E%0A%3C%2Fsvg%3E") !important;
+  -webkit-mask-size:100% 100% !important;
+  -webkit-mask-repeat:no-repeat !important;
+  -webkit-mask-position:center !important;
+
+  mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%201000%20500'%3E%0A%3Cpath%20fill%3D'white'%20d%3D'%0AM18%200%0AH982%0AQ1000%200%201000%2018%0AV210%0AA40%2040%200%200%200%201000%20290%0AV482%0AQ1000%20500%20982%20500%0AH18%0AQ0%20500%200%20482%0AV290%0AA40%2040%200%200%200%200%20210%0AV18%0AQ0%200%2018%200%0AZ'%2F%3E%0A%3C%2Fsvg%3E") !important;
+  mask-size:100% 100% !important;
+  mask-repeat:no-repeat !important;
+  mask-position:center !important;
+}
+
+/* Remove all older fake/corner overlays */
+.paper[data-document-template="ticket"]::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Clean perforation guides */
+.paper[data-document-template="ticket"] .editor::before,
+.paper[data-document-template="ticket"] .editor::after{
+  content:"" !important;
+  position:absolute !important;
+  top:10% !important;
+  bottom:10% !important;
+  width:0 !important;
+  border-left:1px dashed rgba(115,107,99,.15) !important;
+  pointer-events:none !important;
+  z-index:1 !important;
+}
+.paper[data-document-template="ticket"] .editor::before{left:5.8% !important;}
+.paper[data-document-template="ticket"] .editor::after{right:5.8% !important;}
+
+/* Keep all content inside the perforation zone */
+.paper[data-document-template="ticket"]{
+  --rule-left:8% !important;
+  --rule-right:8% !important;
+  --body-frame-left:9% !important;
+  --body-frame-right:9% !important;
+}
+
+
+/* ===== V95 template polish ===== */
+.paper[data-document-template="postcard"],
+.paper[data-document-template="card"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="square"]{
+  background:#fbfaf7 !important;
+  border:1px solid rgba(95,87,80,.045) !important;
+  box-shadow:0 14px 30px rgba(52,47,43,.09),0 2px 6px rgba(52,47,43,.035) !important;
+}
+
+.paper[data-document-template="postcard"]{border-radius:10px !important}
+.paper[data-document-template="card"]{border-radius:12px !important}
+.paper[data-document-template="widecard"]{border-radius:11px !important}
+.paper[data-document-template="minicard"]{border-radius:11px !important}
+.paper[data-document-template="square"]{border-radius:10px !important}
+
+/* fixed-base templates should visually feel landscape/default */
+.paper[data-document-template="postcard"],
+.paper[data-document-template="card"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="square"]{
+  overflow:hidden !important;
+}
