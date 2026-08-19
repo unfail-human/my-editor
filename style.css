@@ -2717,3 +2717,86 @@ button{cursor:pointer}
   padding-right:var(--body-frame-right) !important;
   box-sizing:border-box !important;
 }
+
+
+/* ===== V92 card heading spacing + refined ticket ===== */
+
+/* More breathing room between heading row and the underline. */
+.paper[data-document-template="card"]::before,
+.paper[data-document-template="widecard"]::before,
+.paper[data-document-template="minicard"]::before,
+.paper[data-document-template="ticket"]::before{
+  top:var(--card-heading-rule-top) !important;
+}
+
+/* Card body top follows the actual heading-gap calculation. */
+.paper[data-document-template="card"].body-clear-top .editor.writing-horizontal,
+.paper[data-document-template="widecard"].body-clear-top .editor.writing-horizontal,
+.paper[data-document-template="minicard"].body-clear-top .editor.writing-horizontal,
+.paper[data-document-template="ticket"].body-clear-top .editor.writing-horizontal,
+.paper[data-document-template="card"].body-clear-top .editor.layout-columns,
+.paper[data-document-template="widecard"].body-clear-top .editor.layout-columns,
+.paper[data-document-template="minicard"].body-clear-top .editor.layout-columns,
+.paper[data-document-template="ticket"].body-clear-top .editor.layout-columns{
+  padding-top:var(--heading-safe-top) !important;
+}
+
+/* Ticket reference shape */
+.paper[data-document-template="ticket"]{
+  position:relative !important;
+  border-radius:10px !important;
+  overflow:visible !important;
+}
+
+/* Main ticket cut-outs:
+   centered semicircular notches + small corner bites. */
+.paper[data-document-template="ticket"]::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:30;
+  background:
+    /* large middle notches */
+    radial-gradient(circle at 0 50%, var(--workspace-bg,#d5d1cb) 0 20px, transparent 21px),
+    radial-gradient(circle at 100% 50%, var(--workspace-bg,#d5d1cb) 0 20px, transparent 21px),
+
+    /* small top/bottom corner bites */
+    radial-gradient(circle at 0 0, var(--workspace-bg,#d5d1cb) 0 10px, transparent 11px),
+    radial-gradient(circle at 100% 0, var(--workspace-bg,#d5d1cb) 0 10px, transparent 11px),
+    radial-gradient(circle at 0 100%, var(--workspace-bg,#d5d1cb) 0 10px, transparent 11px),
+    radial-gradient(circle at 100% 100%, var(--workspace-bg,#d5d1cb) 0 10px, transparent 11px);
+  border-radius:10px;
+}
+
+/* Perforation lines just inside ticket notches */
+.paper[data-document-template="ticket"] .editor::before,
+.paper[data-document-template="ticket"] .editor::after{
+  content:"";
+  position:absolute;
+  top:8%;
+  bottom:8%;
+  width:0;
+  border-left:2px dashed rgba(124,115,106,.16);
+  pointer-events:none;
+  z-index:1;
+}
+.paper[data-document-template="ticket"] .editor::before{
+  left:5.4%;
+}
+.paper[data-document-template="ticket"] .editor::after{
+  right:5.4%;
+}
+
+/* keep ticket content safely inside the perforation guides */
+.paper[data-document-template="ticket"] .title-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  z-index:4 !important;
+}
+
+/* Footer separation remains clean */
+.paper[data-document-template="ticket"] .footer-rule,
+.paper[data-document-template="ticket"] [data-footer-rule]{
+  left:var(--rule-left) !important;
+  right:var(--rule-right) !important;
+}

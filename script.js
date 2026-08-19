@@ -737,7 +737,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
     if(sideHeading){
       const headingRowHeight=Math.max(30,Math.round(titleSize*1.22));
-      paper.style.setProperty("--card-heading-rule-top",`calc(${titleTop}% + ${headingRowHeight}px)`);
+      paper.style.setProperty("--card-heading-rule-top",`calc(${titleTop}% + ${headingRowHeight + 10}px)`);
     }else{
       title.style.top=titleTop+"%";
       const subtitleGapPx=Math.max(5,Math.round(titleSize*0.18));
@@ -750,7 +750,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
 
-  const configuredGap=Math.max(70,Math.min(240,Number(ts.headingGap||150)));
+  const configuredGap=Math.max(0,Math.min(240,Number(ts.headingGap??150)));
 
   if(showHeading){
     if(hp.y<30){
@@ -764,12 +764,27 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
       let topSafe;
       if(["card","widecard","minicard","ticket"].includes(layout.template)){
-        topSafe={
-          card:92,
-          widecard:86,
-          minicard:88,
-          ticket:86
-        }[layout.template]||88;
+        const baseTopSafe={
+          card:84,
+          widecard:78,
+          minicard:80,
+          ticket:80
+        }[layout.template]||80;
+
+        // Card family now respects the UI "제목 · 본문 간격".
+        // 20px is treated as the visual baseline; moving the slider
+        // increases/decreases the body start point directly.
+        const cardGapBaseline={
+          card:20,
+          widecard:18,
+          minicard:18,
+          ticket:18
+        }[layout.template]||18;
+
+        topSafe=Math.max(
+          58,
+          baseTopSafe + (configuredGap-cardGapBaseline)
+        );
       }else{
         topSafe=Math.max(44,templateBase+sizeAdjust+gapAdjust);
       }
