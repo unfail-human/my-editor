@@ -2375,3 +2375,23 @@ button{cursor:pointer}
 .paper.layout-enabled .subtitle-input{
   box-sizing:border-box !important;
 }
+
+
+/* ===== V81 template heading normalization ===== */
+.paper[data-document-template="postcard"] .title-input,
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="square"] .title-input,
+.paper[data-document-template="ticket"] .title-input{
+  line-height:1.08 !important;
+}
+.paper[data-document-template="postcard"] .subtitle-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="square"] .subtitle-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  line-height:1.28 !important;
+  padding-bottom:6px !important;
+}

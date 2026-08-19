@@ -33,12 +33,12 @@ const DISTRIBUTION_LAYOUT={
   templateSettings:{
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    postcard:{orientation:"portrait",titleSize:26,headingGap:116,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    card:{orientation:"landscape",titleSize:27,headingGap:112,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:106,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:110,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    square:{orientation:"portrait",titleSize:29,headingGap:128,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    ticket:{orientation:"landscape",titleSize:24,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
+    postcard:{orientation:"portrait",titleSize:25,headingGap:96,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:25,headingGap:88,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:26,headingGap:80,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:24,headingGap:84,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    square:{orientation:"portrait",titleSize:27,headingGap:104,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    ticket:{orientation:"landscape",titleSize:22,headingGap:70,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -148,6 +148,25 @@ async function loadSlotThumbnail(slotId,card){
 }
 
 
+function normalizeGeneratedTemplateHeadingDefaults(layout){
+  if(!layout?.templateSettings)return;
+  const updates={
+    postcard:{oldSizes:[26],oldGaps:[104,116],size:25,gap:96},
+    card:{oldSizes:[27],oldGaps:[102,112],size:25,gap:88},
+    widecard:{oldSizes:[28],oldGaps:[96,106],size:26,gap:80},
+    minicard:{oldSizes:[26],oldGaps:[100,110],size:24,gap:84},
+    square:{oldSizes:[29],oldGaps:[118,128],size:27,gap:104},
+    ticket:{oldSizes:[24],oldGaps:[88,96],size:22,gap:70}
+  };
+  Object.entries(updates).forEach(([key,u])=>{
+    const t=layout.templateSettings[key];
+    if(!t)return;
+    if(u.oldSizes.includes(t.titleSize))t.titleSize=u.size;
+    if(u.oldGaps.includes(t.headingGap))t.headingGap=u.gap;
+    if(!t.headingPosition)t.headingPosition="top-left";
+  });
+}
+
 function currentLayout(){
   const s=current();
   if(!s.layout)s.layout=defaultLayout();
@@ -174,6 +193,7 @@ function currentLayout(){
     ...migrated.templateSettings
   };
   s.layout=migrated;
+  normalizeGeneratedTemplateHeadingDefaults(s.layout);
   ensureTemplateSettings(s.layout);
   return s.layout;
 }
@@ -397,6 +417,22 @@ function setHeadingPosition(el,pos){
 }
 
 
+function resolvedTemplateHeadingLayout(layout=currentLayout()){
+  const template=layout.template||"a4";
+  const landscape=layout.orientation==="landscape";
+  const presets={
+    a4:{portrait:{top:5.5,subGap:1.32,inset:4.5},landscape:{top:5.0,subGap:1.25,inset:4.0}},
+    letter:{portrait:{top:5.5,subGap:1.30,inset:4.5},landscape:{top:5.0,subGap:1.24,inset:4.0}},
+    postcard:{portrait:{top:6.0,subGap:1.24,inset:3.4},landscape:{top:5.0,subGap:1.18,inset:3.0}},
+    card:{portrait:{top:6.0,subGap:1.20,inset:3.0},landscape:{top:5.0,subGap:1.14,inset:2.8}},
+    widecard:{portrait:{top:5.5,subGap:1.18,inset:3.0},landscape:{top:4.5,subGap:1.10,inset:2.6}},
+    minicard:{portrait:{top:6.0,subGap:1.20,inset:3.0},landscape:{top:5.0,subGap:1.14,inset:2.8}},
+    square:{portrait:{top:5.5,subGap:1.24,inset:3.5},landscape:{top:5.0,subGap:1.18,inset:3.2}},
+    ticket:{portrait:{top:5.5,subGap:1.14,inset:2.8},landscape:{top:4.2,subGap:1.08,inset:2.5}}
+  };
+  return (presets[template]||presets.a4)[landscape?"landscape":"portrait"];
+}
+
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
 
@@ -464,7 +500,8 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(subtitle){
-    const subtitleInset=4.5;
+    const templateHeading=resolvedTemplateHeadingLayout(layout);
+    const subtitleInset=templateHeading.inset;
     subtitle.style.width="auto";
     subtitle.style.transform="none";
     subtitle.style.textAlign=hp.align;
@@ -497,20 +534,20 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     subtitle.style.setProperty("width","auto","important");
   }
 
-  // Explicit vertical zones.
-  // Center is deliberately high enough that body can start below it.
+  // Template/orientation-specific heading baseline.
+  const templateHeading=resolvedTemplateHeadingLayout(layout);
   let titleTop;
   if(hp.y<30){
-    titleTop=compact?5:5.5;
+    titleTop=templateHeading.top;
   }else if(hp.y<65){
-    titleTop=compact?31:34;
+    titleTop=compact?32:36;
   }else{
-    titleTop=compact?76:80;
+    titleTop=compact?74:79;
   }
 
   if(showHeading){
     title.style.top=titleTop+"%";
-    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.32)}px)`;
+    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*templateHeading.subGap)}px)`;
   }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
@@ -524,14 +561,14 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       // Compact automatic rhythm:
       // title -> subtitle/rule -> small breathing space -> body
       const templateBase={
-        a4:104,
-        letter:102,
-        postcard:80,
-        card:78,
-        widecard:74,
-        minicard:76,
-        square:88,
-        ticket:68
+        a4:layout.orientation==="landscape"?96:104,
+        letter:layout.orientation==="landscape"?94:102,
+        postcard:layout.orientation==="landscape"?70:78,
+        card:layout.orientation==="landscape"?66:76,
+        widecard:layout.orientation==="landscape"?60:72,
+        minicard:layout.orientation==="landscape"?64:74,
+        square:layout.orientation==="landscape"?76:86,
+        ticket:layout.orientation==="landscape"?54:66
       }[layout.template]||100;
 
       const sizeAdjust=(titleSize-34)*1.05;
@@ -544,14 +581,14 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
       // Center title owns a clean visual block; body begins safely below.
       const centerBase={
-        a4:285,
-        letter:280,
-        postcard:185,
-        card:178,
-        widecard:166,
-        minicard:174,
-        square:220,
-        ticket:150
+        a4:layout.orientation==="landscape"?230:285,
+        letter:layout.orientation==="landscape"?225:280,
+        postcard:layout.orientation==="landscape"?150:185,
+        card:layout.orientation==="landscape"?142:178,
+        widecard:layout.orientation==="landscape"?132:166,
+        minicard:layout.orientation==="landscape"?138:174,
+        square:layout.orientation==="landscape"?182:220,
+        ticket:layout.orientation==="landscape"?118:150
       }[layout.template]||270;
 
       const centerSafe=Math.max(
@@ -563,14 +600,14 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       paper.classList.add("body-clear-bottom");
 
       const bottomBase={
-        a4:205,
-        letter:200,
-        postcard:132,
-        card:128,
-        widecard:120,
-        minicard:126,
-        square:160,
-        ticket:112
+        a4:layout.orientation==="landscape"?168:205,
+        letter:layout.orientation==="landscape"?164:200,
+        postcard:layout.orientation==="landscape"?110:132,
+        card:layout.orientation==="landscape"?104:128,
+        widecard:layout.orientation==="landscape"?96:120,
+        minicard:layout.orientation==="landscape"?102:126,
+        square:layout.orientation==="landscape"?134:160,
+        ticket:layout.orientation==="landscape"?88:112
       }[layout.template]||190;
 
       const bottomSafe=Math.max(
