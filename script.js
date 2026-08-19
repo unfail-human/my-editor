@@ -209,17 +209,17 @@ const DOCUMENT_MARGIN_PRESETS={
   narrow:{
     page:{top:12,bottom:12,left:10,right:10},
     headerFooter:{header:6,footer:6},
-    body:{top:0,bottom:0,left:0,right:0}
+    body:{top:-5,bottom:-5,left:-5,right:-5}
   },
   normal:{
     page:{top:20,bottom:20,left:18,right:18},
     headerFooter:{header:8,footer:8},
-    body:{top:0,bottom:0,left:0,right:0}
+    body:{top:-5,bottom:-5,left:-5,right:-5}
   },
   wide:{
     page:{top:30,bottom:30,left:28,right:28},
     headerFooter:{header:10,footer:10},
-    body:{top:4,bottom:4,left:4,right:4}
+    body:{top:-1,bottom:-1,left:-1,right:-1}
   }
 };
 
