@@ -2800,3 +2800,143 @@ button{cursor:pointer}
   left:var(--rule-left) !important;
   right:var(--rule-right) !important;
 }
+
+
+/* ===== V93 template visual polish ===== */
+
+/* Unified paper finish */
+.paper[data-document-template="postcard"],
+.paper[data-document-template="card"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="square"],
+.paper[data-document-template="ticket"]{
+  background:#fbfaf7 !important;
+  border:1px solid rgba(110,102,94,.07) !important;
+  box-shadow:
+    0 18px 38px rgba(57,51,46,.11),
+    0 2px 8px rgba(57,51,46,.05) !important;
+}
+
+/* Each format keeps a slightly different silhouette */
+.paper[data-document-template="postcard"]{
+  border-radius:9px !important;
+  overflow:hidden !important;
+}
+.paper[data-document-template="card"]{
+  border-radius:12px !important;
+  overflow:hidden !important;
+}
+.paper[data-document-template="widecard"]{
+  border-radius:11px !important;
+  overflow:hidden !important;
+}
+.paper[data-document-template="minicard"]{
+  border-radius:10px !important;
+  overflow:hidden !important;
+}
+.paper[data-document-template="square"]{
+  border-radius:10px !important;
+  overflow:hidden !important;
+}
+
+/* Softer rules */
+.paper[data-document-template="postcard"]::before,
+.paper[data-document-template="card"]::before,
+.paper[data-document-template="widecard"]::before,
+.paper[data-document-template="minicard"]::before,
+.paper[data-document-template="square"]::before{
+  border-color:rgba(105,98,90,.16) !important;
+}
+
+/* Postcard heading: title and subtitle are a true vertical pair */
+.paper[data-document-template="postcard"] .title-input,
+.paper[data-document-template="postcard"] .subtitle-input{
+  left:var(--rule-left) !important;
+  right:var(--rule-right) !important;
+  width:auto !important;
+  max-width:none !important;
+  transform:none !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+.paper[data-document-template="postcard"] .subtitle-input{
+  line-height:1.08 !important;
+  padding-top:0 !important;
+  padding-bottom:5px !important;
+}
+
+/* =========================================================
+   REAL TICKET SHAPE
+   Transparent holes are cut out using CSS mask.
+   No workspace/background-color painting is used.
+   ========================================================= */
+
+.paper[data-document-template="ticket"]{
+  position:relative !important;
+  border-radius:9px !important;
+  overflow:hidden !important;
+
+  /* Each mask layer is black except for one transparent circular bite.
+     Intersecting them preserves every transparent hole. */
+  -webkit-mask:
+    radial-gradient(circle at 0% 50%, transparent 0 20px, #000 21px),
+    radial-gradient(circle at 100% 50%, transparent 0 20px, #000 21px),
+    radial-gradient(circle at 0% 0%, transparent 0 7px, #000 8px),
+    radial-gradient(circle at 100% 0%, transparent 0 7px, #000 8px),
+    radial-gradient(circle at 0% 100%, transparent 0 7px, #000 8px),
+    radial-gradient(circle at 100% 100%, transparent 0 7px, #000 8px);
+  -webkit-mask-composite: source-in, source-in, source-in, source-in, source-in;
+
+  mask:
+    radial-gradient(circle at 0% 50%, transparent 0 20px, #000 21px),
+    radial-gradient(circle at 100% 50%, transparent 0 20px, #000 21px),
+    radial-gradient(circle at 0% 0%, transparent 0 7px, #000 8px),
+    radial-gradient(circle at 100% 0%, transparent 0 7px, #000 8px),
+    radial-gradient(circle at 0% 100%, transparent 0 7px, #000 8px),
+    radial-gradient(circle at 100% 100%, transparent 0 7px, #000 8px);
+  mask-composite:intersect;
+}
+
+/* Kill old fake-background notch overlay */
+.paper[data-document-template="ticket"]::after{
+  content:none !important;
+  background:none !important;
+}
+
+/* Ticket's heading rule remains clean and unbroken */
+.paper[data-document-template="ticket"]::before{
+  content:"" !important;
+  position:absolute !important;
+  left:var(--rule-left) !important;
+  right:var(--rule-right) !important;
+  top:var(--card-heading-rule-top) !important;
+  border-top:1px solid rgba(105,98,90,.17) !important;
+  z-index:3 !important;
+  pointer-events:none !important;
+}
+
+/* Perforation guides: subtle and elegant */
+.paper[data-document-template="ticket"] .editor::before,
+.paper[data-document-template="ticket"] .editor::after{
+  content:"" !important;
+  position:absolute !important;
+  top:10% !important;
+  bottom:10% !important;
+  width:0 !important;
+  border-left:1px dashed rgba(118,109,101,.16) !important;
+  pointer-events:none !important;
+  z-index:1 !important;
+}
+.paper[data-document-template="ticket"] .editor::before{
+  left:5.2% !important;
+}
+.paper[data-document-template="ticket"] .editor::after{
+  right:5.2% !important;
+}
+
+/* Slightly larger inner safe area for ticket content */
+.paper[data-document-template="ticket"] .title-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  z-index:4 !important;
+}

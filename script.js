@@ -740,8 +740,22 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       paper.style.setProperty("--card-heading-rule-top",`calc(${titleTop}% + ${headingRowHeight + 10}px)`);
     }else{
       title.style.top=titleTop+"%";
-      const subtitleGapPx=Math.max(5,Math.round(titleSize*0.18));
+
+      const isPostcard=layout.template==="postcard";
+      const subtitleGapPx=isPostcard
+        ? Math.max(3,Math.round(titleSize*0.10))
+        : Math.max(5,Math.round(titleSize*0.18));
+
       subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*1.02)}px + ${subtitleGapPx}px)`;
+
+      // Postcard subtitle must use exactly the same horizontal frame and alignment.
+      if(isPostcard){
+        subtitle.style.setProperty("left",effectiveRuleLeft+"%","important");
+        subtitle.style.setProperty("right",effectiveRuleRight+"%","important");
+        subtitle.style.setProperty("width","auto","important");
+        subtitle.style.setProperty("text-align",hp.align,"important");
+        subtitle.style.setProperty("transform","none","important");
+      }
 
       const headingBlockHeight=Math.round(titleSize*1.02)+subtitleGapPx+Math.max(18,Math.round(titleSize*.42));
       paper.style.setProperty("--stacked-heading-rule-top",`calc(${titleTop}% + ${headingBlockHeight}px)`);
