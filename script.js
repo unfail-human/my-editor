@@ -209,17 +209,17 @@ const DOCUMENT_MARGIN_PRESETS={
   narrow:{
     page:{top:12,bottom:12,left:10,right:10},
     headerFooter:{header:6,footer:6},
-    body:{top:-20,bottom:-20,left:-20,right:-20}
+    body:{top:0,bottom:0,left:-15,right:-15}
   },
   normal:{
     page:{top:20,bottom:20,left:18,right:18},
     headerFooter:{header:8,footer:8},
-    body:{top:-20,bottom:-20,left:-20,right:-20}
+    body:{top:0,bottom:0,left:-15,right:-15}
   },
   wide:{
     page:{top:30,bottom:30,left:28,right:28},
     headerFooter:{header:10,footer:10},
-    body:{top:-16,bottom:-16,left:-16,right:-16}
+    body:{top:0,bottom:0,left:-15,right:-15}
   }
 };
 
@@ -240,14 +240,18 @@ function ensureMarginSettings(layout=currentLayout()){
   ts.headerFooterMargins={...DOCUMENT_MARGIN_PRESETS.normal.headerFooter,...ts.headerFooterMargins};
   ts.bodyMargins={...DOCUMENT_MARGIN_PRESETS.normal.body,...ts.bodyMargins};
 
-  // V79: migrate the previous preset body-margin defaults to the tighter defaults.
+  // V80: body "여백" means the horizontal text inset.
+  // Keep title-to-body vertical spacing at the established baseline (= 0mm),
+  // and reduce only the left/right body inset.
   const bm=ts.bodyMargins;
-  if(["narrow","normal"].includes(ts.marginPreset) &&
-     bm.top===-5 && bm.bottom===-5 && bm.left===-5 && bm.right===-5){
-    ts.bodyMargins={top:-20,bottom:-20,left:-20,right:-20};
-  }else if(ts.marginPreset==="wide" &&
-           bm.top===-1 && bm.bottom===-1 && bm.left===-1 && bm.right===-1){
-    ts.bodyMargins={top:-16,bottom:-16,left:-16,right:-16};
+  const isOldPresetBody =
+    (bm.top===-20 && bm.bottom===-20 && bm.left===-20 && bm.right===-20) ||
+    (bm.top===-16 && bm.bottom===-16 && bm.left===-16 && bm.right===-16) ||
+    (bm.top===-5 && bm.bottom===-5 && bm.left===-5 && bm.right===-5) ||
+    (bm.top===-1 && bm.bottom===-1 && bm.left===-1 && bm.right===-1);
+
+  if(ts.marginPreset!=="custom" && isOldPresetBody){
+    ts.bodyMargins={top:0,bottom:0,left:-15,right:-15};
   }
 
   return ts;
