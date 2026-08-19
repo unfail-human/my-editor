@@ -2488,3 +2488,55 @@ button{cursor:pointer}
   padding-left:var(--body-frame-left) !important;
   padding-right:var(--body-frame-right) !important;
 }
+
+
+/* ===== V84 compact + letter layout stabilization ===== */
+
+/* Compact formats share one exact horizontal content frame. */
+.paper[data-document-template="postcard"] .title-input,
+.paper[data-document-template="postcard"] .subtitle-input,
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="square"] .title-input,
+.paper[data-document-template="square"] .subtitle-input,
+.paper[data-document-template="ticket"] .title-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  box-sizing:border-box !important;
+  transform:none !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+.paper[data-document-template="postcard"] .editor.writing-horizontal,
+.paper[data-document-template="card"] .editor.writing-horizontal,
+.paper[data-document-template="widecard"] .editor.writing-horizontal,
+.paper[data-document-template="minicard"] .editor.writing-horizontal,
+.paper[data-document-template="square"] .editor.writing-horizontal,
+.paper[data-document-template="ticket"] .editor.writing-horizontal,
+.paper[data-document-template="postcard"] .editor.layout-columns,
+.paper[data-document-template="card"] .editor.layout-columns,
+.paper[data-document-template="widecard"] .editor.layout-columns,
+.paper[data-document-template="minicard"] .editor.layout-columns,
+.paper[data-document-template="square"] .editor.layout-columns,
+.paper[data-document-template="ticket"] .editor.layout-columns{
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+
+/* Portrait ticket needs document-like vertical rhythm, not landscape ticket rhythm. */
+.paper[data-document-template="ticket"][data-document-orientation="portrait"] .title-input{
+  line-height:1.08 !important;
+}
+.paper[data-document-template="ticket"][data-document-orientation="portrait"] .subtitle-input{
+  line-height:1.22 !important;
+}
+
+/* Letter: body is intentionally more inward than V80/V83. */
+.paper[data-document-template="letter"] .editor.writing-horizontal,
+.paper[data-document-template="letter"] .editor.layout-columns{
+  box-sizing:border-box !important;
+}

@@ -33,12 +33,12 @@ const DISTRIBUTION_LAYOUT={
   templateSettings:{
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    postcard:{orientation:"portrait",titleSize:23,headingGap:76,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    card:{orientation:"landscape",titleSize:22,headingGap:66,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    widecard:{orientation:"landscape",titleSize:23,headingGap:60,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    minicard:{orientation:"landscape",titleSize:21,headingGap:64,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    square:{orientation:"portrait",titleSize:24,headingGap:80,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    ticket:{orientation:"landscape",titleSize:19,headingGap:54,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
+    postcard:{orientation:"portrait",titleSize:24,headingGap:78,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:23,headingGap:68,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:24,headingGap:62,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:22,headingGap:66,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    square:{orientation:"portrait",titleSize:25,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    ticket:{orientation:"landscape",titleSize:21,headingGap:60,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -152,21 +152,40 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
   if(!layout?.templateSettings)return;
 
   const updates={
-    postcard:{oldSizes:[24,25,26],oldGaps:[82,96,104,116],size:23,gap:76},
-    card:{oldSizes:[23,25,27],oldGaps:[72,88,102,112],size:22,gap:66},
-    widecard:{oldSizes:[24,26,28],oldGaps:[66,80,96,106],size:23,gap:60},
-    minicard:{oldSizes:[22,24,26],oldGaps:[70,84,100,110],size:21,gap:64},
-    square:{oldSizes:[25,27,29],oldGaps:[88,104,118,128],size:24,gap:80},
-    ticket:{oldSizes:[20,22,24],oldGaps:[58,70,88,96],size:19,gap:54}
+    postcard:{oldSizes:[23,24,25,26],oldGaps:[76,82,96,104,116],size:24,gap:78},
+    card:{oldSizes:[22,23,25,27],oldGaps:[66,72,88,102,112],size:23,gap:68},
+    widecard:{oldSizes:[23,24,26,28],oldGaps:[60,66,80,96,106],size:24,gap:62},
+    minicard:{oldSizes:[21,22,24,26],oldGaps:[64,70,84,100,110],size:22,gap:66},
+    square:{oldSizes:[24,25,27,29],oldGaps:[80,88,104,118,128],size:25,gap:82},
+    ticket:{oldSizes:[19,20,21,22,24],oldGaps:[54,58,60,70,88,96],size:21,gap:60}
   };
 
   Object.entries(updates).forEach(([key,u])=>{
     const t=layout.templateSettings[key];
     if(!t)return;
-    if(u.oldSizes.includes(t.titleSize))t.titleSize=u.size;
-    if(u.oldGaps.includes(t.headingGap))t.headingGap=u.gap;
-    if(!t.headingPosition)t.headingPosition="top-left";
+
+    const generatedSize=u.oldSizes.includes(t.titleSize);
+    const generatedGap=u.oldGaps.includes(t.headingGap);
+
+    if(generatedSize)t.titleSize=u.size;
+    if(generatedGap)t.headingGap=u.gap;
+
+    // Fix stale generated compact-layout positions, including the ticket portrait bug.
+    // Preserve obvious manual/custom cases only when size/gap are also custom.
+    if(generatedSize && generatedGap){
+      t.headingPosition="top-left";
+    }
   });
+
+  // Letter had inherited A4's aggressively negative body margin.
+  // Migrate only the generated default, preserving custom margin edits.
+  const letter=layout.templateSettings.letter;
+  if(letter?.bodyMargins &&
+     letter.bodyMargins.top===0 && letter.bodyMargins.bottom===0 &&
+     letter.bodyMargins.left===-15 && letter.bodyMargins.right===-15 &&
+     letter.marginPreset!=="custom"){
+    letter.bodyMargins={top:0,bottom:0,left:-5,right:-5};
+  }
 }
 
 function currentLayout(){
@@ -428,33 +447,46 @@ function resolvedTemplateHeadingLayout(layout=currentLayout()){
       portrait:{top:5.5,subGap:1.32,inset:4.5,topSafe:104,centerSafe:285,bottomSafe:205},
       landscape:{top:5.0,subGap:1.25,inset:4.0,topSafe:96,centerSafe:230,bottomSafe:168}
     },
+
+    // Letter: A4-like rhythm, slightly more inward.
     letter:{
-      portrait:{top:5.5,subGap:1.30,inset:4.5,topSafe:102,centerSafe:280,bottomSafe:200},
-      landscape:{top:5.0,subGap:1.24,inset:4.0,topSafe:94,centerSafe:225,bottomSafe:164}
+      portrait:{top:5.8,subGap:1.30,inset:4.2,topSafe:106,centerSafe:282,bottomSafe:202},
+      landscape:{top:5.2,subGap:1.24,inset:3.8,topSafe:98,centerSafe:232,bottomSafe:168}
     },
+
+    // Postcard: compact but still document-like.
     postcard:{
-      portrait:{top:5.0,subGap:1.16,inset:2.2,topSafe:74,centerSafe:172,bottomSafe:122},
-      landscape:{top:4.5,subGap:1.12,inset:2.0,topSafe:64,centerSafe:142,bottomSafe:102}
+      portrait:{top:5.5,subGap:1.18,inset:2.6,topSafe:80,centerSafe:178,bottomSafe:128},
+      landscape:{top:4.8,subGap:1.14,inset:2.4,topSafe:70,centerSafe:150,bottomSafe:108}
     },
+
+    // 3:2 card.
     card:{
-      portrait:{top:5.0,subGap:1.14,inset:2.2,topSafe:70,centerSafe:156,bottomSafe:110},
-      landscape:{top:4.2,subGap:1.10,inset:2.0,topSafe:60,centerSafe:126,bottomSafe:92}
+      portrait:{top:5.4,subGap:1.16,inset:2.5,topSafe:76,centerSafe:166,bottomSafe:118},
+      landscape:{top:4.4,subGap:1.10,inset:2.2,topSafe:64,centerSafe:136,bottomSafe:98}
     },
+
+    // 16:9 wide card: very shallow vertically.
     widecard:{
-      portrait:{top:4.8,subGap:1.12,inset:2.1,topSafe:66,centerSafe:146,bottomSafe:104},
-      landscape:{top:3.8,subGap:1.08,inset:1.8,topSafe:54,centerSafe:112,bottomSafe:82}
+      portrait:{top:5.2,subGap:1.14,inset:2.4,topSafe:72,centerSafe:156,bottomSafe:110},
+      landscape:{top:4.0,subGap:1.08,inset:2.0,topSafe:56,centerSafe:122,bottomSafe:88}
     },
+
+    // 4:3 mini card.
     minicard:{
-      portrait:{top:5.0,subGap:1.14,inset:2.2,topSafe:68,centerSafe:150,bottomSafe:106},
-      landscape:{top:4.2,subGap:1.10,inset:2.0,topSafe:58,centerSafe:120,bottomSafe:88}
+      portrait:{top:5.4,subGap:1.16,inset:2.5,topSafe:74,centerSafe:160,bottomSafe:114},
+      landscape:{top:4.4,subGap:1.10,inset:2.2,topSafe:62,centerSafe:132,bottomSafe:94}
     },
+
     square:{
-      portrait:{top:5.0,subGap:1.16,inset:2.2,topSafe:80,centerSafe:190,bottomSafe:138},
-      landscape:{top:4.5,subGap:1.12,inset:2.0,topSafe:72,centerSafe:166,bottomSafe:122}
+      portrait:{top:5.4,subGap:1.18,inset:2.8,topSafe:84,centerSafe:196,bottomSafe:142},
+      landscape:{top:4.8,subGap:1.14,inset:2.6,topSafe:76,centerSafe:174,bottomSafe:126}
     },
+
+    // Ticket portrait must NOT reuse the extremely shallow landscape rhythm.
     ticket:{
-      portrait:{top:4.8,subGap:1.10,inset:2.0,topSafe:62,centerSafe:132,bottomSafe:94},
-      landscape:{top:3.5,subGap:1.06,inset:1.8,topSafe:50,centerSafe:96,bottomSafe:72}
+      portrait:{top:5.8,subGap:1.14,inset:2.6,topSafe:76,centerSafe:170,bottomSafe:120},
+      landscape:{top:3.8,subGap:1.06,inset:1.9,topSafe:52,centerSafe:106,bottomSafe:78}
     }
   };
 
@@ -468,15 +500,52 @@ function compactTemplateContentFrame(layout=currentLayout(),marginCfg=null){
   const cfg=marginCfg||effectiveDocumentMargins(layout);
   const landscape=layout.orientation==="landscape";
 
-  // Small formats need a slightly safer visual frame than the raw negative body margins.
-  // The title, subtitle rule and body all share this same frame.
-  const minLeft=landscape?5.5:6.5;
-  const minRight=landscape?5.5:6.5;
+  const frames={
+    postcard:{
+      portrait:{left:8.5,right:8.5},
+      landscape:{left:7.5,right:7.5}
+    },
+    card:{
+      portrait:{left:8.5,right:8.5},
+      landscape:{left:7.5,right:7.5}
+    },
+    widecard:{
+      portrait:{left:8.0,right:8.0},
+      landscape:{left:7.0,right:7.0}
+    },
+    minicard:{
+      portrait:{left:8.5,right:8.5},
+      landscape:{left:7.5,right:7.5}
+    },
+    square:{
+      portrait:{left:8.5,right:8.5},
+      landscape:{left:8.0,right:8.0}
+    },
+    ticket:{
+      portrait:{left:10.5,right:10.5},
+      landscape:{left:7.0,right:7.0}
+    }
+  };
 
-  const left=Math.max(minLeft,cfg.page.left);
-  const right=Math.max(minRight,cfg.page.right);
+  const target=frames[layout.template][landscape?"landscape":"portrait"];
 
-  return {left,right};
+  // Custom page margins may widen the frame, but negative/small values
+  // never make compact content spill outside this safe template frame.
+  return {
+    left:Math.max(target.left,cfg.page.left),
+    right:Math.max(target.right,cfg.page.right)
+  };
+}
+
+function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
+  if(layout.template!=="letter")return null;
+  const cfg=marginCfg||effectiveDocumentMargins(layout);
+  const landscape=layout.orientation==="landscape";
+  const inset=landscape?8.0:8.5;
+  return {
+    left:Math.max(inset,cfg.page.left + Math.max(-2,cfg.body.left)),
+    right:Math.max(inset,cfg.page.right + Math.max(-2,cfg.body.right))
+  };
 }
 
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
@@ -519,6 +588,7 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   // For compact templates, title/subtitle/body use ONE shared content frame.
   const marginCfg=effectiveDocumentMargins(layout);
   const compactFrame=compactTemplateContentFrame(layout,marginCfg);
+  const letterFrame=letterTemplateContentFrame(layout,marginCfg);
 
   let ruleLeft=Math.max(-4,marginCfg.page.left);
   let ruleRight=Math.max(-4,marginCfg.page.right);
@@ -530,6 +600,11 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     ruleRight=compactFrame.right;
     bodyLeft=compactFrame.left;
     bodyRight=compactFrame.right;
+  }else if(letterFrame){
+    // Keep letter title rule at page-margin line,
+    // but pull body inward to a comfortable reading frame.
+    bodyLeft=letterFrame.left;
+    bodyRight=letterFrame.right;
   }
 
   paper.style.setProperty("--rule-left",ruleLeft+"%");
@@ -596,22 +671,22 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
     titleTop=templateHeading.top;
   }else if(hp.y<65){
     const centerTop={
-      postcard:34,
-      card:31,
-      widecard:29,
-      minicard:31,
-      square:35,
-      ticket:28
+      postcard:layout.orientation==="landscape"?31:35,
+      card:layout.orientation==="landscape"?29:34,
+      widecard:layout.orientation==="landscape"?27:33,
+      minicard:layout.orientation==="landscape"?29:34,
+      square:layout.orientation==="landscape"?33:36,
+      ticket:layout.orientation==="landscape"?26:35
     }[layout.template];
     titleTop=centerTop ?? (compact?32:36);
   }else{
     const bottomTop={
-      postcard:72,
-      card:69,
-      widecard:66,
-      minicard:68,
-      square:73,
-      ticket:64
+      postcard:layout.orientation==="landscape"?69:74,
+      card:layout.orientation==="landscape"?66:72,
+      widecard:layout.orientation==="landscape"?63:70,
+      minicard:layout.orientation==="landscape"?65:71,
+      square:layout.orientation==="landscape"?70:74,
+      ticket:layout.orientation==="landscape"?61:72
     }[layout.template];
     titleTop=bottomTop ?? (compact?74:79);
   }
