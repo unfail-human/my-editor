@@ -3160,3 +3160,81 @@ button{cursor:pointer}
 .paper[data-document-template="square"]{
   overflow:hidden !important;
 }
+
+
+/* ===== V99 unified preview/export rendering ===== */
+
+/* Old builds hard-coded every export to A4 (794x1123) and changed padding/font-size.
+   Export dimensions are now set inline from layoutExportSpec(). */
+.export-host{
+  position:fixed !important;
+  left:-30000px !important;
+  top:0 !important;
+  width:auto !important;
+  height:auto !important;
+  pointer-events:none !important;
+  overflow:visible !important;
+}
+
+.export-host .paper.render-clone,
+.export-host .paper.export-render-clone{
+  padding:0 !important;
+  overflow:hidden !important;
+  flex:none !important;
+}
+
+/* Never override the document's calculated editor layout during export. */
+.export-host .paper.render-clone .editor,
+.export-host .paper.export-render-clone .editor{
+  font-size:inherit !important;
+  min-height:0 !important;
+  height:auto !important;
+  overflow:hidden !important;
+}
+
+/* Old export-title / export-subtitle rules are no longer used.
+   Keep them inert in case an older DOM snapshot survives. */
+.export-host .export-title,
+.export-host .export-subtitle{
+  width:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+}
+
+/* Read-only input clones must render exactly like live title inputs. */
+.render-clone .title-input,
+.render-clone .subtitle-input{
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  background:transparent !important;
+  outline:0 !important;
+  box-sizing:border-box !important;
+}
+
+/* Preview and export use the actual template geometry. */
+#previewHost .paper.render-clone,
+.export-host .paper.render-clone{
+  box-sizing:border-box !important;
+}
+
+/* Footer: page number independent from source, always center. */
+.render-clone .paper-footer{
+  position:absolute !important;
+}
+.render-clone .paper-footer > span:not(.paper-source-credit){
+  position:absolute !important;
+  left:50% !important;
+  right:auto !important;
+  transform:translateX(-50%) !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+}
+.render-clone .paper-source-credit{
+  position:absolute !important;
+  right:0 !important;
+  left:auto !important;
+  transform:none !important;
+  text-align:right !important;
+  white-space:nowrap !important;
+}

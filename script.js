@@ -2844,31 +2844,30 @@ function applyTypographyToClone(clone,page){
 }
 
 function clonePageForIndex(pageIndex,{forExport=false}={}){
-  const s=current(),page=s.pages[pageIndex];
+  const s=current();
+  const page=s.pages[pageIndex];
   const clone=$("paper").cloneNode(true);
+
   clone.removeAttribute("id");
   clone.querySelectorAll("[id]").forEach(x=>x.removeAttribute("id"));
+  clone.classList.add("render-clone");
+  if(forExport)clone.classList.add("export-render-clone");
 
-  const titleInput=clone.querySelector(".title-input");
-  const subtitleInput=clone.querySelector(".subtitle-input");
+  const layout=currentLayout();
 
+  // IMPORTANT:
+  // Establish the clone's final dimensions BEFORE calculating layout.
+  // Preview uses the live paper dimensions; export uses the exact template dimensions.
   if(forExport){
-    const title=document.createElement("div");
-    title.className="export-title title-input";
-    title.textContent=page.title||"";
-    const subtitle=document.createElement("div");
-    subtitle.className="export-subtitle subtitle-input";
-    subtitle.textContent=page.subtitle||"";
-    titleInput.replaceWith(title);
-    subtitleInput.replaceWith(subtitle);
+    const spec=layoutExportSpec(layout);
+    clone.style.setProperty("width",spec.widthPx+"px","important");
+    clone.style.setProperty("height",spec.heightPx+"px","important");
+    clone.style.setProperty("min-width",spec.widthPx+"px","important");
+    clone.style.setProperty("max-width",spec.widthPx+"px","important");
+    clone.style.setProperty("min-height",spec.heightPx+"px","important");
+    clone.style.setProperty("max-height",spec.heightPx+"px","important");
+    clone.style.setProperty("aspect-ratio","auto","important");
   }else{
-    titleInput.value=page.title||"";
-    titleInput.setAttribute("value",page.title||"");
-    titleInput.readOnly=true;
-    subtitleInput.value=page.subtitle||"";
-    subtitleInput.setAttribute("value",page.subtitle||"");
-    subtitleInput.readOnly=true;
-
     const liveRect=$("paper").getBoundingClientRect();
     clone.style.setProperty("width",liveRect.width+"px","important");
     clone.style.setProperty("height",liveRect.height+"px","important");
@@ -2880,28 +2879,46 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
 
   clone.style.setProperty("overflow","hidden","important");
 
+  // Keep the SAME input elements used by the live editor.
+  // Replacing them with DIVs changes width / writing-mode / alignment in html2canvas.
+  const titleInput=clone.querySelector(".title-input");
+  const subtitleInput=clone.querySelector(".subtitle-input");
+
+  if(titleInput){
+    titleInput.value=page.title||"";
+    titleInput.setAttribute("value",page.title||"");
+    titleInput.readOnly=true;
+    titleInput.tabIndex=-1;
+  }
+  if(subtitleInput){
+    subtitleInput.value=page.subtitle||"";
+    subtitleInput.setAttribute("value",page.subtitle||"");
+    subtitleInput.readOnly=true;
+    subtitleInput.tabIndex=-1;
+  }
+
   const ed=clone.querySelector(".editor");
   ed.innerHTML=page.content||"";
   ed.removeAttribute("contenteditable");
-  ed.style.setProperty("flex","1 1 auto","important");
   ed.style.setProperty("min-height","0","important");
-  ed.style.setProperty("height","auto","important");
   ed.style.setProperty("overflow","hidden","important");
-  ed.style.setProperty("contain","paint","important");
 
   applyTypographyToClone(clone,page);
+
+  // Same layout function as the live document, AFTER final dimensions are known.
   applyDocumentLayoutToElement(
     clone,
     ed,
-    clone.querySelector(".title-input")||clone.querySelector(".export-title"),
-    clone.querySelector(".subtitle-input")||clone.querySelector(".export-subtitle"),
+    titleInput,
+    subtitleInput,
     pageIndex,
-    currentLayout()
+    layout
   );
-  refreshDividerStyles(ed);
 
-  // Preview/export footer:
-  // show both editable page number and permanent site source.
+  refreshDividerStyles(ed);
+  forceCenteredPageNumber(clone);
+
+  // Preview/export footer: always show page number + permanent source.
   const footer=clone.querySelector(".paper-footer");
   if(footer){
     const spans=[...footer.querySelectorAll("span")];
@@ -2911,12 +2928,18 @@ function clonePageForIndex(pageIndex,{forExport=false}={}){
     if(pageNo){
       pageNo.style.display="";
       pageNo.textContent=[page.pagePrefix,page.pageNumber,page.pageSuffix].filter(Boolean).join(" ");
+      pageNo.style.setProperty("position","absolute","important");
+      pageNo.style.setProperty("left","50%","important");
+      pageNo.style.setProperty("right","auto","important");
+      pageNo.style.setProperty("transform","translateX(-50%)","important");
+      pageNo.style.setProperty("text-align","center","important");
     }
     if(source){
       source.style.display="";
       source.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
     }
   }
+
   return clone;
 }
 function applyPreviewZoom(){
@@ -3183,47 +3206,52 @@ document.addEventListener("click",()=>{$("saveMenu").classList.remove("open");cl
 document.querySelectorAll("[data-export]").forEach(b=>b.onclick=()=>exportFile(b.dataset.export));
 
 async function capture(pageIndex=current().currentPageIndex||0){
-  saveCurrent(false);await document.fonts.ready;
-  const host=document.createElement("div");host.className="export-host";
-  const clone=clonePageForIndex(pageIndex,{forExport:true});
-  const footer=clone.querySelector(".paper-footer");
-  if(footer){
-    const spans=[...footer.querySelectorAll("span")];
-    const source=footer.querySelector(".paper-source-credit");
-    const pageNo=spans.find(el=>!el.classList.contains("paper-source-credit"));
-    const page=current().pages[pageIndex];
+  saveCurrent(false);
+  await document.fonts.ready;
 
-    if(pageNo){
-      pageNo.style.display="";
-      pageNo.textContent=[page.pagePrefix,page.pageNumber,page.pageSuffix].filter(Boolean).join(" ");
-    }
-    if(source){
-      source.style.display="";
-      source.textContent="MY EDITOR · unfail-human.github.io/my-editor/";
-    }
-  }
-  host.appendChild(clone);document.body.appendChild(host);
+  const host=document.createElement("div");
+  host.className="export-host";
+  const clone=clonePageForIndex(pageIndex,{forExport:true});
+  host.appendChild(clone);
+  document.body.appendChild(host);
+
   try{
+    // Allow computed fonts/layout/pseudo-elements to settle.
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    const spec=layoutExportSpec();
-    clone.style.setProperty("width",spec.widthPx+"px","important");
-    clone.style.setProperty("height",spec.heightPx+"px","important");
-    clone.style.setProperty("min-width","0","important");
-    clone.style.setProperty("max-width","none","important");
-    clone.style.setProperty("min-height","0","important");
-    clone.style.setProperty("max-height","none","important");
-    clone.style.setProperty("aspect-ratio","auto","important");
-    const ced=clone.querySelector(".editor");
-    ced.style.setProperty("min-height","0","important");
-    ced.style.setProperty("overflow","hidden","important");
+
+    // Re-run once in its mounted, final-size export context.
+    const page=current().pages[pageIndex];
+    applyTypographyToClone(clone,page);
+    applyDocumentLayoutToElement(
+      clone,
+      clone.querySelector(".editor"),
+      clone.querySelector(".title-input"),
+      clone.querySelector(".subtitle-input"),
+      pageIndex,
+      currentLayout()
+    );
+    refreshDividerStyles(clone.querySelector(".editor"));
+    forceCenteredPageNumber(clone);
+
+    await new Promise(r=>requestAnimationFrame(r));
+
+    const spec=layoutExportSpec(currentLayout());
+
     return await html2canvas(clone,{
-      scale:2,useCORS:true,backgroundColor:null,
-      width:spec.widthPx,height:spec.heightPx,
+      scale:2,
+      useCORS:true,
+      backgroundColor:null,
+      width:spec.widthPx,
+      height:spec.heightPx,
       windowWidth:Math.max(1200,spec.widthPx+200),
       windowHeight:Math.max(1000,spec.heightPx+200),
-      scrollX:0,scrollY:0
+      scrollX:0,
+      scrollY:0,
+      logging:false
     });
-  }finally{host.remove()}
+  }finally{
+    host.remove();
+  }
 }
 async function exportFile(type){
   $("saveMenu").classList.remove("open");
