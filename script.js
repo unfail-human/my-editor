@@ -250,7 +250,7 @@ function marginPresetLabel(preset){
 }
 
 function mmToPercent(mm,totalMm){
-  return Math.max(0,Math.min(35,(Number(mm)||0)/totalMm*100));
+  return Math.max(-15,Math.min(35,(Number(mm)||0)/totalMm*100));
 }
 
 function effectiveDocumentMargins(layout=currentLayout()){
@@ -415,15 +415,15 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   const marginCfg=effectiveDocumentMargins(layout);
   const shiftX=Math.max(-4,Math.min(5,Number(ts.bodyShiftX??-2)));
 
-  const ruleLeft=Math.max(.8,marginCfg.page.left);
-  const ruleRight=Math.max(.8,marginCfg.page.right);
+  const ruleLeft=Math.max(-4,marginCfg.page.left);
+  const ruleRight=Math.max(-4,marginCfg.page.right);
 
   const bodyLeft=Math.max(
-    .8,
+    -4,
     marginCfg.page.left + marginCfg.body.left + shiftX
   );
   const bodyRight=Math.max(
-    .8,
+    -4,
     marginCfg.page.right + marginCfg.body.right - shiftX
   );
 
@@ -441,14 +441,31 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   const effectiveRuleLeft=ruleLeft;
   const effectiveRuleRight=ruleRight;
 
-  [title,subtitle].forEach(el=>{
-    if(!el)return;
-    el.style.left=effectiveRuleLeft+"%";
-    el.style.right=effectiveRuleRight+"%";
-    el.style.width="auto";
-    el.style.transform="none";
-    el.style.textAlign=hp.align;
-  });
+  if(title){
+    title.style.left=effectiveRuleLeft+"%";
+    title.style.right=effectiveRuleRight+"%";
+    title.style.width="auto";
+    title.style.transform="none";
+    title.style.textAlign=hp.align;
+  }
+
+  if(subtitle){
+    const subtitleInset=1.15;
+    subtitle.style.width="auto";
+    subtitle.style.transform="none";
+    subtitle.style.textAlign=hp.align;
+
+    if(hp.align==="left"){
+      subtitle.style.left=(effectiveRuleLeft+subtitleInset)+"%";
+      subtitle.style.right=effectiveRuleRight+"%";
+    }else if(hp.align==="right"){
+      subtitle.style.left=effectiveRuleLeft+"%";
+      subtitle.style.right=(effectiveRuleRight+subtitleInset)+"%";
+    }else{
+      subtitle.style.left=effectiveRuleLeft+"%";
+      subtitle.style.right=effectiveRuleRight+"%";
+    }
+  }
 
   const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
   if(title){
@@ -463,8 +480,6 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       Math.max(10,Math.round(titleSize*.38))+"px",
       "important"
     );
-    subtitle.style.setProperty("left",effectiveRuleLeft+"%","important");
-    subtitle.style.setProperty("right",effectiveRuleRight+"%","important");
     subtitle.style.setProperty("width","auto","important");
   }
 
@@ -1979,20 +1994,20 @@ function updateDocumentMarginDraft(){
 
   documentMarginDraft.preset="custom";
   documentMarginDraft.page={
-    top:clamp($("pageMarginTop").value,5,80),
-    bottom:clamp($("pageMarginBottom").value,5,80),
-    left:clamp($("pageMarginLeft").value,5,80),
-    right:clamp($("pageMarginRight").value,5,80)
+    top:clamp($("pageMarginTop").value,-30,80),
+    bottom:clamp($("pageMarginBottom").value,-30,80),
+    left:clamp($("pageMarginLeft").value,-30,80),
+    right:clamp($("pageMarginRight").value,-30,80)
   };
   documentMarginDraft.headerFooter={
-    header:clamp($("headerMarginInput").value,0,50),
-    footer:clamp($("footerMarginInput").value,0,50)
+    header:clamp($("headerMarginInput").value,-30,50),
+    footer:clamp($("footerMarginInput").value,-30,50)
   };
   documentMarginDraft.body={
-    top:clamp($("bodyMarginTop").value,0,50),
-    bottom:clamp($("bodyMarginBottom").value,0,50),
-    left:clamp($("bodyMarginLeft").value,0,50),
-    right:clamp($("bodyMarginRight").value,0,50)
+    top:clamp($("bodyMarginTop").value,-30,50),
+    bottom:clamp($("bodyMarginBottom").value,-30,50),
+    left:clamp($("bodyMarginLeft").value,-30,50),
+    right:clamp($("bodyMarginRight").value,-30,50)
   };
 
   document.querySelectorAll("[data-margin-preset]").forEach(btn=>{

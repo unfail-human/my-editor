@@ -2362,3 +2362,16 @@ button{cursor:pointer}
 #documentMarginModal .margin-preset-btn:hover{
   background:#f8f6f2;
 }
+
+
+/* ===== V76 subtitle alignment refinement ===== */
+.paper.layout-enabled .subtitle-input{
+  opacity:.82;
+}
+
+/* Left/right aligned subtitle gets a small visual inset automatically.
+   Center stays exactly centered. */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  box-sizing:border-box !important;
+}
