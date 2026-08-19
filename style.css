@@ -2667,3 +2667,60 @@ button{cursor:pointer}
   padding-right:var(--body-frame-right) !important;
   box-sizing:border-box !important;
 }
+
+
+/* ===== V88 reference-image card layouts ===== */
+
+/* Four reference templates: title + subtitle live on ONE horizontal line. */
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="ticket"] .title-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  right:auto !important;
+  max-width:none !important;
+  transform:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  border-bottom:0 !important;
+  box-sizing:border-box !important;
+}
+
+/* Subtitle reads as secondary metadata beside the title. */
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  line-height:1.05 !important;
+  opacity:.66 !important;
+}
+
+/* One shared underline below the combined title/subtitle row. */
+.paper[data-document-template="card"]::before,
+.paper[data-document-template="widecard"]::before,
+.paper[data-document-template="minicard"]::before,
+.paper[data-document-template="ticket"]::before{
+  content:"";
+  position:absolute;
+  left:var(--rule-left);
+  right:var(--rule-right);
+  top:var(--inline-heading-rule-top);
+  border-top:1px solid rgba(105,98,90,.22);
+  z-index:3;
+  pointer-events:none;
+}
+
+/* Body starts below that single heading rule. */
+.paper[data-document-template="card"] .editor.writing-horizontal,
+.paper[data-document-template="widecard"] .editor.writing-horizontal,
+.paper[data-document-template="minicard"] .editor.writing-horizontal,
+.paper[data-document-template="ticket"] .editor.writing-horizontal,
+.paper[data-document-template="card"] .editor.layout-columns,
+.paper[data-document-template="widecard"] .editor.layout-columns,
+.paper[data-document-template="minicard"] .editor.layout-columns,
+.paper[data-document-template="ticket"] .editor.layout-columns{
+  box-sizing:border-box !important;
+}

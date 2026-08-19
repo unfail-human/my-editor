@@ -34,11 +34,11 @@ const DISTRIBUTION_LAYOUT={
     a4:{orientation:"portrait",titleSize:34,headingGap:168,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     letter:{orientation:"portrait",titleSize:34,headingGap:164,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     postcard:{orientation:"portrait",titleSize:24,headingGap:78,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    card:{orientation:"landscape",titleSize:28,headingGap:74,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    widecard:{orientation:"landscape",titleSize:28,headingGap:68,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    minicard:{orientation:"landscape",titleSize:26,headingGap:68,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    card:{orientation:"landscape",titleSize:28,headingGap:22,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    widecard:{orientation:"landscape",titleSize:28,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
+    minicard:{orientation:"landscape",titleSize:26,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
     square:{orientation:"portrait",titleSize:25,headingGap:82,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}},
-    ticket:{orientation:"landscape",titleSize:28,headingGap:68,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
+    ticket:{orientation:"landscape",titleSize:28,headingGap:20,headingPosition:"top-left",bodyShiftX:-2,marginPreset:"normal",margins:{top:20,bottom:20,left:18,right:18}}
   }
 };
 function defaultTypography(){return structuredClone(DISTRIBUTION_TYPOGRAPHY)}
@@ -153,11 +153,11 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
 
   const updates={
     postcard:{oldSizes:[23,24,25,26],oldGaps:[76,78,82,96,104,116],size:24,gap:78},
-    card:{oldSizes:[22,23,25,27],oldGaps:[66,68,72,88,102,112],size:28,gap:74},
-    widecard:{oldSizes:[23,24,26,28],oldGaps:[60,62,66,80,96,106],size:28,gap:68},
-    minicard:{oldSizes:[21,22,24,26],oldGaps:[64,66,70,84,100,110],size:26,gap:68},
+    card:{oldSizes:[22,23,25,27,28],oldGaps:[22,66,68,72,74,88,102,112],size:28,gap:22},
+    widecard:{oldSizes:[23,24,26,28],oldGaps:[20,60,62,66,68,80,96,106],size:28,gap:20},
+    minicard:{oldSizes:[21,22,24,26],oldGaps:[20,64,66,68,70,84,100,110],size:26,gap:20},
     square:{oldSizes:[24,25,27,29],oldGaps:[80,82,88,104,118,128],size:25,gap:82},
-    ticket:{oldSizes:[19,20,21,22,24],oldGaps:[54,58,60,70,88,96],size:28,gap:68}
+    ticket:{oldSizes:[19,20,21,22,24,28],oldGaps:[20,54,58,60,68,70,88,96],size:28,gap:20}
   };
 
   Object.entries(updates).forEach(([key,u])=>{
@@ -170,13 +170,16 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
     if(generatedSize)t.titleSize=u.size;
     if(generatedGap)t.headingGap=u.gap;
 
-    // Generated card/ticket defaults are normalized to top-left.
     if(generatedSize && generatedGap){
       t.headingPosition="top-left";
+
+      if(key==="card") t.bodyMargins={top:0,bottom:0,left:22,right:22};
+      if(key==="widecard") t.bodyMargins={top:0,bottom:0,left:22,right:22};
+      if(key==="minicard") t.bodyMargins={top:0,bottom:0,left:18,right:18};
+      if(key==="ticket") t.bodyMargins={top:0,bottom:0,left:18,right:18};
     }
   });
 
-  // Letter fix from V84 remains.
   const letter=layout.templateSettings.letter;
   if(letter?.bodyMargins &&
      letter.bodyMargins.top===0 && letter.bodyMargins.bottom===0 &&
@@ -540,6 +543,66 @@ function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
   };
 }
 
+
+const INLINE_CARD_HEADING_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
+
+function measureInputTextWidth(el,text,fallbackSize=24){
+  if(!el)return 0;
+  const canvas=measureInputTextWidth._canvas||(measureInputTextWidth._canvas=document.createElement("canvas"));
+  const ctx=canvas.getContext("2d");
+  const cs=getComputedStyle(el);
+  const fontSize=cs.fontSize||fallbackSize+"px";
+  const fontFamily=cs.fontFamily||"sans-serif";
+  const fontWeight=cs.fontWeight||"400";
+  const fontStyle=cs.fontStyle||"normal";
+  ctx.font=`${fontStyle} ${fontWeight} ${fontSize} ${fontFamily}`;
+  return Math.ceil(ctx.measureText(text||el.value||"").width);
+}
+
+function applyInlineCardHeadingLayout(paper,title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight){
+  if(!INLINE_CARD_HEADING_TEMPLATES.has(layout.template) || !title || !subtitle)return false;
+
+  const titleText=title.value||title.getAttribute("value")||"";
+  const subtitleText=subtitle.value||subtitle.getAttribute("value")||"";
+
+  // Desired mockup: title + subtitle on one baseline, with a small fixed gap.
+  const gapPx=6;
+  const titleW=Math.max(28,measureInputTextWidth(title,titleText,titleSize)+4);
+  const subtitleW=Math.max(24,measureInputTextWidth(subtitle,subtitleText,Math.max(10,Math.round(titleSize*.38)))+4);
+  const totalW=titleW+gapPx+subtitleW;
+
+  title.style.top=titleTop+"%";
+  subtitle.style.top=titleTop+"%";
+
+  title.style.right="auto";
+  subtitle.style.right="auto";
+  title.style.width=titleW+"px";
+  subtitle.style.width=subtitleW+"px";
+  title.style.maxWidth="none";
+  subtitle.style.maxWidth="none";
+  title.style.transform="none";
+  subtitle.style.transform="none";
+
+  if(hp.align==="center"){
+    title.style.left=`calc(50% - ${Math.round(totalW/2)}px)`;
+    subtitle.style.left=`calc(50% - ${Math.round(totalW/2)}px + ${titleW+gapPx}px)`;
+  }else if(hp.align==="right"){
+    title.style.left=`calc(100% - ${effectiveRuleRight}% - ${totalW}px)`;
+    subtitle.style.left=`calc(100% - ${effectiveRuleRight}% - ${subtitleW}px)`;
+  }else{
+    title.style.left=effectiveRuleLeft+"%";
+    subtitle.style.left=`calc(${effectiveRuleLeft}% + ${titleW+gapPx}px)`;
+  }
+
+  title.style.textAlign="left";
+  subtitle.style.textAlign="left";
+
+  // The line below the heading spans the full content frame, independent of subtitle width.
+  paper.style.setProperty("--inline-heading-rule-top",`calc(${titleTop}% + ${Math.max(30,Math.round(titleSize*1.18))}px)`);
+
+  return true;
+}
+
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
 
@@ -675,9 +738,15 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(showHeading){
-    title.style.top=titleTop+"%";
-    const subtitleGapPx=Math.max(4,Math.round(titleSize*0.14));
-    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*templateHeading.subGap)}px + ${subtitleGapPx}px)`;
+    const usedInlineHeading=applyInlineCardHeadingLayout(
+      paper,title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight
+    );
+
+    if(!usedInlineHeading){
+      title.style.top=titleTop+"%";
+      const subtitleGapPx=Math.max(4,Math.round(titleSize*0.14));
+      subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*templateHeading.subGap)}px + ${subtitleGapPx}px)`;
+    }
   }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
@@ -693,7 +762,19 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
       const templateBase=templateHeading.topSafe;
       const sizeAdjust=(titleSize-34)*.72;
       const gapAdjust=(configuredGap-150)*.12;
-      const topSafe=Math.max(44,templateBase+sizeAdjust+gapAdjust);
+
+      let topSafe;
+      if(INLINE_CARD_HEADING_TEMPLATES.has(layout.template)){
+        const inlineBase={
+          card:78,
+          widecard:72,
+          minicard:72,
+          ticket:72
+        }[layout.template]||72;
+        topSafe=inlineBase + Math.max(0,configuredGap);
+      }else{
+        topSafe=Math.max(44,templateBase+sizeAdjust+gapAdjust);
+      }
 
       paper.style.setProperty("--heading-safe-top",Math.round(topSafe)+"px");
     }else if(hp.y<65){
