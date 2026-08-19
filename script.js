@@ -153,7 +153,7 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
 
   const updates={
     postcard:{oldSizes:[23,24,25,26],oldGaps:[76,78,82,96,104,116],size:24,gap:78},
-    card:{oldSizes:[22,23,25,27,28],oldGaps:[22,66,68,72,74,88,102,112],size:28,gap:22},
+    card:{oldSizes:[22,23,25,27,28],oldGaps:[20,22,66,68,72,74,88,102,112],size:28,gap:22},
     widecard:{oldSizes:[23,24,26,28],oldGaps:[20,60,62,66,68,80,96,106],size:28,gap:20},
     minicard:{oldSizes:[21,22,24,26],oldGaps:[20,64,66,68,70,84,100,110],size:26,gap:20},
     square:{oldSizes:[24,25,27,29],oldGaps:[80,82,88,104,118,128],size:25,gap:82},
@@ -172,11 +172,6 @@ function normalizeGeneratedTemplateHeadingDefaults(layout){
 
     if(generatedSize && generatedGap){
       t.headingPosition="top-left";
-
-      if(key==="card") t.bodyMargins={top:0,bottom:0,left:22,right:22};
-      if(key==="widecard") t.bodyMargins={top:0,bottom:0,left:22,right:22};
-      if(key==="minicard") t.bodyMargins={top:0,bottom:0,left:18,right:18};
-      if(key==="ticket") t.bodyMargins={top:0,bottom:0,left:18,right:18};
     }
   });
 
@@ -500,24 +495,24 @@ function compactTemplateContentFrame(layout=currentLayout(),marginCfg=null){
       landscape:{left:7.5,right:7.5}
     },
     card:{
-      portrait:{left:9.0,right:9.0},
-      landscape:{left:7.5,right:7.5}
+      portrait:{left:8.5,right:8.5},
+      landscape:{left:6.5,right:6.5}
     },
     widecard:{
-      portrait:{left:8.5,right:8.5},
-      landscape:{left:7.0,right:7.0}
+      portrait:{left:8.0,right:8.0},
+      landscape:{left:5.8,right:5.8}
     },
     minicard:{
-      portrait:{left:9.0,right:9.0},
-      landscape:{left:7.5,right:7.5}
+      portrait:{left:8.5,right:8.5},
+      landscape:{left:6.5,right:6.5}
     },
     square:{
       portrait:{left:8.5,right:8.5},
       landscape:{left:8.0,right:8.0}
     },
     ticket:{
-      portrait:{left:10.5,right:10.5},
-      landscape:{left:7.0,right:7.0}
+      portrait:{left:9.5,right:9.5},
+      landscape:{left:6.0,right:6.0}
     }
   };
 
@@ -546,9 +541,9 @@ function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
 
 const INLINE_CARD_HEADING_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
 
-function measureInputTextWidth(el,text,fallbackSize=24){
+function measureHeadingTextWidth(el,text,fallbackSize=24){
   if(!el)return 0;
-  const canvas=measureInputTextWidth._canvas||(measureInputTextWidth._canvas=document.createElement("canvas"));
+  const canvas=measureHeadingTextWidth._canvas||(measureHeadingTextWidth._canvas=document.createElement("canvas"));
   const ctx=canvas.getContext("2d");
   const cs=getComputedStyle(el);
   const fontSize=cs.fontSize||fallbackSize+"px";
@@ -556,52 +551,56 @@ function measureInputTextWidth(el,text,fallbackSize=24){
   const fontWeight=cs.fontWeight||"400";
   const fontStyle=cs.fontStyle||"normal";
   ctx.font=`${fontStyle} ${fontWeight} ${fontSize} ${fontFamily}`;
-  return Math.ceil(ctx.measureText(text||el.value||"").width);
+  return Math.ceil(ctx.measureText(text||"").width);
 }
 
 function applyInlineCardHeadingLayout(paper,title,subtitle,layout,hp,titleTop,titleSize,effectiveRuleLeft,effectiveRuleRight){
   if(!INLINE_CARD_HEADING_TEMPLATES.has(layout.template) || !title || !subtitle)return false;
 
-  const titleText=title.value||title.getAttribute("value")||"";
-  const subtitleText=subtitle.value||subtitle.getAttribute("value")||"";
+  const titleText=title.value||"";
+  const subtitleText=subtitle.value||"";
 
-  // Desired mockup: title + subtitle on one baseline, with a small fixed gap.
-  const gapPx=6;
-  const titleW=Math.max(28,measureInputTextWidth(title,titleText,titleSize)+4);
-  const subtitleW=Math.max(24,measureInputTextWidth(subtitle,subtitleText,Math.max(10,Math.round(titleSize*.38)))+4);
+  const subtitleSize=Math.max(10,Math.round(titleSize*.38));
+  const gapPx=8;
+  const titleW=Math.max(30,measureHeadingTextWidth(title,titleText,titleSize)+6);
+  const subtitleW=Math.max(20,measureHeadingTextWidth(subtitle,subtitleText,subtitleSize)+4);
   const totalW=titleW+gapPx+subtitleW;
 
-  title.style.top=titleTop+"%";
-  subtitle.style.top=titleTop+"%";
+  const setImp=(el,prop,val)=>el.style.setProperty(prop,val,"important");
 
-  title.style.right="auto";
-  subtitle.style.right="auto";
-  title.style.width=titleW+"px";
-  subtitle.style.width=subtitleW+"px";
-  title.style.maxWidth="none";
-  subtitle.style.maxWidth="none";
-  title.style.transform="none";
-  subtitle.style.transform="none";
+  // Same baseline row.
+  setImp(title,"top",titleTop+"%");
+  setImp(subtitle,"top",`calc(${titleTop}% + ${Math.max(2,Math.round(titleSize*.10))}px)`);
+
+  setImp(title,"width",titleW+"px");
+  setImp(subtitle,"width",subtitleW+"px");
+  setImp(title,"max-width","none");
+  setImp(subtitle,"max-width","none");
+  setImp(title,"right","auto");
+  setImp(subtitle,"right","auto");
+  setImp(title,"transform","none");
+  setImp(subtitle,"transform","none");
+  setImp(title,"text-align","left");
+  setImp(subtitle,"text-align","left");
 
   if(hp.align==="center"){
-    title.style.left=`calc(50% - ${Math.round(totalW/2)}px)`;
-    subtitle.style.left=`calc(50% - ${Math.round(totalW/2)}px + ${titleW+gapPx}px)`;
+    setImp(title,"left",`calc(50% - ${Math.round(totalW/2)}px)`);
+    setImp(subtitle,"left",`calc(50% - ${Math.round(totalW/2)}px + ${titleW+gapPx}px)`);
   }else if(hp.align==="right"){
-    title.style.left=`calc(100% - ${effectiveRuleRight}% - ${totalW}px)`;
-    subtitle.style.left=`calc(100% - ${effectiveRuleRight}% - ${subtitleW}px)`;
+    setImp(title,"left",`calc(100% - ${effectiveRuleRight}% - ${totalW}px)`);
+    setImp(subtitle,"left",`calc(100% - ${effectiveRuleRight}% - ${subtitleW}px)`);
   }else{
-    title.style.left=effectiveRuleLeft+"%";
-    subtitle.style.left=`calc(${effectiveRuleLeft}% + ${titleW+gapPx}px)`;
+    setImp(title,"left",effectiveRuleLeft+"%");
+    setImp(subtitle,"left",`calc(${effectiveRuleLeft}% + ${titleW+gapPx}px)`);
   }
 
-  title.style.textAlign="left";
-  subtitle.style.textAlign="left";
-
-  // The line below the heading spans the full content frame, independent of subtitle width.
-  paper.style.setProperty("--inline-heading-rule-top",`calc(${titleTop}% + ${Math.max(30,Math.round(titleSize*1.18))}px)`);
+  // One underline under the combined row.
+  const ruleOffset=Math.max(28,Math.round(titleSize*1.22));
+  paper.style.setProperty("--inline-heading-rule-top",`calc(${titleTop}% + ${ruleOffset}px)`);
 
   return true;
 }
+
 
 function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layout=currentLayout()){
   if(!paper||!editor)return;
@@ -765,13 +764,12 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
       let topSafe;
       if(INLINE_CARD_HEADING_TEMPLATES.has(layout.template)){
-        const inlineBase={
-          card:78,
-          widecard:72,
-          minicard:72,
-          ticket:72
-        }[layout.template]||72;
-        topSafe=inlineBase + Math.max(0,configuredGap);
+        topSafe={
+          card:74,
+          widecard:68,
+          minicard:70,
+          ticket:66
+        }[layout.template]||70;
       }else{
         topSafe=Math.max(44,templateBase+sizeAdjust+gapAdjust);
       }
