@@ -2571,3 +2571,45 @@ button{cursor:pointer}
   padding-bottom:4px !important;
   line-height:1.12 !important;
 }
+
+
+/* ===== V86 unified title/subtitle frame ===== */
+/* Every template/orientation: title and subtitle start/end at exactly same edges. */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  left:var(--rule-left) !important;
+  right:var(--rule-right) !important;
+  width:auto !important;
+  max-width:none !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+  transform:none !important;
+  box-sizing:border-box !important;
+}
+
+/* Subtitle stays directly below title with a small visual gap. */
+.paper.layout-enabled .subtitle-input{
+  margin-top:0 !important;
+  padding-top:0 !important;
+  line-height:1.18 !important;
+  padding-bottom:5px !important;
+}
+
+/* Card-family layouts must not override title/subtitle frame independently. */
+.paper[data-document-template="postcard"] .title-input,
+.paper[data-document-template="postcard"] .subtitle-input,
+.paper[data-document-template="card"] .title-input,
+.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .title-input,
+.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .title-input,
+.paper[data-document-template="minicard"] .subtitle-input,
+.paper[data-document-template="square"] .title-input,
+.paper[data-document-template="square"] .subtitle-input,
+.paper[data-document-template="ticket"] .title-input,
+.paper[data-document-template="ticket"] .subtitle-input{
+  left:var(--rule-left) !important;
+  right:var(--rule-right) !important;
+  width:auto !important;
+  max-width:none !important;
+}

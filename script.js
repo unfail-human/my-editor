@@ -444,49 +444,49 @@ function resolvedTemplateHeadingLayout(layout=currentLayout()){
 
   const presets={
     a4:{
-      portrait:{top:5.5,subGap:1.04,inset:1.6,topSafe:104,centerSafe:285,bottomSafe:205},
-      landscape:{top:5.0,subGap:1.07,inset:1.5,topSafe:96,centerSafe:230,bottomSafe:168}
+      portrait:{top:5.5,subGap:1.08,inset:0,topSafe:104,centerSafe:285,bottomSafe:205},
+      landscape:{top:5.0,subGap:1.12,inset:0,topSafe:96,centerSafe:230,bottomSafe:168}
     },
 
     // Letter: A4-like rhythm, slightly more inward.
     letter:{
-      portrait:{top:5.8,subGap:1.04,inset:1.6,topSafe:106,centerSafe:282,bottomSafe:202},
-      landscape:{top:5.2,subGap:1.07,inset:1.5,topSafe:98,centerSafe:232,bottomSafe:168}
+      portrait:{top:5.8,subGap:1.08,inset:0,topSafe:106,centerSafe:282,bottomSafe:202},
+      landscape:{top:5.2,subGap:1.12,inset:0,topSafe:98,centerSafe:232,bottomSafe:168}
     },
 
     // Postcard: compact but still document-like.
     postcard:{
-      portrait:{top:5.5,subGap:1.04,inset:1.4,topSafe:80,centerSafe:178,bottomSafe:128},
-      landscape:{top:4.8,subGap:1.05,inset:1.4,topSafe:70,centerSafe:150,bottomSafe:108}
+      portrait:{top:5.5,subGap:1.08,inset:0,topSafe:80,centerSafe:178,bottomSafe:128},
+      landscape:{top:4.8,subGap:1.10,inset:0,topSafe:70,centerSafe:150,bottomSafe:108}
     },
 
     // 3:2 card.
     card:{
-      portrait:{top:5.4,subGap:1.04,inset:1.4,topSafe:76,centerSafe:166,bottomSafe:118},
-      landscape:{top:4.4,subGap:1.05,inset:1.4,topSafe:64,centerSafe:136,bottomSafe:98}
+      portrait:{top:5.4,subGap:1.08,inset:0,topSafe:76,centerSafe:166,bottomSafe:118},
+      landscape:{top:4.4,subGap:1.10,inset:0,topSafe:64,centerSafe:136,bottomSafe:98}
     },
 
     // 16:9 wide card: very shallow vertically.
     widecard:{
-      portrait:{top:5.2,subGap:1.05,inset:1.4,topSafe:72,centerSafe:156,bottomSafe:110},
-      landscape:{top:4.0,subGap:1.04,inset:1.4,topSafe:56,centerSafe:122,bottomSafe:88}
+      portrait:{top:5.2,subGap:1.10,inset:0,topSafe:72,centerSafe:156,bottomSafe:110},
+      landscape:{top:4.0,subGap:1.08,inset:0,topSafe:56,centerSafe:122,bottomSafe:88}
     },
 
     // 4:3 mini card.
     minicard:{
-      portrait:{top:5.4,subGap:1.04,inset:1.4,topSafe:74,centerSafe:160,bottomSafe:114},
-      landscape:{top:4.4,subGap:1.05,inset:1.4,topSafe:62,centerSafe:132,bottomSafe:94}
+      portrait:{top:5.4,subGap:1.08,inset:0,topSafe:74,centerSafe:160,bottomSafe:114},
+      landscape:{top:4.4,subGap:1.10,inset:0,topSafe:62,centerSafe:132,bottomSafe:94}
     },
 
     square:{
-      portrait:{top:5.4,subGap:1.04,inset:1.4,topSafe:84,centerSafe:196,bottomSafe:142},
-      landscape:{top:4.8,subGap:1.05,inset:1.4,topSafe:76,centerSafe:174,bottomSafe:126}
+      portrait:{top:5.4,subGap:1.08,inset:0,topSafe:84,centerSafe:196,bottomSafe:142},
+      landscape:{top:4.8,subGap:1.10,inset:0,topSafe:76,centerSafe:174,bottomSafe:126}
     },
 
     // Ticket portrait must NOT reuse the extremely shallow landscape rhythm.
     ticket:{
-      portrait:{top:5.8,subGap:1.05,inset:1.4,topSafe:76,centerSafe:170,bottomSafe:120},
-      landscape:{top:3.8,subGap:1.04,inset:1.3,topSafe:52,centerSafe:106,bottomSafe:78}
+      portrait:{top:5.8,subGap:1.10,inset:0,topSafe:76,centerSafe:170,bottomSafe:120},
+      landscape:{top:3.8,subGap:1.08,inset:0,topSafe:52,centerSafe:106,bottomSafe:78}
     }
   };
 
@@ -621,6 +621,8 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   const effectiveRuleLeft=ruleLeft;
   const effectiveRuleRight=ruleRight;
 
+  // Title and subtitle always share the exact same horizontal frame.
+  // Their start/end edges must match on every template and orientation.
   if(title){
     title.style.left=effectiveRuleLeft+"%";
     title.style.right=effectiveRuleRight+"%";
@@ -630,22 +632,11 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
   }
 
   if(subtitle){
-    const templateHeading=resolvedTemplateHeadingLayout(layout);
-    const subtitleInset=templateHeading.inset;
+    subtitle.style.left=effectiveRuleLeft+"%";
+    subtitle.style.right=effectiveRuleRight+"%";
     subtitle.style.width="auto";
     subtitle.style.transform="none";
     subtitle.style.textAlign=hp.align;
-
-    if(hp.align==="left"){
-      subtitle.style.left=(effectiveRuleLeft+subtitleInset)+"%";
-      subtitle.style.right=effectiveRuleRight+"%";
-    }else if(hp.align==="right"){
-      subtitle.style.left=effectiveRuleLeft+"%";
-      subtitle.style.right=(effectiveRuleRight+subtitleInset)+"%";
-    }else{
-      subtitle.style.left=effectiveRuleLeft+"%";
-      subtitle.style.right=effectiveRuleRight+"%";
-    }
   }
 
   const titleSize=Math.max(18,Math.min(72,Number(ts.titleSize||34)));
@@ -693,7 +684,8 @@ function applyDocumentLayoutToElement(paper,editor,title,subtitle,pageIndex,layo
 
   if(showHeading){
     title.style.top=titleTop+"%";
-    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*templateHeading.subGap)}px)`;
+    const subtitleGapPx=Math.max(8,Math.round(titleSize*0.28));
+    subtitle.style.top=`calc(${titleTop}% + ${Math.round(titleSize*templateHeading.subGap)}px + ${subtitleGapPx}px)`;
   }
 
   paper.classList.remove("body-clear-top","body-clear-center","body-clear-bottom");
