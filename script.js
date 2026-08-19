@@ -219,6 +219,8 @@ function syncOrientationControlForTemplate(){
   }
 }
 function currentLayout(){
+  // V97: ticket was removed from the template list only.
+  // Preserve all document content/settings; migrate only the obsolete template key.
   if(s?.layout?.template==="ticket"){
     s.layout.template="card";
   }
@@ -577,7 +579,7 @@ function letterTemplateContentFrame(layout=currentLayout(),marginCfg=null){
 
 
 
-const REFERENCE_CARD_TEMPLATES=new Set(["card","widecard","minicard"]);
+const REFERENCE_CARD_TEMPLATES=new Set(["card","widecard","minicard","ticket"]);
 
 function _headingTextWidth(el,text,fallbackSize){
   if(!el)return 0;
