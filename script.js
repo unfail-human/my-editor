@@ -201,31 +201,26 @@ function syncOrientationControlForTemplate(){
   if(!select)return;
 
   if(isFixedBaseOrientationTemplate(layout)){
+    select.disabled=true;
     select.innerHTML='<option value="landscape">기본형</option>';
     select.value="landscape";
-    select.disabled=true;
     select.setAttribute("aria-label","기본형");
   }else{
     select.disabled=false;
-    const desired=[
-      ["portrait","세로형"],
-      ["landscape","가로형"]
-    ];
-    const current=[...select.options].map(o=>[o.value,o.textContent]);
-    if(JSON.stringify(current)!==JSON.stringify(desired)){
-      select.innerHTML='<option value="portrait">세로형</option><option value="landscape">가로형</option>';
-    }
+    select.innerHTML='<option value="portrait">세로형</option><option value="landscape">가로형</option>';
     select.value=layout.orientation||"portrait";
+    select.setAttribute("aria-label","방향");
   }
 }
+
 function currentLayout(){
-  // V97: ticket was removed from the template list only.
-  // Preserve all document content/settings; migrate only the obsolete template key.
-  if(s?.layout?.template==="ticket"){
+  const s=current();
+
+  // V98: ticket template was removed from the selector ONLY.
+  // Preserve page text, slot data and every other document setting.
+  if(s.layout?.template==="ticket"){
     s.layout.template="card";
   }
-
-  const s=current();
   if(!s.layout)s.layout=defaultLayout();
 
   const old=s.layout||{};
@@ -2101,30 +2096,44 @@ function updateLayoutSetting(key,value,{reflow=true}={}){
 }
 
 $("documentTemplate").onchange=e=>{
-  const s=current();
   const layout=currentLayout();
   layout.template=e.target.value;
-  const ts=ensureTemplateSettings(layout);
 
-  // Each template remembers its own orientation and title layout.
-  layout.orientation=ts.orientation||"portrait";
+  const ts=ensureTemplateSettings(layout);
   layout.headingPosition=ts.headingPosition||"top-left";
 
+  // 엽서형~정사각형 카드는 방향을 가로 기본형으로 고정.
+  if(isFixedBaseOrientationTemplate(layout)){
+    layout.orientation="landscape";
+    ts.orientation="landscape";
+  }else{
+    layout.orientation=ts.orientation||layout.orientation||"portrait";
+  }
+
   persist();
+  syncControls();
   renderAll();
-  requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
-  normalizeTemplateOrientation(currentLayout());
-  syncOrientationControlForTemplate();
+
+  requestAnimationFrame(()=>{
+    applyDocumentLayout();
+    requestAnimationFrame(reflowAllAutoPagesFromCurrentSlot);
+  });
 };
 
 $("documentOrientation").onchange=e=>{
   const layout=currentLayout();
+  const ts=ensureTemplateSettings(layout);
+
   if(isFixedBaseOrientationTemplate(layout)){
     layout.orientation="landscape";
-    ensureTemplateSettings(layout).orientation="landscape";
+    ts.orientation="landscape";
+    persist();
     syncOrientationControlForTemplate();
+    renderAll();
     return;
   }
+
+  ts.orientation=e.target.value;
   updateLayoutSetting("orientation",e.target.value);
 };
 
