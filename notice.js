@@ -35,7 +35,7 @@ window.MY_EDITOR_AUTO_UPDATE_NOTICE = {
    handler first and patches the base runtime before the editor's notice boot handler runs. */
 if(document.readyState === "loading"){
   document.write('<link rel="stylesheet" href="hotfix-v103.css?v=103">');
-  document.write('<script src="hotfix-v103.js?v=103"><\\/script>');
+  document.write('<script src="hotfix-v103.js?v=103"></script>');
 }else{
   const link=document.createElement("link");
   link.rel="stylesheet";
