@@ -1,117 +1,32 @@
-/* MY EDITOR V108 — clean external rich-text paste */
+/* MY EDITOR V108/V109 — editor paste is TEXT ONLY */
 (() => {
-  function installCleanPaste(){
+  function installPlainTextPaste(){
     const editor=document.getElementById("editor");
-    if(!editor)return;
+    if(!editor || editor.dataset.plainTextPasteInstalled==="1")return;
+    editor.dataset.plainTextPasteInstalled="1";
 
-    const DROP_TAGS=new Set([
-      "SCRIPT","STYLE","META","LINK","IFRAME","OBJECT","EMBED","FORM","INPUT","BUTTON","TEXTAREA","SELECT","OPTION",
-      "VIDEO","AUDIO","SOURCE","PICTURE","CANVAS","SVG","NOSCRIPT"
-    ]);
-    const ALLOWED_TAGS=new Set([
-      "P","DIV","BR","BLOCKQUOTE","UL","OL","LI","PRE","CODE",
-      "STRONG","B","EM","I","U","S","DEL","SUB","SUP","A","SPAN"
-    ]);
-
-    function semanticizeInlineStyle(el){
-      const raw=(el.getAttribute("style")||"").toLowerCase();
-      if(!raw)return;
-
-      const bold=/font-weight\s*:\s*(?:bold|[6-9]00)/.test(raw);
-      const italic=/font-style\s*:\s*italic/.test(raw);
-      const underline=/text-decoration(?:-line)?\s*:[^;]*underline/.test(raw);
-      const strike=/text-decoration(?:-line)?\s*:[^;]*(?:line-through)/.test(raw);
-      if(!bold&&!italic&&!underline&&!strike)return;
-
-      let container=document.createDocumentFragment();
-      while(el.firstChild)container.appendChild(el.firstChild);
-      let wrapped=container;
-      const wrap=tag=>{
-        const node=document.createElement(tag);
-        node.appendChild(wrapped);
-        wrapped=node;
-      };
-      if(strike)wrap("s");
-      if(underline)wrap("u");
-      if(italic)wrap("em");
-      if(bold)wrap("strong");
-      el.appendChild(wrapped);
-    }
-
-    function sanitizeHtml(html){
-      const doc=new DOMParser().parseFromString(html,"text/html");
-
-      doc.body.querySelectorAll("*").forEach(el=>semanticizeInlineStyle(el));
-
-      const nodes=[...doc.body.querySelectorAll("*")].reverse();
-      for(const el of nodes){
-        if(DROP_TAGS.has(el.tagName)){
-          el.remove();
-          continue;
-        }
-
-        if(/^H[1-6]$/.test(el.tagName)){
-          const p=doc.createElement("p");
-          while(el.firstChild)p.appendChild(el.firstChild);
-          el.replaceWith(p);
-          continue;
-        }
-
-        if(el.tagName==="IMG"){
-          el.remove();
-          continue;
-        }
-
-        if(!ALLOWED_TAGS.has(el.tagName)){
-          el.replaceWith(...el.childNodes);
-          continue;
-        }
-
-        const safeHref=el.tagName==="A" ? el.getAttribute("href") : null;
-
-        // External site layout must never enter the document.
-        [...el.attributes].forEach(attr=>el.removeAttribute(attr.name));
-
-        // Keep only safe link targets; everything else is plain editor markup.
-        if(el.tagName==="A" && safeHref && /^(https?:|mailto:)/i.test(safeHref)){
-          el.setAttribute("href",safeHref);
-          el.setAttribute("rel","noopener noreferrer");
-        }
+    function toast(message){
+      if(typeof showToast==="function"){showToast(message);return;}
+      let el=document.getElementById("plainPasteToast");
+      if(!el){
+        el=document.createElement("div");
+        el.id="plainPasteToast";
+        el.style.cssText="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:99999;padding:9px 13px;border-radius:9px;background:#282624;color:#fff;font-size:12px;box-shadow:0 8px 24px #0002;pointer-events:none";
+        document.body.appendChild(el);
       }
-
-      // Remove Postype/browser spacer wrappers that contain no actual content.
-      [...doc.body.querySelectorAll("p,div")].forEach(el=>{
-        const meaningful=(el.textContent||"").replace(/\u00a0/g," ").trim();
-        const hasBreak=!!el.querySelector("br");
-        if(!meaningful && !hasBreak && !el.querySelector("ul,ol,blockquote"))el.remove();
-      });
-
-      return doc.body.innerHTML;
-    }
-
-    function escapeHtml(text){
-      return String(text||"")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;");
-    }
-
-    function plainTextToHtml(text){
-      const normalized=String(text||"").replace(/\r\n?/g,"\n");
-      if(!normalized)return "";
-      return normalized.split(/\n{2,}/).map(block=>{
-        const body=block.split("\n").map(escapeHtml).join("<br>");
-        return `<p>${body||"<br>"}</p>`;
-      }).join("");
+      el.textContent=message;
+      el.hidden=false;
+      clearTimeout(el._t);
+      el._t=setTimeout(()=>el.hidden=true,1600);
     }
 
     function selectionInsideEditor(){
       const sel=window.getSelection();
-      if(!sel?.rangeCount)return false;
-      return editor.contains(sel.getRangeAt(0).commonAncestorContainer);
+      return !!sel?.rangeCount && editor.contains(sel.getRangeAt(0).commonAncestorContainer);
     }
 
-    function moveCaretToEnd(){
+    function ensureCaret(){
+      if(selectionInsideEditor())return;
       editor.focus();
       const range=document.createRange();
       range.selectNodeContents(editor);
@@ -121,21 +36,34 @@
       sel.addRange(range);
     }
 
-    function insertSanitizedHtml(html){
-      if(!selectionInsideEditor())moveCaretToEnd();
+    function normalizeText(text){
+      return String(text||"")
+        .replace(/\r\n?/g,"\n")
+        .replace(/\u00a0/g," ")
+        .replace(/[\u200b\u200c\u200d\ufeff]/g,"");
+    }
+
+    function insertPlainText(text){
+      ensureCaret();
       editor.focus();
 
-      // execCommand keeps browser undo/redo behavior in contenteditable.
+      // insertText deliberately strips every external HTML/style/image attribute while
+      // keeping the browser's native undo stack and current caret position.
       let inserted=false;
-      try{inserted=document.execCommand("insertHTML",false,html)}catch{}
+      try{inserted=document.execCommand("insertText",false,text)}catch{}
       if(inserted)return;
 
       const sel=window.getSelection();
       if(!sel?.rangeCount)return;
       const range=sel.getRangeAt(0);
       range.deleteContents();
-      const frag=range.createContextualFragment(html);
-      const last=frag.lastChild;
+      const frag=document.createDocumentFragment();
+      const lines=text.split("\n");
+      let last=null;
+      lines.forEach((line,i)=>{
+        if(i){last=document.createElement("br");frag.appendChild(last)}
+        if(line){last=document.createTextNode(line);frag.appendChild(last)}
+      });
       range.insertNode(frag);
       if(last){
         range.setStartAfter(last);
@@ -143,39 +71,41 @@
         sel.removeAllRanges();
         sel.addRange(range);
       }
-      editor.dispatchEvent(new InputEvent("input",{bubbles:true,inputType:"insertFromPaste"}));
+      editor.dispatchEvent(new InputEvent("input",{bubbles:true,inputType:"insertFromPaste",data:text}));
     }
 
     editor.addEventListener("paste",event=>{
       const data=event.clipboardData;
       if(!data)return;
 
-      const rich=data.getData("text/html");
-      const text=data.getData("text/plain");
-      if(!rich && !text)return;
+      // The body editor accepts text/plain ONLY. Do not even inspect text/html.
+      const text=normalizeText(data.getData("text/plain"));
+      const hasImage=[...data.items].some(item=>item.kind==="file" && item.type.startsWith("image/"));
 
       event.preventDefault();
       event.stopImmediatePropagation();
 
-      const clean=rich ? sanitizeHtml(rich) : plainTextToHtml(text);
-      if(!clean)return;
-      insertSanitizedHtml(clean);
+      if(!text){
+        if(hasImage)toast("본문에는 텍스트만 붙여넣을 수 있습니다. 이미지는 배경 탭의 스티커를 사용해주세요.");
+        return;
+      }
 
-      // Ensure autosave/pagination sees the cleaned pasted result even on browsers
-      // where execCommand does not emit a normal input event.
-      setTimeout(()=>{
+      insertPlainText(text);
+
+      // Do NOT force a second pagination pass here. The normal input event is handled by
+      // the authoritative page-flow engine, which also preserves the logical caret.
+      requestAnimationFrame(()=>{
         try{
           const page=typeof currentPage==="function"?currentPage():null;
           if(page)page.content=editor.innerHTML;
           if(typeof persist==="function")persist();
-          if(typeof reflowAllAutoPagesFromCurrentSlot==="function")reflowAllAutoPagesFromCurrentSlot();
           if(typeof updateCount==="function")updateCount();
           if(typeof renderSlots==="function")renderSlots();
-        }catch(err){console.error("v108 paste post-process failed",err)}
-      },0);
+        }catch(err){console.error("plain text paste post-process failed",err)}
+      });
     },true);
   }
 
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(installCleanPaste,0),{once:true});
-  else setTimeout(installCleanPaste,0);
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(installPlainTextPaste,0),{once:true});
+  else setTimeout(installPlainTextPaste,0);
 })();
