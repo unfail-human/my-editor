@@ -23,22 +23,28 @@ window.MY_EDITOR_NOTICE = {
 
 window.MY_EDITOR_AUTO_UPDATE_NOTICE = {
   enabled: true,
-  version: "104",
+  version: "105",
   title: "업데이트 안내",
-  message: "문서 자동 페이지 흐름, 슬롯 자동 저장, 글자 간격, 카드 배경 및 저장 기능을 전반적으로 수정했습니다.\n새로고침 후 다시 사용해주세요."
+  message: "본문 시작선이 제목 프레임보다 앞으로 나가지 않도록 전체 템플릿 정렬을 수정했습니다.\n새로고침 후 다시 사용해주세요."
 };
 
-/* Load the v104 stability layer before the base runtime's DOMContentLoaded handlers. */
+/* Load stability layers before the base runtime's DOMContentLoaded handlers. */
 if(document.readyState === "loading"){
   document.write('<link rel="stylesheet" href="hotfix-v104.css?v=104">');
+  document.write('<link rel="stylesheet" href="hotfix-v105.css?v=105">');
   document.write('<script src="hotfix-v104.js?v=104"></script>');
+  document.write('<script src="hotfix-v105.js?v=105"></script>');
 }else{
-  const link=document.createElement("link");
-  link.rel="stylesheet";
-  link.href="hotfix-v104.css?v=104";
-  document.head.appendChild(link);
-  const script=document.createElement("script");
-  script.src="hotfix-v104.js?v=104";
-  script.async=false;
-  document.body.appendChild(script);
+  for(const href of ["hotfix-v104.css?v=104","hotfix-v105.css?v=105"]){
+    const link=document.createElement("link");
+    link.rel="stylesheet";
+    link.href=href;
+    document.head.appendChild(link);
+  }
+  for(const src of ["hotfix-v104.js?v=104","hotfix-v105.js?v=105"]){
+    const script=document.createElement("script");
+    script.src=src;
+    script.async=false;
+    document.body.appendChild(script);
+  }
 }
