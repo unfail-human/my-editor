@@ -23,9 +23,9 @@ window.MY_EDITOR_NOTICE = {
 
 window.MY_EDITOR_AUTO_UPDATE_NOTICE = {
   enabled: true,
-  version: "112",
+  version: "112.1",
   title: "업데이트 안내",
-  message: "배경색은 문서에만 적용되고 작업 영역은 고정되도록 정리했습니다. 단색·대각선 그라데이션 적용을 보강하고, 스티커는 이미지 추가·직접 이동/크기 변경·잠금·삭제·레이어 순서 조절만 제공하도록 단순화했습니다.\n새로고침 후 다시 사용해주세요."
+  message: "스티커 선택이 되지 않던 클릭 처리 오류를 수정했습니다. 본문 편집은 그대로 가능하고 스티커 이미지만 직접 선택할 수 있습니다.\n새로고침 후 다시 사용해주세요."
 };
 
 /* Load stability layers before the base runtime's DOMContentLoaded handlers. */
@@ -34,7 +34,7 @@ if(document.readyState === "loading"){
   document.write('<link rel="stylesheet" href="hotfix-v105.css?v=105">');
   document.write('<link rel="stylesheet" href="hotfix-v109.css?v=109">');
   document.write('<link rel="stylesheet" href="hotfix-v110.css?v=110">');
-  document.write('<link rel="stylesheet" href="hotfix-v112.css?v=112">');
+  document.write('<link rel="stylesheet" href="hotfix-v112.css?v=1121">');
   document.write('<script src="hotfix-v104.js?v=104"></script>');
   document.write('<script src="hotfix-v105.js?v=105"></script>');
   document.write('<script src="hotfix-v106.js?v=107"></script>');
@@ -44,7 +44,7 @@ if(document.readyState === "loading"){
   document.write('<script src="hotfix-v110.js?v=110"></script>');
   document.write('<script src="hotfix-v112.js?v=112"></script>');
 }else{
-  for(const href of ["hotfix-v104.css?v=104","hotfix-v105.css?v=105","hotfix-v109.css?v=109","hotfix-v110.css?v=110","hotfix-v112.css?v=112"]){
+  for(const href of ["hotfix-v104.css?v=104","hotfix-v105.css?v=105","hotfix-v109.css?v=109","hotfix-v110.css?v=110","hotfix-v112.css?v=1121"]){
     const link=document.createElement("link");
     link.rel="stylesheet";
     link.href=href;
