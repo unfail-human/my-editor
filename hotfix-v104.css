@@ -1,0 +1,95 @@
+/* MY EDITOR V104 — visual / interaction stabilization */
+
+:root{--v104-work:#dedbd4}
+html,body{background:var(--v104-work)!important}
+.workspace{background:var(--v104-work)!important}
+
+/* four editor tabs */
+.tabs{grid-template-columns:repeat(4,1fr)!important}
+
+/* stale export layers never block the app */
+body>.export-host[data-export-host="1"]{
+  position:fixed!important;left:-30000px!important;top:0!important;z-index:-2147483647!important;
+  width:auto!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;pointer-events:none!important;
+}
+body>.export-host[data-export-host="1"] *{pointer-events:none!important}
+
+/* live paper background remains independent from workspace */
+.paper{background-color:var(--paper-live-color,#fff)}
+
+/* title / subtitle typography: clean and unclipped */
+.paper.layout-enabled .title-input,.paper.layout-enabled .subtitle-input{
+  position:absolute!important;box-sizing:border-box!important;margin:0!important;background:transparent!important;
+  overflow:visible!important;text-overflow:clip!important;clip:auto!important;clip-path:none!important;
+}
+.paper.layout-enabled .title-input{padding:2px 0 5px!important;line-height:1.16!important;font-weight:800!important}
+.paper.layout-enabled .subtitle-input{padding:1px 0 6px!important;line-height:1.2!important;color:#77726b}
+
+/* stacked templates: same content frame */
+.paper[data-document-template="a4"] .title-input,.paper[data-document-template="a4"] .subtitle-input,
+.paper[data-document-template="letter"] .title-input,.paper[data-document-template="letter"] .subtitle-input,
+.paper[data-document-template="postcard"] .title-input,.paper[data-document-template="postcard"] .subtitle-input,
+.paper[data-document-template="square"] .title-input,.paper[data-document-template="square"] .subtitle-input{
+  left:var(--rule-left)!important;right:var(--rule-right)!important;width:auto!important;max-width:none!important;
+}
+
+/* card family keeps title + subtitle on one heading row */
+.paper[data-document-template="card"] .title-input,.paper[data-document-template="card"] .subtitle-input,
+.paper[data-document-template="widecard"] .title-input,.paper[data-document-template="widecard"] .subtitle-input,
+.paper[data-document-template="minicard"] .title-input,.paper[data-document-template="minicard"] .subtitle-input{
+  right:auto!important;max-width:none!important;border-bottom:0!important;
+}
+.paper[data-document-template="card"]::before,.paper[data-document-template="widecard"]::before,.paper[data-document-template="minicard"]::before{
+  content:""!important;position:absolute!important;left:var(--rule-left)!important;right:var(--rule-right)!important;
+  top:var(--reference-heading-rule-top)!important;border-top:1px solid rgba(104,96,88,.17)!important;z-index:3!important;pointer-events:none!important;
+}
+
+/* subtitle spacing control */
+.v104-subtitle-gap-field span{line-height:1.25}
+#templateSubtitleGapOut{min-width:44px}
+
+/* body frame remains aligned to template margins */
+.paper.layout-enabled .editor.writing-horizontal,.paper.layout-enabled .editor.layout-columns{
+  padding-left:var(--body-frame-left)!important;padding-right:var(--body-frame-right)!important;box-sizing:border-box!important;
+}
+.paper.layout-enabled.body-clear-top .editor{padding-top:calc(var(--heading-safe-top) + var(--body-inner-top,0%))!important}
+.paper.layout-enabled.body-clear-center .editor{padding-top:var(--body-inner-top,0%)!important;padding-bottom:calc(var(--heading-safe-center) + var(--body-inner-bottom,0%))!important}
+.paper.layout-enabled.body-clear-bottom .editor{padding-top:var(--body-inner-top,0%)!important;padding-bottom:calc(var(--heading-safe-bottom) + var(--body-inner-bottom,0%))!important}
+
+/* template silhouettes */
+.paper[data-document-template="postcard"]{border-radius:9px!important}
+.paper[data-document-template="card"]{border-radius:12px!important}
+.paper[data-document-template="widecard"]{border-radius:11px!important}
+.paper[data-document-template="minicard"]{border-radius:10px!important}
+.paper[data-document-template="square"]{border-radius:10px!important}
+.paper[data-document-template="postcard"],.paper[data-document-template="card"],.paper[data-document-template="widecard"],.paper[data-document-template="minicard"],.paper[data-document-template="square"]{
+  border:1px solid rgba(100,92,84,.06)!important;box-shadow:0 14px 30px rgba(52,47,43,.09),0 2px 6px rgba(52,47,43,.035)!important;overflow:hidden!important;
+}
+
+/* typography controls must be visible in layout and export */
+.editor{font-kerning:normal;text-rendering:optimizeLegibility}
+.editor p,.editor div,.editor h1,.editor h2,.editor h3,.editor blockquote,.editor ul,.editor ol{margin-bottom:var(--editor-para,0px)!important}
+
+/* divider independent from body alignment */
+.paragraph-divider[data-align="left"]{justify-content:flex-start!important;text-align:left!important}
+.paragraph-divider[data-align="center"]{justify-content:center!important;text-align:center!important}
+.paragraph-divider[data-align="right"]{justify-content:flex-end!important;text-align:right!important}
+
+/* page number is physically centered, source stays right */
+.paper-footer{position:relative!important}
+.paper-footer>span:not(.paper-source-credit),#pageNumberPreview{
+  position:absolute!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;
+  text-align:center!important;width:auto!important;margin:0!important;white-space:nowrap!important;
+}
+.paper-source-credit{position:absolute!important;right:0!important;left:auto!important;transform:none!important;text-align:right!important;white-space:nowrap!important}
+
+/* preview and export use identical paper geometry */
+#previewHost .paper.render-clone,body>.export-host[data-export-host="1"] .paper.render-clone{
+  padding:0!important;box-sizing:border-box!important;flex:none!important;overflow:hidden!important;
+}
+#previewHost .paper.render-clone .editor,body>.export-host[data-export-host="1"] .paper.render-clone .editor{min-height:0!important;overflow:hidden!important}
+.canvas-safe-heading{overflow:visible!important;clip:auto!important;clip-path:none!important;-webkit-text-fill-color:currentColor!important}
+
+/* notices close by tapping the card; no confirmation button */
+#patchNoticeConfirm,.patch-notice-actions{display:none!important}
+.patch-notice-card{cursor:pointer}
