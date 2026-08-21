@@ -67,13 +67,15 @@
           continue;
         }
 
+        const safeHref=el.tagName==="A" ? el.getAttribute("href") : null;
+
         // External site layout must never enter the document.
         [...el.attributes].forEach(attr=>el.removeAttribute(attr.name));
 
         // Keep only safe link targets; everything else is plain editor markup.
-        if(el.tagName==="A"){
-          const original=el.getAttribute("href");
-          if(original && /^(https?:|mailto:)/i.test(original))el.setAttribute("href",original);
+        if(el.tagName==="A" && safeHref && /^(https?:|mailto:)/i.test(safeHref)){
+          el.setAttribute("href",safeHref);
+          el.setAttribute("rel","noopener noreferrer");
         }
       }
 
@@ -81,7 +83,7 @@
       [...doc.body.querySelectorAll("p,div")].forEach(el=>{
         const meaningful=(el.textContent||"").replace(/\u00a0/g," ").trim();
         const hasBreak=!!el.querySelector("br");
-        if(!meaningful && !hasBreak && !el.querySelector("img,ul,ol,blockquote"))el.remove();
+        if(!meaningful && !hasBreak && !el.querySelector("ul,ol,blockquote"))el.remove();
       });
 
       return doc.body.innerHTML;
