@@ -23,9 +23,9 @@ window.MY_EDITOR_NOTICE = {
 
 window.MY_EDITOR_AUTO_UPDATE_NOTICE = {
   enabled: true,
-  version: "105",
+  version: "106",
   title: "업데이트 안내",
-  message: "본문 시작선이 제목 프레임보다 앞으로 나가지 않도록 전체 템플릿 정렬을 수정했습니다.\n새로고침 후 다시 사용해주세요."
+  message: "자동 페이지 흐름을 전면 수정했습니다. 넘친 내용은 다음 페이지로 이동하고, 앞 페이지에 공간이 생기면 뒤 페이지 내용이 다시 앞으로 이동합니다.\n새로고침 후 다시 사용해주세요."
 };
 
 /* Load stability layers before the base runtime's DOMContentLoaded handlers. */
@@ -34,6 +34,7 @@ if(document.readyState === "loading"){
   document.write('<link rel="stylesheet" href="hotfix-v105.css?v=105">');
   document.write('<script src="hotfix-v104.js?v=104"></script>');
   document.write('<script src="hotfix-v105.js?v=105"></script>');
+  document.write('<script src="hotfix-v106.js?v=106"></script>');
 }else{
   for(const href of ["hotfix-v104.css?v=104","hotfix-v105.css?v=105"]){
     const link=document.createElement("link");
@@ -41,7 +42,7 @@ if(document.readyState === "loading"){
     link.href=href;
     document.head.appendChild(link);
   }
-  for(const src of ["hotfix-v104.js?v=104","hotfix-v105.js?v=105"]){
+  for(const src of ["hotfix-v104.js?v=104","hotfix-v105.js?v=105","hotfix-v106.js?v=106"]){
     const script=document.createElement("script");
     script.src=src;
     script.async=false;
