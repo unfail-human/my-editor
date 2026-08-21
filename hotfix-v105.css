@@ -1,0 +1,54 @@
+/* MY EDITOR V105 — heading/body frame alignment */
+
+/*
+  Core layout rule:
+  body content may never begin farther left than the heading/rule frame.
+  A small inner inset keeps body copy visually subordinate to the heading.
+*/
+.paper.layout-enabled{
+  --v105-body-left:max(var(--body-frame-left, 0%), calc(var(--rule-left, 0%) + 1.2%));
+  --v105-body-right:max(var(--body-frame-right, 0%), calc(var(--rule-right, 0%) + 1.2%));
+}
+
+.paper.layout-enabled .editor.writing-horizontal,
+.paper.layout-enabled .editor.layout-columns{
+  padding-left:var(--v105-body-left)!important;
+  padding-right:var(--v105-body-right)!important;
+  box-sizing:border-box!important;
+}
+
+/* Vertical writing still stays inside the same document frame. */
+.paper.layout-enabled .editor.writing-vertical{
+  padding-left:var(--v105-body-left)!important;
+  padding-right:var(--v105-body-right)!important;
+  box-sizing:border-box!important;
+}
+
+/* Preview/export must use exactly the same frame rule. */
+#previewHost .paper.layout-enabled,
+body>.export-host .paper.layout-enabled{
+  --v105-body-left:max(var(--body-frame-left, 0%), calc(var(--rule-left, 0%) + 1.2%));
+  --v105-body-right:max(var(--body-frame-right, 0%), calc(var(--rule-right, 0%) + 1.2%));
+}
+
+#previewHost .paper.layout-enabled .editor,
+body>.export-host .paper.layout-enabled .editor{
+  padding-left:var(--v105-body-left)!important;
+  padding-right:var(--v105-body-right)!important;
+}
+
+/* Keep heading and rule visually unified. */
+.paper.layout-enabled .title-input,
+.paper.layout-enabled .subtitle-input{
+  box-sizing:border-box!important;
+}
+
+/* Compact cards get a little less inset so their usable width does not collapse. */
+.paper[data-document-template="card"],
+.paper[data-document-template="widecard"],
+.paper[data-document-template="minicard"],
+.paper[data-document-template="postcard"],
+.paper[data-document-template="square"]{
+  --v105-body-left:max(var(--body-frame-left, 0%), calc(var(--rule-left, 0%) + .8%));
+  --v105-body-right:max(var(--body-frame-right, 0%), calc(var(--rule-right, 0%) + .8%));
+}
