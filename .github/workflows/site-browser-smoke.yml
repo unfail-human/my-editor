@@ -1,0 +1,35 @@
+name: MY EDITOR browser smoke test
+
+on:
+  push:
+    paths:
+      - '.github/workflows/site-browser-smoke.yml'
+      - 'browser-smoke-test.js'
+  workflow_dispatch:
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start MY EDITOR
+        run: |
+          python3 -m http.server 4173 > /tmp/my-editor-http.log 2>&1 &
+          sleep 2
+      - name: Run real browser tests and site exports
+        run: node browser-smoke-test.js
+      - name: Upload site-generated images and report
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-editor-browser-results
+          path: browser-results/
+          if-no-files-found: error
