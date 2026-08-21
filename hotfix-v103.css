@@ -1,5 +1,8 @@
 /* MY EDITOR V103 — authoritative stability layer */
 
+/* Hidden overlays must never intercept clicks. */
+[hidden],.modal[hidden],.patch-notice-modal[hidden],.developer-notice-modal[hidden]{display:none!important;pointer-events:none!important}
+
 /* Update notice: no confirmation button; tap the card to close. */
 #patchNoticeConfirm,.patch-notice-actions{display:none!important}
 .patch-notice-card{cursor:pointer}
