@@ -23,3 +23,11 @@
 .v112-resize-handle{position:absolute;z-index:20;transform:translate(-50%,-50%);width:13px;height:13px;border:2px solid #fff;border-radius:3px;background:#5d5853;box-shadow:0 1px 5px rgba(0,0,0,.18);cursor:nwse-resize;pointer-events:auto!important;}
 .v109-sticker-node.v112-locked{cursor:default!important;}
 .paper.v110-capturing .v112-sticker-tool,.paper.v110-capturing .v112-resize-handle{display:none!important;}
+
+/* v112.1 — keep the layer click-through so text remains editable,
+   but make the sticker image itself a real click target. */
+.paper .v109-sticker-layer{pointer-events:none!important;}
+.paper .v109-sticker-layer .v109-sticker-node{pointer-events:auto!important;cursor:grab!important;user-select:none!important;-webkit-user-drag:none!important;}
+.paper .v109-sticker-layer .v109-sticker-node:active{cursor:grabbing!important;}
+.paper .v109-sticker-layer .v109-sticker-node.v112-locked{pointer-events:auto!important;cursor:pointer!important;}
+.paper.v110-capturing .v109-sticker-layer .v109-sticker-node{pointer-events:none!important;}
