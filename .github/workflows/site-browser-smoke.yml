@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/site-browser-smoke.yml'
-      - 'browser-smoke-test.js'
+      - 'browser-smoke-test-v2.js'
   workflow_dispatch:
 
 permissions:
@@ -29,7 +29,7 @@ jobs:
           python3 -m http.server 4173 > /tmp/my-editor-http.log 2>&1 &
           sleep 2
       - name: Run real browser tests and site exports
-        run: node browser-smoke-test.js
+        run: node browser-smoke-test-v2.js
       - name: Upload site-generated images and report
         uses: actions/upload-artifact@v4
         with:
