@@ -23,9 +23,9 @@ window.MY_EDITOR_NOTICE = {
 
 window.MY_EDITOR_AUTO_UPDATE_NOTICE = {
   enabled: true,
-  version: "110",
+  version: "112",
   title: "업데이트 안내",
-  message: "페이지 버튼 UI와 삭제 버튼을 정리하고, 첫 페이지 제목·소제목을 모든 페이지에 연동했습니다. 뒤 페이지 내용 끌어오기, 실제 작업 화면 기준 저장, 배경 단색·그라데이션 및 추천색 기능도 보강했습니다.\n새로고침 후 다시 사용해주세요."
+  message: "배경색은 문서에만 적용되고 작업 영역은 고정되도록 정리했습니다. 단색·대각선 그라데이션 적용을 보강하고, 스티커는 이미지 추가·직접 이동/크기 변경·잠금·삭제·레이어 순서 조절만 제공하도록 단순화했습니다.\n새로고침 후 다시 사용해주세요."
 };
 
 /* Load stability layers before the base runtime's DOMContentLoaded handlers. */
@@ -34,6 +34,7 @@ if(document.readyState === "loading"){
   document.write('<link rel="stylesheet" href="hotfix-v105.css?v=105">');
   document.write('<link rel="stylesheet" href="hotfix-v109.css?v=109">');
   document.write('<link rel="stylesheet" href="hotfix-v110.css?v=110">');
+  document.write('<link rel="stylesheet" href="hotfix-v112.css?v=112">');
   document.write('<script src="hotfix-v104.js?v=104"></script>');
   document.write('<script src="hotfix-v105.js?v=105"></script>');
   document.write('<script src="hotfix-v106.js?v=107"></script>');
@@ -41,14 +42,15 @@ if(document.readyState === "loading"){
   document.write('<script src="hotfix-v108.js?v=109"></script>');
   document.write('<script src="hotfix-v109.js?v=109"></script>');
   document.write('<script src="hotfix-v110.js?v=110"></script>');
+  document.write('<script src="hotfix-v112.js?v=112"></script>');
 }else{
-  for(const href of ["hotfix-v104.css?v=104","hotfix-v105.css?v=105","hotfix-v109.css?v=109","hotfix-v110.css?v=110"]){
+  for(const href of ["hotfix-v104.css?v=104","hotfix-v105.css?v=105","hotfix-v109.css?v=109","hotfix-v110.css?v=110","hotfix-v112.css?v=112"]){
     const link=document.createElement("link");
     link.rel="stylesheet";
     link.href=href;
     document.head.appendChild(link);
   }
-  for(const src of ["hotfix-v104.js?v=104","hotfix-v105.js?v=105","hotfix-v106.js?v=107","hotfix-v107.js?v=107","hotfix-v108.js?v=109","hotfix-v109.js?v=109","hotfix-v110.js?v=110"]){
+  for(const src of ["hotfix-v104.js?v=104","hotfix-v105.js?v=105","hotfix-v106.js?v=107","hotfix-v107.js?v=107","hotfix-v108.js?v=109","hotfix-v109.js?v=109","hotfix-v110.js?v=110","hotfix-v112.js?v=112"]){
     const script=document.createElement("script");
     script.src=src;
     script.async=false;
