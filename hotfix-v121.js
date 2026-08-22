@@ -1,9 +1,9 @@
-/* MY EDITOR V122 — single-owner canonical document flow */
+/* MY EDITOR V123 — canonical page flow + legacy fragment repair */
 (() => {
   function installV121(){
     const ed=document.getElementById('editor');
     if(!ed || typeof current!=='function') return;
-    document.documentElement.dataset.paginationEngine='122';
+    document.documentElement.dataset.paginationEngine='123';
 
     let lastInputType='', timer=null, running=false, restoreSeq=0;
     const textLen=html=>{const d=document.createElement('div');d.innerHTML=html||'';return (d.textContent||'').length};
@@ -25,14 +25,35 @@
       while((node=w.nextNode())){const l=node.nodeValue.length;if(left<=l){const r=document.createRange();r.setStart(node,left);r.collapse(true);const s=getSelection();s.removeAllRanges();s.addRange(r);try{savedRange=r.cloneRange()}catch{};ed.focus({preventScroll:true});return}left-=l}
       const r=document.createRange();r.selectNodeContents(ed);r.collapse(false);const s=getSelection();s.removeAllRanges();s.addRange(r);try{savedRange=r.cloneRange()}catch{};ed.focus({preventScroll:true});
     }
+
     function overflows(){
       const layout=typeof currentLayout==='function'?currentLayout():null;
       if(layout?.writingMode==='vertical')return ed.scrollWidth>ed.clientWidth+1;
-      /* Horizontal writing must wrap horizontally. A tiny scrollWidth excess must never be
-         treated as page overflow, otherwise Korean text fragments can be split off to the side. */
       return ed.scrollHeight>ed.clientHeight+1;
     }
-    function htmlOf(node){if(node.nodeType===Node.TEXT_NODE){const d=document.createElement('div');d.textContent=node.nodeValue;return d.innerHTML}return node.outerHTML||''}
+
+    /* Repair fragments created by old pagination/external-site HTML without erasing normal text styling. */
+    function normalizeFlowHTML(html){
+      const box=document.createElement('div');box.innerHTML=html||'';
+      const dangerous=['position','left','right','top','bottom','inset','float','clear','transform','translate','writing-mode','text-orientation','width','min-width','max-width','height','min-height','max-height','columns','column-count','column-width','column-fill','overflow','overflow-x','overflow-y','clip','clip-path'];
+      box.querySelectorAll('*').forEach(el=>{
+        if(el.style){dangerous.forEach(p=>el.style.removeProperty(p));if(!el.getAttribute('style')?.trim())el.removeAttribute('style')}
+        ['width','height','align','valign'].forEach(a=>el.removeAttribute(a));
+      });
+      /* Top-level inline/text fragments are invalid page blocks: fold them into ordinary paragraphs. */
+      const out=document.createElement('div');let inlineP=null;
+      [...box.childNodes].forEach(node=>{
+        const inline=node.nodeType===Node.TEXT_NODE || (node.nodeType===Node.ELEMENT_NODE && ['SPAN','A','B','STRONG','I','EM','U','S','SMALL','MARK'].includes(node.tagName));
+        if(inline){
+          if(node.nodeType===Node.TEXT_NODE && !node.nodeValue.trim())return;
+          if(!inlineP){inlineP=document.createElement('p');out.appendChild(inlineP)}
+          inlineP.appendChild(node.cloneNode(true));
+        }else{inlineP=null;out.appendChild(node.cloneNode(true))}
+      });
+      return out.innerHTML;
+    }
+
+    function htmlOf(node){if(node.nodeType===Node.TEXT_NODE){const d=document.createElement('div');d.textContent=node.nodeValue;return '<p>'+d.innerHTML+'</p>'}return node.outerHTML||''}
     function parseOne(html){const t=document.createElement('template');t.innerHTML=html;return t.content.firstChild}
     function point(root,target){
       const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let total=0,n,last=null;
@@ -41,11 +62,12 @@
     }
     function segmentHTML(node,start,end){
       const len=(node.textContent||'').length;start=Math.max(0,Math.min(len,start));end=Math.max(start,Math.min(len,end));
-      if(node.nodeType===Node.TEXT_NODE){const d=document.createElement('div');d.textContent=node.nodeValue.slice(start,end);return d.innerHTML}
+      if(node.nodeType===Node.TEXT_NODE){const d=document.createElement('div');d.textContent=node.nodeValue.slice(start,end);return '<p>'+d.innerHTML+'</p>'}
       const a=point(node,start),b=point(node,end),r=document.createRange();r.setStart(a.node,a.offset);r.setEnd(b.node,b.offset);
-      const copy=node.cloneNode(false);copy.appendChild(r.cloneContents());return copy.outerHTML;
+      const copy=node.cloneNode(false);copy.appendChild(r.cloneContents());return normalizeFlowHTML(copy.outerHTML);
     }
     function maxPrefixThatFits(blockHTML){
+      blockHTML=normalizeFlowHTML(blockHTML);
       const probe=parseOne(blockHTML);if(!probe)return{prefix:'',suffix:''};
       const total=(probe.textContent||'').length;
       if(total===0){ed.appendChild(probe);const ok=!overflows();if(!ok)probe.remove();return ok?{prefix:blockHTML,suffix:''}:{prefix:'',suffix:blockHTML}}
@@ -55,7 +77,8 @@
       if(best>=total)return{prefix:blockHTML,suffix:''};
       return{prefix:segmentHTML(probe,0,best),suffix:segmentHTML(probe,best,total)};
     }
-    function paginateHTML(html,slot,rootPage){
+    function paginateHTML(html){
+      html=normalizeFlowHTML(html);
       const source=document.createElement('div');source.innerHTML=html||'';
       const queue=[...source.childNodes].map(htmlOf).filter(Boolean),pages=[];
       let safety=0;
@@ -64,22 +87,21 @@
         try{applyTypography?.();applyDocumentLayout?.()}catch{}
         let pageHTML='',guard=0;
         while(queue.length&&guard++<1000){
-          const item=queue[0],node=parseOne(item);if(!node){queue.shift();continue}
+          const item=normalizeFlowHTML(queue[0]),node=parseOne(item);if(!node){queue.shift();continue}
           ed.appendChild(node);
-          if(!overflows()){pageHTML=ed.innerHTML;queue.shift();continue}
+          if(!overflows()){pageHTML=normalizeFlowHTML(ed.innerHTML);queue.shift();continue}
           node.remove();
           const split=maxPrefixThatFits(item);
-          if(split.prefix){const p=parseOne(split.prefix);if(p)ed.appendChild(p);pageHTML=ed.innerHTML;queue.shift();if(split.suffix)queue.unshift(split.suffix)}
-          else if(!pageHTML){
-            ed.appendChild(parseOne(item));pageHTML=ed.innerHTML;queue.shift();
-          }
+          if(split.prefix){const p=parseOne(split.prefix);if(p)ed.appendChild(p);pageHTML=normalizeFlowHTML(ed.innerHTML);queue.shift();if(split.suffix)queue.unshift(split.suffix)}
+          else if(!pageHTML){const fallback=parseOne(item);if(fallback)ed.appendChild(fallback);pageHTML=normalizeFlowHTML(ed.innerHTML);queue.shift()}
           break;
         }
         pages.push(pageHTML);
       }
       return pages;
     }
-    function saveLive(){const s=current(),p=s.pages?.[s.currentPageIndex||0];if(!p)return;p.content=ed.innerHTML;if(document.getElementById('titleInput'))p.title=document.getElementById('titleInput').value;if(document.getElementById('subtitleInput'))p.subtitle=document.getElementById('subtitleInput').value;s.updatedAt=new Date().toISOString()}
+
+    function saveLive(){const s=current(),p=s.pages?.[s.currentPageIndex||0];if(!p)return;p.content=normalizeFlowHTML(ed.innerHTML);if(document.getElementById('titleInput'))p.title=document.getElementById('titleInput').value;if(document.getElementById('subtitleInput'))p.subtitle=document.getElementById('subtitleInput').value;s.updatedAt=new Date().toISOString()}
     function restoreTarget(slot,root,absolute){
       let left=Math.max(0,absolute||0),end=chainEnd(slot,root);
       for(let i=root;i<end;i++){const l=textLen(slot.pages[i]?.content||'');if(left<=l||i===end-1)return{index:i,offset:Math.min(left,l)};left-=l}
@@ -90,50 +112,49 @@
       saveLive();const original=slot.currentPageIndex||0,root=rootIndex(slot,original),end=chainEnd(slot,root);
       const absolute=keepCaret?globalCaret(slot,original,root):null;
       let combined='';for(let i=root;i<end;i++)combined+=slot.pages[i]?.content||'';
+      combined=normalizeFlowHTML(combined);
       const master=slot.pages[root],title=master.title||'',subtitle=master.subtitle||'';
       running=true;isPaginating=true;
       try{
         slot.currentPageIndex=root;ed.innerHTML='';if(document.getElementById('titleInput'))document.getElementById('titleInput').value=title;if(document.getElementById('subtitleInput'))document.getElementById('subtitleInput').value=subtitle;
         try{applyTypography?.();applyDocumentLayout?.()}catch{}
-        const chunks=paginateHTML(combined,slot,master);
+        const chunks=paginateHTML(combined);
         const replacement=chunks.map((content,i)=>{
-          const p=i===0?master:newPage(root+i+1,true);p.content=content;p.title=title;p.subtitle=subtitle;p.autoGenerated=i>0;p.userManualPage=false;p.manualBreakBefore=false;if(i>0){p.pageTypography={};p.pageDecorations=[]}return p;
+          const p=i===0?master:newPage(root+i+1,true);p.content=normalizeFlowHTML(content);p.title=title;p.subtitle=subtitle;p.autoGenerated=i>0;p.userManualPage=false;p.manualBreakBefore=false;if(i>0){p.pageTypography={};p.pageDecorations=[]}return p;
         });
         slot.pages.splice(root,end-root,...replacement);try{renumberPages?.()}catch{}
         const target=goFirst?{index:root,offset:0}:(absolute==null?{index:Math.min(original,slot.pages.length-1),offset:0}:restoreTarget(slot,root,absolute));
         slot.currentPageIndex=target.index;try{persist?.();renderAll?.()}catch{}
         if(keepCaret&&!goFirst&&absolute!=null){const seq=++restoreSeq;requestAnimationFrame(()=>requestAnimationFrame(()=>{if(seq===restoreSeq)setCaret(target.offset)}))}
-      }catch(e){console.error('V122 pagination failed',e)}finally{isPaginating=false;running=false}
+      }catch(e){console.error('V123 pagination failed',e)}finally{isPaginating=false;running=false}
     }
     window.reflowDocumentV121=reflow;
     window.reflowAllAutoPagesFromCurrentSlot=()=>reflow({keepCaret:false});
 
     document.addEventListener('beforeinput',e=>{if(e.target===ed)lastInputType=String(e.inputType||'')},true);
     document.addEventListener('input',e=>{
-      if(e.target!==ed)return;
-      e.stopImmediatePropagation();saveLive();try{persist?.();updateCount?.();renderSlots?.()}catch{}
+      if(e.target!==ed)return;e.stopImmediatePropagation();saveLive();try{persist?.();updateCount?.();renderSlots?.()}catch{}
       const paste=lastInputType==='insertFromPaste';clearTimeout(timer);timer=setTimeout(()=>reflow({goFirst:paste,keepCaret:!paste}),paste?20:45);lastInputType='';
     },true);
 
     document.addEventListener('paste',e=>{
-      if(e.target!==ed&&!ed.contains(e.target))return;
-      e.preventDefault();e.stopImmediatePropagation();
+      if(e.target!==ed&&!ed.contains(e.target))return;e.preventDefault();e.stopImmediatePropagation();
       const text=String(e.clipboardData?.getData('text/plain')||'').replace(/\r\n?/g,'\n').replace(/\u00a0/g,' ');
       const sel=getSelection();if(!sel?.rangeCount){ed.focus();return}
-      const r=sel.getRangeAt(0);r.deleteContents();
-      const frag=document.createDocumentFragment(),lines=text.split('\n');
-      lines.forEach(line=>{const p=document.createElement('p');p.textContent=line||'\u00a0';frag.appendChild(p)});
+      const r=sel.getRangeAt(0);r.deleteContents();const frag=document.createDocumentFragment();
+      text.split('\n').forEach(line=>{const p=document.createElement('p');p.textContent=line||'\u00a0';frag.appendChild(p)});
       r.insertNode(frag);r.selectNodeContents(ed);r.collapse(false);sel.removeAllRanges();sel.addRange(r);
       saveLive();try{persist?.()}catch{};clearTimeout(timer);timer=setTimeout(()=>reflow({goFirst:true,keepCaret:false}),20);
     },true);
 
     const nav=document.getElementById('pageNavLabel')?.parentElement;
     let first=document.getElementById('firstPageBtn');
-    if(nav&&!first){first=document.createElement('button');first.id='firstPageBtn';first.type='button';first.className='page-nav-btn v121-first';first.textContent='↤ 처음';first.title='첫 페이지로';nav.insertBefore(first,nav.firstChild)}
+    if(nav&&!first){first=document.createElement('button');first.id='firstPageBtn';first.type='button';first.className='page-nav-btn v121-first';first.textContent='↤';first.title='첫 페이지로';first.setAttribute('aria-label','첫 페이지로');nav.insertBefore(first,nav.firstChild)}
+    else if(first){first.textContent='↤';first.title='첫 페이지로';}
     if(first)first.onclick=()=>{saveLive();const s=current();s.currentPageIndex=0;try{persist?.();renderAll?.()}catch{}};
     const del=document.getElementById('deletePageBtn');if(del){del.textContent='페이지 삭제';del.classList.add('v121-delete');del.title='현재 페이지 삭제'}
 
-    setTimeout(()=>{try{current()?.pages?.forEach((p,i)=>{if(i>0&&!p.userManualPage){p.userManualPage=false;p.manualBreakBefore=false}});reflow({keepCaret:false})}catch(e){console.error(e)}},900);
+    setTimeout(()=>{try{current()?.pages?.forEach((p,i)=>{if(i>0&&!p.userManualPage){p.userManualPage=false;p.manualBreakBefore=false}p.content=normalizeFlowHTML(p.content||'')});reflow({keepCaret:false})}catch(e){console.error(e)}},900);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(installV121,0),{once:true});else setTimeout(installV121,0);
 })();
