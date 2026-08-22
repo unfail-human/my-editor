@@ -1,0 +1,13 @@
+/* MY EDITOR V129 — balanced usable page area + exact preview clone */
+.paper .editor{
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+/* The footer is the lower boundary. Keep a small, predictable breathing room instead of wasting a large empty band. */
+.paper:not(.template-cover) .editor{padding-bottom:8px!important;}
+#previewHost .v129-exact-clone,.modal-stage .v129-exact-clone,.export-host .v129-exact-clone{
+  box-sizing:border-box!important;aspect-ratio:auto!important;overflow:hidden!important;transform-origin:center center!important;
+}
+#previewHost .v129-exact-clone .editor,.modal-stage .v129-exact-clone .editor,.export-host .v129-exact-clone .editor{
+  overflow:hidden!important;box-sizing:border-box!important;
+}
