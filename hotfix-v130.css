@@ -1,0 +1,23 @@
+/* MY EDITOR V130 */
+.page-flow-settings-v130{margin:12px 0 10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;display:grid;gap:10px}
+.page-flow-title{font-size:10px;font-weight:800;letter-spacing:.04em;color:#4b4741}
+.page-flow-gap-row{margin:0}
+.page-flow-toggle-row,.page-flow-ending-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid #eee9e2;font-size:10px;color:#625e58}
+.page-flow-toggle-row>span,.page-flow-ending-row>div:first-child{display:grid;gap:3px;min-width:0}
+.page-flow-toggle-row small,.page-flow-ending-row small{font-size:8px;line-height:1.45;color:#9a958d;font-weight:400}
+.page-flow-toggle-row input{width:34px;height:18px;accent-color:#5b5146}
+.page-flow-radio label{display:flex;gap:5px;align-items:center;white-space:nowrap;font-size:9px}
+.page-nav{display:flex!important;align-items:center!important;gap:7px!important}
+.page-nav-btn,.first-page-btn{width:30px!important;height:30px!important;min-width:30px!important;display:grid!important;place-items:center!important;border:1px solid var(--line)!important;border-radius:8px!important;background:#fff!important;color:#5d5851!important;padding:0!important}
+#pageNavLabel{min-width:82px;text-align:center;font-size:9px;color:#817b73}
+.add-page-strong,.page-delete-clear{height:30px!important;border-radius:8px!important;padding:0 13px!important;font-size:9px!important;font-weight:700!important}
+.page-delete-clear{width:auto!important;min-width:auto!important;background:#fff8f7!important;color:#a85f5f!important;border:1px solid #e8c3bf!important}
+/* Current paper is authoritative: exact preview clones must not inherit legacy modal enlargement. */
+#previewHost .paper.v129-exact-clone,.modal-stage .paper.v129-exact-clone,.export-host .paper.v129-exact-clone{
+  min-width:0!important;max-width:none!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;overflow:hidden!important;padding:inherit!important;
+}
+#previewHost .paper.v129-exact-clone .editor,.modal-stage .paper.v129-exact-clone .editor,.export-host .paper.v129-exact-clone .editor{
+  min-height:0!important;height:auto!important;overflow:hidden!important;font-size:inherit!important;
+}
+/* Auto-balance mode wastes no extra bottom padding; page margins remain the true boundary. */
+.page-auto-balance .paper .editor{padding-bottom:0!important}
