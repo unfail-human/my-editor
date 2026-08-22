@@ -1,4 +1,4 @@
-/* MY EDITOR V115 — direct sticker interaction, independent of tab state */
+/* MY EDITOR V115/V116 — direct sticker interaction + normal deselection */
 (() => {
   function installStickerEngine(){
     const paper=document.getElementById('paper');
@@ -11,6 +11,12 @@
     const persistSafe=()=>{try{if(typeof persist==='function')persist()}catch(e){console.error(e)}};
 
     function removeTools(){layer()?.querySelectorAll('.v115-tool,.v115-resize').forEach(n=>n.remove())}
+    function clearSelection(){
+      if(!selectedId)return;
+      selectedId=null;removeTools();
+      layer()?.querySelectorAll('.v109-sticker-node.selected').forEach(n=>n.classList.remove('selected'));
+      document.querySelectorAll('.v112-sticker-row.active').forEach(n=>n.classList.remove('active'));
+    }
     function positionTools(node){
       const l=layer();if(!l||!node)return;
       const lr=l.getBoundingClientRect(),r=node.getBoundingClientRect();
@@ -76,8 +82,6 @@
 
     function cleanAndBind(oldNode){
       const data=dataFor(oldNode);if(!data)return null;
-      /* v109 attached its own pointer listener directly to each image. Replacing the node
-         removes every old listener, then V115 becomes the only drag owner. */
       const node=oldNode.cloneNode(true);oldNode.replaceWith(node);
       node.style.left=`${Number(data.x??50)}%`;node.style.top=`${Number(data.y??50)}%`;node.style.width=`${Number(data.width??24)}%`;
       node.style.transform='translate(-50%,-50%)';node.style.opacity='1';node.style.pointerEvents='auto';node.style.touchAction='none';
@@ -103,11 +107,16 @@
     }
 
     document.addEventListener('click',e=>{
-      const row=e.target.closest?.('.v112-sticker-row');if(!row)return;
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        const rows=[...document.querySelectorAll('.v112-sticker-row')],idx=rows.indexOf(row),rev=[...list()].reverse();
-        if(rev[idx])selectedId=rev[idx].id;bindNodes();
-      }));
+      const row=e.target.closest?.('.v112-sticker-row');
+      if(row){
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          const rows=[...document.querySelectorAll('.v112-sticker-row')],idx=rows.indexOf(row),rev=[...list()].reverse();
+          if(rev[idx])selectedId=rev[idx].id;bindNodes();
+        }));
+        return;
+      }
+      /* Clicking anywhere that is not a sticker, its tools, or its list releases selection. */
+      if(!e.target.closest?.('.v109-sticker-node,.v115-tool,.v115-resize,.v112-sticker-actions,.v112-add-sticker'))clearSelection();
     },true);
 
     requestAnimationFrame(()=>requestAnimationFrame(bindNodes));
