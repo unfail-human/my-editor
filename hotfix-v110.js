@@ -1,11 +1,11 @@
-/* MY EDITOR V110 — page flow/header sync/exact capture/background controls */
+/* MY EDITOR V110 — header sync/exact capture/background controls */
 (() => {
   function installV110(){
     const $id=id=>document.getElementById(id);
     const editor=$id('editor'), paper=$id('paper'), workspace=document.querySelector('.workspace');
     if(!editor||!paper||typeof current!=='function') return;
 
-    let flowTimer=null, syncingHeader=false, exactCapturing=false;
+    let syncingHeader=false, exactCapturing=false;
 
     const masterHeader=()=>{
       const s=current();
@@ -41,45 +41,13 @@
 
     ['titleInput','subtitleInput'].forEach(id=>{
       const el=$id(id); if(!el) return;
-      el.addEventListener('input',()=>{updateMasterFromInputs();},true);
-      el.addEventListener('change',()=>{updateMasterFromInputs();},true);
+      el.addEventListener('input',updateMasterFromInputs,true);
+      el.addEventListener('change',updateMasterFromInputs,true);
     });
 
-    function forcePullForward(){
-      if(exactCapturing) return;
-      const s=current();
-      const start=s.currentPageIndex||0;
-      if(!s.pages || start>=s.pages.length-1) return;
-      try{ if(typeof saveCurrent==='function') saveCurrent(false); }catch{}
-
-      const first=s.pages[start];
-      const tail=s.pages.slice(start);
-      const combined=tail.map(p=>p.content||'').filter(Boolean).join('');
-      if(!combined) return;
-      first.content=combined;
-      s.pages.splice(start+1);
-      s.currentPageIndex=start;
-      propagateMasterHeader(false);
-      try{persist()}catch{}
-      try{
-        if(typeof renderAll==='function') renderAll();
-        if(typeof reflowAllAutoPagesFromCurrentSlot==='function') reflowAllAutoPagesFromCurrentSlot();
-        propagateMasterHeader(false);
-        try{persist()}catch{}
-        syncLiveHeader();
-      }catch(err){console.error('v110 pull-forward failed',err)}
-    }
-
-    editor.addEventListener('input',()=>{
-      clearTimeout(flowTimer);
-      flowTimer=setTimeout(forcePullForward,120);
-    },true);
-    editor.addEventListener('keyup',e=>{
-      if(['Backspace','Delete'].includes(e.key)){
-        clearTimeout(flowTimer);
-        flowTimer=setTimeout(forcePullForward,80);
-      }
-    },true);
+    /* Page flow belongs exclusively to hotfix-v106. Do not attach another editor input
+       listener here: the old v110 forcePullForward routine merged/deleted pages after
+       v106 had already restored the caret, which caused cursor jumps and broken pull-forward. */
 
     if(typeof window.renderAll==='function' && !window.renderAll.__v110HeaderWrapped){
       const base=window.renderAll;
@@ -113,9 +81,7 @@
         paper.style.setProperty('background-color',solid,'important');
       }
       if(workspace){
-        const ambient=mode==='gradient'
-          ? `linear-gradient(${angle}deg, ${colorMix(g1,0.72)}, ${colorMix(g2,0.72)})`
-          : colorMix(solid,0.78);
+        const ambient=mode==='gradient'?`linear-gradient(${angle}deg, ${colorMix(g1,0.72)}, ${colorMix(g2,0.72)})`:colorMix(solid,0.78);
         workspace.style.setProperty('background',ambient,'important');
       }
       document.documentElement.style.setProperty('--work-v110',mode==='gradient'?colorMix(g1,0.72):colorMix(solid,0.78));
@@ -130,7 +96,6 @@
       box.id='v110Palette'; box.className='v110-palette-box';
       box.innerHTML=`<div class="v110-palette-title"><span>추천 색</span><small>현재 메인색 기준</small></div><div class="v110-palette" id="v110PaletteSwatches"></div>`;
       solidSection.appendChild(box);
-
       const render=()=>{
         const base=$id('solidColor')?.value||current().background?.solid||'#ffffff';
         const colors=[colorMix(base,0.82),colorMix(base,0.58),colorMix(base,0.32),base,colorMix(base,-0.08),colorMix(base,-0.18)];
@@ -200,17 +165,9 @@
           applyWorkspaceBackground();
           try{await document.fonts?.ready}catch{}
           await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-
           paper.classList.add('v110-capturing');
           const rect=paper.getBoundingClientRect();
-          const canvas=await html2canvas(paper,{
-            scale:3,useCORS:true,backgroundColor:null,
-            width:Math.round(rect.width),height:Math.round(rect.height),
-            scrollX:0,scrollY:-window.scrollY,
-            windowWidth:document.documentElement.clientWidth,
-            windowHeight:document.documentElement.clientHeight
-          });
-          return canvas;
+          return await html2canvas(paper,{scale:3,useCORS:true,backgroundColor:null,width:Math.round(rect.width),height:Math.round(rect.height),scrollX:0,scrollY:-window.scrollY,windowWidth:document.documentElement.clientWidth,windowHeight:document.documentElement.clientHeight});
         } finally {
           paper.classList.remove('v110-capturing');
           s.currentPageIndex=Math.max(0,Math.min(original,s.pages.length-1));
