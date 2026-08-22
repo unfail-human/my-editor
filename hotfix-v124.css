@@ -1,0 +1,49 @@
+/* MY EDITOR V124 — compact page action UI */
+.page-nav{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  flex-wrap:nowrap!important;
+}
+.page-nav #pageNavLabel{
+  min-width:72px!important;
+  margin:0 2px!important;
+  text-align:center!important;
+}
+.page-nav #addPageBtn,
+.page-nav #deletePageBtn{
+  height:32px!important;
+  min-width:88px!important;
+  padding:0 12px!important;
+  border-radius:8px!important;
+  font-size:11px!important;
+  font-weight:700!important;
+  line-height:30px!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  white-space:nowrap!important;
+}
+.page-nav #addPageBtn{
+  color:#fff!important;
+  background:#2f2b27!important;
+  border:1px solid #2f2b27!important;
+}
+.page-nav #addPageBtn:hover{background:#211e1b!important;border-color:#211e1b!important;}
+.page-nav #deletePageBtn{
+  color:#9a4a45!important;
+  background:#fff8f7!important;
+  border:1px solid rgba(154,74,69,.28)!important;
+}
+.page-nav #deletePageBtn:hover{background:#fdeeed!important;border-color:rgba(154,74,69,.42)!important;}
+.page-nav .page-nav-btn:not(#addPageBtn):not(#deletePageBtn){
+  flex:0 0 30px!important;
+  width:30px!important;
+  min-width:30px!important;
+  height:30px!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:8px!important;
+  box-sizing:border-box!important;
+}
