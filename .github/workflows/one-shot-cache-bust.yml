@@ -1,0 +1,36 @@
+name: One-shot app cache bust
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-cache-bust.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-index:
+    if: github.event.head_commit.message == 'Add one-shot cache bust workflow'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch root app version references
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('meta name="my-editor-version" content="101"','meta name="my-editor-version" content="131"')
+          s=s.replace('style.css?v=101','style.css?v=131')
+          s=s.replace('notice.js?v=101','notice.js?v=131')
+          s=s.replace('script.js?v=101','script.js?v=131')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit cache-busted shell
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Bust app shell cache for v131"
+          git push
