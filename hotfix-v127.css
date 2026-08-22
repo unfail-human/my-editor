@@ -1,0 +1,34 @@
+/* MY EDITOR V127 — preview/export exact clone must ignore legacy modal/export resizing */
+#previewHost .paper.v126-exact-clone,
+.modal-stage .paper.v126-exact-clone{
+  min-width:0!important;
+  max-width:none!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  padding:inherit;
+  overflow:hidden!important;
+}
+#previewHost .paper.v126-exact-clone .editor,
+.modal-stage .paper.v126-exact-clone .editor{
+  min-height:0!important;
+  height:auto!important;
+  overflow:hidden!important;
+  font-size:inherit!important;
+}
+.export-host .paper.v126-exact-clone{
+  min-width:0!important;
+  max-width:none!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  overflow:hidden!important;
+}
+.export-host .paper.v126-exact-clone .editor{
+  min-height:0!important;
+  height:auto!important;
+  overflow:hidden!important;
+  font-size:inherit!important;
+}
+/* Keep top/bottom body breathing room visually balanced. */
+.paper .editor{padding-bottom:22px;}
