@@ -1,9 +1,9 @@
-/* MY EDITOR V121 — single-owner canonical document flow */
+/* MY EDITOR V122 — single-owner canonical document flow */
 (() => {
   function installV121(){
     const ed=document.getElementById('editor');
     if(!ed || typeof current!=='function') return;
-    document.documentElement.dataset.paginationEngine='121';
+    document.documentElement.dataset.paginationEngine='122';
 
     let lastInputType='', timer=null, running=false, restoreSeq=0;
     const textLen=html=>{const d=document.createElement('div');d.innerHTML=html||'';return (d.textContent||'').length};
@@ -28,7 +28,9 @@
     function overflows(){
       const layout=typeof currentLayout==='function'?currentLayout():null;
       if(layout?.writingMode==='vertical')return ed.scrollWidth>ed.clientWidth+1;
-      return ed.scrollHeight>ed.clientHeight+1 || ed.scrollWidth>ed.clientWidth+1;
+      /* Horizontal writing must wrap horizontally. A tiny scrollWidth excess must never be
+         treated as page overflow, otherwise Korean text fragments can be split off to the side. */
+      return ed.scrollHeight>ed.clientHeight+1;
     }
     function htmlOf(node){if(node.nodeType===Node.TEXT_NODE){const d=document.createElement('div');d.textContent=node.nodeValue;return d.innerHTML}return node.outerHTML||''}
     function parseOne(html){const t=document.createElement('template');t.innerHTML=html;return t.content.firstChild}
@@ -69,7 +71,6 @@
           const split=maxPrefixThatFits(item);
           if(split.prefix){const p=parseOne(split.prefix);if(p)ed.appendChild(p);pageHTML=ed.innerHTML;queue.shift();if(split.suffix)queue.unshift(split.suffix)}
           else if(!pageHTML){
-            /* Unbreakable zero-text/oversized object: keep it so pagination can progress. */
             ed.appendChild(parseOne(item));pageHTML=ed.innerHTML;queue.shift();
           }
           break;
@@ -92,7 +93,6 @@
       const master=slot.pages[root],title=master.title||'',subtitle=master.subtitle||'';
       running=true;isPaginating=true;
       try{
-        /* Measure using the first page's real layout. */
         slot.currentPageIndex=root;ed.innerHTML='';if(document.getElementById('titleInput'))document.getElementById('titleInput').value=title;if(document.getElementById('subtitleInput'))document.getElementById('subtitleInput').value=subtitle;
         try{applyTypography?.();applyDocumentLayout?.()}catch{}
         const chunks=paginateHTML(combined,slot,master);
@@ -103,12 +103,11 @@
         const target=goFirst?{index:root,offset:0}:(absolute==null?{index:Math.min(original,slot.pages.length-1),offset:0}:restoreTarget(slot,root,absolute));
         slot.currentPageIndex=target.index;try{persist?.();renderAll?.()}catch{}
         if(keepCaret&&!goFirst&&absolute!=null){const seq=++restoreSeq;requestAnimationFrame(()=>requestAnimationFrame(()=>{if(seq===restoreSeq)setCaret(target.offset)}))}
-      }catch(e){console.error('V121 pagination failed',e)}finally{isPaginating=false;running=false}
+      }catch(e){console.error('V122 pagination failed',e)}finally{isPaginating=false;running=false}
     }
     window.reflowDocumentV121=reflow;
     window.reflowAllAutoPagesFromCurrentSlot=()=>reflow({keepCaret:false});
 
-    /* Capture the editor input before legacy target listeners. V121 is the only pagination owner. */
     document.addEventListener('beforeinput',e=>{if(e.target===ed)lastInputType=String(e.inputType||'')},true);
     document.addEventListener('input',e=>{
       if(e.target!==ed)return;
@@ -116,7 +115,6 @@
       const paste=lastInputType==='insertFromPaste';clearTimeout(timer);timer=setTimeout(()=>reflow({goFirst:paste,keepCaret:!paste}),paste?20:45);lastInputType='';
     },true);
 
-    /* Strict text-only paste, normalized into paragraph blocks. */
     document.addEventListener('paste',e=>{
       if(e.target!==ed&&!ed.contains(e.target))return;
       e.preventDefault();e.stopImmediatePropagation();
@@ -129,14 +127,12 @@
       saveLive();try{persist?.()}catch{};clearTimeout(timer);timer=setTimeout(()=>reflow({goFirst:true,keepCaret:false}),20);
     },true);
 
-    /* First-page navigation and cleaner page-delete UI. */
     const nav=document.getElementById('pageNavLabel')?.parentElement;
     let first=document.getElementById('firstPageBtn');
     if(nav&&!first){first=document.createElement('button');first.id='firstPageBtn';first.type='button';first.className='page-nav-btn v121-first';first.textContent='↤ 처음';first.title='첫 페이지로';nav.insertBefore(first,nav.firstChild)}
     if(first)first.onclick=()=>{saveLive();const s=current();s.currentPageIndex=0;try{persist?.();renderAll?.()}catch{}};
     const del=document.getElementById('deletePageBtn');if(del){del.textContent='페이지 삭제';del.classList.add('v121-delete');del.title='현재 페이지 삭제'}
 
-    /* Reflow once after fonts/layout settle; old pages become one flowing document segment. */
     setTimeout(()=>{try{current()?.pages?.forEach((p,i)=>{if(i>0&&!p.userManualPage){p.userManualPage=false;p.manualBreakBefore=false}});reflow({keepCaret:false})}catch(e){console.error(e)}},900);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(installV121,0),{once:true});else setTimeout(installV121,0);
